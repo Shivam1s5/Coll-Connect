@@ -85,7 +85,12 @@ const Topbar = ({ toggleSidebar }) => {
                 ) : (
                   announcements.map(ann => (
                     <div key={ann._id} className="notification-item">
-                      <h5 className="notification-title">{ann.title}</h5>
+                      <div style={{display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '5px'}}>
+                        <div style={{background: 'rgba(59, 130, 246, 0.2)', padding: '5px', borderRadius: '50%', color: '#60a5fa', display: 'flex'}}>
+                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m3 11 18-5v12L3 14v-3z"></path><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"></path></svg>
+                        </div>
+                        <h5 className="notification-title">{ann.title}</h5>
+                      </div>
                       {ann.imageUrl && (
                         <div className="announcement-image-wrapper">
                           <img src={ann.imageUrl} alt="Announcement" className="announcement-image" />
