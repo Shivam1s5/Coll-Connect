@@ -19,6 +19,7 @@ router.post('/announcements', authenticate, isSuperAdmin, async (req, res) => {
 
 router.delete('/announcements/:id', authenticate, isSuperAdmin, async (req, res) => {
   await Announcement.findByIdAndDelete(req.params.id);
+  if (req.io) req.io.emit('delete-announcement', req.params.id);
   res.json({ success: true });
 });
 

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
+import { useSocket } from '../../contexts/SocketContext';
 import { Image as ImageIcon } from 'lucide-react';
 
 const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
@@ -10,10 +11,28 @@ const Announcements = () => {
   const [content, setContent] = useState('');
   const [imageFile, setImageFile] = useState(null);
   const [loading, setLoading] = useState(false);
+  const { socket } = useSocket();
 
   useEffect(() => {
     fetchAnnouncements();
   }, []);
+
+  useEffect(() => {
+    if (socket) {
+      socket.on('new-announcement', (ann) => {
+        setAnnouncements(prev => [ann, ...prev]);
+      });
+      socket.on('delete-announcement', (id) => {
+        setAnnouncements(prev => prev.filter(a => a._id !== id));
+      });
+    }
+    return () => {
+      if (socket) {
+        socket.off('new-announcement');
+        socket.off('delete-announcement');
+      }
+    }
+  }, [socket]);
 
   const fetchAnnouncements = async () => {
     try {
@@ -71,7 +90,7 @@ const Announcements = () => {
         setTitle('');
         setContent('');
         setImageFile(null);
-        fetchAnnouncements();
+        // fetchAnnouncements(); // No longer need to fetch, socket handles it
         alert('Announcement sent to all users!');
       } else {
         const data = await res.json();
@@ -91,7 +110,7 @@ const Announcements = () => {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
       });
-      if (res.ok) fetchAnnouncements();
+      // if (res.ok) fetchAnnouncements(); // Handled by socket
     } catch (err) {
       console.error(err);
     }
@@ -143,7 +162,7 @@ const Announcements = () => {
           )}
         </div>
 
-        <button type="submit" className="btn-primary" disabled={loading} style={{width: '100%', padding: '12px', fontSize: '1rem', fontWeight: 'bold'}}>
+        <button type="submit" className="btn-gradient" disabled={loading} style={{width: '100%', padding: '12px', fontSize: '1rem', fontWeight: 'bold'}}>
           {loading ? 'BROADCASTING...' : 'BROADCAST ANNOUNCEMENT'}
         </button>
       </form>

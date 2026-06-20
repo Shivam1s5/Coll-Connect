@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Menu, Bell } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { useSocket } from '../contexts/SocketContext';
 
 const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
 
 const Topbar = ({ toggleSidebar }) => {
   const { user } = useAuth();
+  const { socket } = useSocket();
   const [showNotifications, setShowNotifications] = useState(false);
   const [announcements, setAnnouncements] = useState([]);
   const dropdownRef = useRef(null);
@@ -21,6 +23,23 @@ const Topbar = ({ toggleSidebar }) => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    if (socket) {
+      socket.on('new-announcement', (ann) => {
+        setAnnouncements(prev => [ann, ...prev]);
+      });
+      socket.on('delete-announcement', (id) => {
+        setAnnouncements(prev => prev.filter(a => a._id !== id));
+      });
+    }
+    return () => {
+      if (socket) {
+        socket.off('new-announcement');
+        socket.off('delete-announcement');
+      }
+    }
+  }, [socket]);
 
   const fetchAnnouncements = async () => {
     try {
