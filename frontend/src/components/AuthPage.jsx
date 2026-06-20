@@ -50,6 +50,8 @@ const AuthPage = () => {
     }
   };
 
+  const [googleRegData, setGoogleRegData] = useState(null);
+
   const handleGoogleSuccess = async (credentialResponse) => {
     try {
       const response = await fetch(`${backendUrl}/api/auth/google`, {
@@ -62,28 +64,34 @@ const AuthPage = () => {
       if (!response.ok) throw new Error(data.error);
 
       if (data.requiresRegistration) {
-        // Simple prompt for username/password if new Google user
-        const newUsername = prompt(`Welcome ${data.baseUsername}! Please choose a username:`, data.baseUsername);
-        if (!newUsername) return;
-        const newPass = prompt(`Set a password for your new account:`);
-        if (!newPass) return;
-
-        const regRes = await fetch(`${backendUrl}/api/auth/google-register`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ googleToken: data.googleToken, username: newUsername, password: newPass })
-        });
-        const regData = await regRes.json();
-        if (!regRes.ok) throw new Error(regData.error);
-        
-        login(regData.token, { username: regData.username, role: regData.role });
-        navigate('/');
+        setGoogleRegData(data);
+        setUsername(data.baseUsername);
+        setPassword('');
       } else {
         login(data.token, { username: data.username, role: data.role });
         navigate('/');
       }
     } catch(err) {
       setError('Google auth failed: ' + err.message);
+    }
+  };
+
+  const handleGoogleRegisterSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    try {
+      const regRes = await fetch(`${backendUrl}/api/auth/google-register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ googleToken: googleRegData.googleToken, username, password })
+      });
+      const regData = await regRes.json();
+      if (!regRes.ok) throw new Error(regData.error);
+      
+      login(regData.token, { username: regData.username, role: regData.role });
+      navigate('/');
+    } catch(err) {
+      setError('Google registration failed: ' + err.message);
     }
   };
 
@@ -126,7 +134,44 @@ const AuthPage = () => {
 
         <div className="auth-main-container">
           <div className="auth-card">
-            {showForgot ? (
+            {googleRegData ? (
+              <>
+                <h2>Complete Registration</h2>
+                <p>Welcome {googleRegData.email}! Please pick a username and password.</p>
+                <form onSubmit={handleGoogleRegisterSubmit} className="auth-form">
+                  <div className="form-group">
+                    <label>Username</label>
+                    <input
+                      type="text"
+                      className="auth-input"
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Password</label>
+                    <div className="password-input-wrapper">
+                      <input
+                        type={showPassword ? 'text' : 'password'}
+                        className="auth-input"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        required
+                      />
+                      <button type="button" className="eye-btn" onClick={() => setShowPassword(!showPassword)}>
+                        {showPassword ? '👁️' : '👁️‍🗨️'}
+                      </button>
+                    </div>
+                  </div>
+                  {error && <div className="error-text">{error}</div>}
+                  <button type="submit" className="btn-gradient">
+                    COMPLETE SIGN UP
+                  </button>
+                  <button type="button" className="btn-text-only" onClick={() => { setGoogleRegData(null); setError(''); }}>Cancel</button>
+                </form>
+              </>
+            ) : showForgot ? (
               <>
                 <h2>Reset Password</h2>
                 <p>Follow the steps to recover your account.</p>
