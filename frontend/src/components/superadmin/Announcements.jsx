@@ -10,6 +10,7 @@ const Announcements = () => {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState('');
   const [loading, setLoading] = useState(false);
   const { socket } = useSocket();
 
@@ -50,8 +51,9 @@ const Announcements = () => {
       const file = e.target.files[0];
       if (file.size > 5 * 1024 * 1024) return alert('Image must be less than 5MB');
       
+      setImageFile(file);
       const reader = new FileReader();
-      reader.onload = (ev) => setImageFile(ev.target.result);
+      reader.onload = (ev) => setImagePreview(ev.target.result);
       reader.readAsDataURL(file);
     }
   };
@@ -64,16 +66,20 @@ const Announcements = () => {
     try {
       let imageUrl = '';
       if (imageFile) {
+        const formData = new FormData();
+        formData.append('file', imageFile);
+
         const uploadRes = await fetch(`${backendUrl}/api/upload`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ fileData: imageFile, fileType: 'image' })
+          body: formData
         });
+        
         if (uploadRes.ok) {
           const uploadData = await uploadRes.json();
           imageUrl = uploadData.url;
         } else {
-          return alert('Failed to upload image. Please try again.');
+          setLoading(false);
+          return alert('Failed to upload image. Please try again or check Cloudinary keys.');
         }
       }
 
@@ -90,6 +96,7 @@ const Announcements = () => {
         setTitle('');
         setContent('');
         setImageFile(null);
+        setImagePreview('');
         // fetchAnnouncements(); // No longer need to fetch, socket handles it
         alert('Announcement sent to all users!');
       } else {
@@ -153,11 +160,11 @@ const Announcements = () => {
               <span>Choose Image</span>
               <input type="file" accept="image/*" style={{display: 'none'}} onChange={handleImageChange} />
             </label>
-            {imageFile && <span style={{color: '#10b981', fontSize: '0.9rem'}}>Image Selected ✓</span>}
+            {imagePreview && <span style={{color: '#10b981', fontSize: '0.9rem'}}>Image Selected ✓</span>}
           </div>
-          {imageFile && (
+          {imagePreview && (
             <div style={{marginTop: '10px'}}>
-              <img src={imageFile} alt="Preview" style={{maxHeight: '100px', borderRadius: '8px', border: '1px solid #4b5563'}} />
+              <img src={imagePreview} alt="Preview" style={{maxHeight: '100px', borderRadius: '8px', border: '1px solid #4b5563'}} />
             </div>
           )}
         </div>
