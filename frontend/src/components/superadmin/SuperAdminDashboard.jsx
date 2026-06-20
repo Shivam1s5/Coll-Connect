@@ -100,22 +100,44 @@ const SuperAdminDashboard = () => {
             Collecting data... The graph will populate on the next hourly update.
           </div>
         ) : (
-          <div style={{ width: '100%', height: 350 }}>
-            <ResponsiveContainer>
-              <AreaChart data={analyticsData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="colorCount" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8}/>
-                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#2d3748" vertical={false} />
-                <XAxis dataKey="time" stroke="#9ca3af" fontSize={12} tickLine={false} axisLine={false} />
-                <YAxis stroke="#9ca3af" fontSize={12} tickLine={false} axisLine={false} allowDecimals={false} />
-                <Tooltip content={<CustomTooltip />} />
-                <Area type="monotone" dataKey="count" stroke="#3b82f6" strokeWidth={3} fillOpacity={1} fill="url(#colorCount)" />
-              </AreaChart>
-            </ResponsiveContainer>
+          <div style={{ display: 'flex', gap: '20px', flexDirection: 'column' }}>
+            <div style={{ width: '100%', height: 350 }}>
+              <ResponsiveContainer>
+                <AreaChart data={analyticsData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="colorCount" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8}/>
+                      <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#2d3748" vertical={false} />
+                  <XAxis dataKey="time" stroke="#9ca3af" fontSize={12} tickLine={false} axisLine={false} />
+                  <YAxis stroke="#9ca3af" fontSize={12} tickLine={false} axisLine={false} allowDecimals={false} />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Area type="monotone" dataKey="count" stroke="#3b82f6" strokeWidth={3} fillOpacity={1} fill="url(#colorCount)" />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+            
+            <div className="analytics-table-container" style={{ overflowX: 'auto', marginTop: '20px' }}>
+              <h4 style={{ color: '#e2e8f0', marginBottom: '10px' }}>Detailed Hourly Log</h4>
+              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', color: '#cbd5e1', fontSize: '0.9rem' }}>
+                <thead>
+                  <tr style={{ borderBottom: '1px solid #334155' }}>
+                    <th style={{ padding: '10px', color: '#94a3b8', fontWeight: '500' }}>Time</th>
+                    <th style={{ padding: '10px', color: '#94a3b8', fontWeight: '500' }}>Active Users</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[...analyticsData].reverse().map((data, index) => (
+                    <tr key={index} style={{ borderBottom: '1px solid #1e293b' }}>
+                      <td style={{ padding: '10px' }}>{data.time}</td>
+                      <td style={{ padding: '10px', fontWeight: 'bold', color: '#3b82f6' }}>{data.count}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
       </div>
