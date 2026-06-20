@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth';
-import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
+import { useAuth } from '../contexts/AuthContext';
+import { GoogleOAuthProvider, GoogleLogin, useGoogleOneTapLogin } from '@react-oauth/google';
 
 const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
 const googleClientId = '546847428748-bv1dpfra1bcb2hhu8cu0u306k8fh0lvs.apps.googleusercontent.com';
 
-const AuthPage = () => {
+const AuthContent = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [username, setUsername] = useState('');
@@ -18,7 +18,7 @@ const AuthPage = () => {
   const [forgotEmail, setForgotEmail] = useState('');
   const [resetCode, setResetCode] = useState('');
   const [newPassword, setNewPassword] = useState('');
-  const [forgotStep, setForgotStep] = useState(1); // 1: Email, 2: Code+NewPass
+  const [forgotStep, setForgotStep] = useState(1);
 
   const navigate = useNavigate();
   const { login } = useAuth();
@@ -76,6 +76,12 @@ const AuthPage = () => {
     }
   };
 
+  // The actual One Tap hook that shows the popup in the top right
+  useGoogleOneTapLogin({
+    onSuccess: handleGoogleSuccess,
+    onError: () => console.log('Google One Tap failed or closed'),
+  });
+
   const handleGoogleRegisterSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -126,19 +132,98 @@ const AuthPage = () => {
   };
 
   return (
-    <GoogleOAuthProvider clientId={googleClientId}>
-      <div className="auth-page-wrapper">
-        <div className="auth-navbar">
-          <h2>Coll-Connect</h2>
-        </div>
+    <div className="auth-page-wrapper">
+      <div className="auth-navbar">
+        <h2>Coll-Connect</h2>
+      </div>
 
-        <div className="auth-main-container">
-          <div className="auth-card">
-            {googleRegData ? (
-              <>
-                <h2>Complete Registration</h2>
-                <p>Welcome {googleRegData.email}! Please pick a username and password.</p>
-                <form onSubmit={handleGoogleRegisterSubmit} className="auth-form">
+      <div className="auth-main-container">
+        <div className="auth-card">
+          {googleRegData ? (
+            <>
+              <h2>Complete Registration</h2>
+              <p>Welcome {googleRegData.email}! Please pick a username and password.</p>
+              <form onSubmit={handleGoogleRegisterSubmit} className="auth-form">
+                <div className="form-group">
+                  <label>Username</label>
+                  <input
+                    type="text"
+                    className="auth-input"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Password</label>
+                  <div className="password-input-wrapper">
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      className="auth-input"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                    />
+                    <button type="button" className="eye-btn" onClick={() => setShowPassword(!showPassword)}>
+                      {showPassword ? '👁️' : '👁️‍🗨️'}
+                    </button>
+                  </div>
+                </div>
+                {error && <div className="error-text">{error}</div>}
+                <button type="submit" className="btn-gradient">
+                  COMPLETE SIGN UP
+                </button>
+                <button type="button" className="btn-text-only" onClick={() => { setGoogleRegData(null); setError(''); }}>Cancel</button>
+              </form>
+            </>
+          ) : showForgot ? (
+            <>
+              <h2>Reset Password</h2>
+              <p>Follow the steps to recover your account.</p>
+              <form onSubmit={handleForgotSubmit} className="auth-form">
+                {forgotStep === 1 ? (
+                  <div className="form-group">
+                    <label>Email</label>
+                    <input type="email" className="auth-input" value={forgotEmail} onChange={e => setForgotEmail(e.target.value)} required />
+                  </div>
+                ) : (
+                  <>
+                    <div className="form-group">
+                      <label>Reset Code</label>
+                      <input type="text" className="auth-input" value={resetCode} onChange={e => setResetCode(e.target.value)} required />
+                    </div>
+                    <div className="form-group">
+                      <label>New Password</label>
+                      <input type="password" className="auth-input" value={newPassword} onChange={e => setNewPassword(e.target.value)} required />
+                    </div>
+                  </>
+                )}
+                {error && <div className="error-text">{error}</div>}
+                <button type="submit" className="btn-gradient">
+                  {forgotStep === 1 ? 'SEND CODE' : 'RESET PASSWORD'}
+                </button>
+                <button type="button" className="btn-text-only" onClick={() => { setShowForgot(false); setForgotStep(1); setError(''); }}>Back to Login</button>
+              </form>
+            </>
+          ) : (
+            <>
+              <h2>{isLogin ? 'Welcome Back' : 'Create Account'}</h2>
+              <p>{isLogin ? 'Log in to continue chatting.' : 'Sign up to meet strangers anonymously.'}</p>
+              
+              <form onSubmit={handleSubmit} className="auth-form">
+                <div className="form-group">
+                  <label>Email</label>
+                  <input
+                    type="email"
+                    className="auth-input"
+                    value={email}
+                    placeholder={isLogin ? 'you@example.com' : ''}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                  />
+                </div>
+
+                {!isLogin && (
                   <div className="form-group">
                     <label>Username</label>
                     <input
@@ -149,143 +234,70 @@ const AuthPage = () => {
                       required
                     />
                   </div>
-                  <div className="form-group">
-                    <label>Password</label>
-                    <div className="password-input-wrapper">
-                      <input
-                        type={showPassword ? 'text' : 'password'}
-                        className="auth-input"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        required
-                      />
-                      <button type="button" className="eye-btn" onClick={() => setShowPassword(!showPassword)}>
-                        {showPassword ? '👁️' : '👁️‍🗨️'}
-                      </button>
-                    </div>
-                  </div>
-                  {error && <div className="error-text">{error}</div>}
-                  <button type="submit" className="btn-gradient">
-                    COMPLETE SIGN UP
-                  </button>
-                  <button type="button" className="btn-text-only" onClick={() => { setGoogleRegData(null); setError(''); }}>Cancel</button>
-                </form>
-              </>
-            ) : showForgot ? (
-              <>
-                <h2>Reset Password</h2>
-                <p>Follow the steps to recover your account.</p>
-                <form onSubmit={handleForgotSubmit} className="auth-form">
-                  {forgotStep === 1 ? (
-                    <div className="form-group">
-                      <label>Email</label>
-                      <input type="email" className="auth-input" value={forgotEmail} onChange={e => setForgotEmail(e.target.value)} required />
-                    </div>
-                  ) : (
-                    <>
-                      <div className="form-group">
-                        <label>Reset Code</label>
-                        <input type="text" className="auth-input" value={resetCode} onChange={e => setResetCode(e.target.value)} required />
-                      </div>
-                      <div className="form-group">
-                        <label>New Password</label>
-                        <input type="password" className="auth-input" value={newPassword} onChange={e => setNewPassword(e.target.value)} required />
-                      </div>
-                    </>
-                  )}
-                  {error && <div className="error-text">{error}</div>}
-                  <button type="submit" className="btn-gradient">
-                    {forgotStep === 1 ? 'SEND CODE' : 'RESET PASSWORD'}
-                  </button>
-                  <button type="button" className="btn-text-only" onClick={() => { setShowForgot(false); setForgotStep(1); setError(''); }}>Back to Login</button>
-                </form>
-              </>
-            ) : (
-              <>
-                <h2>{isLogin ? 'Welcome Back' : 'Create Account'}</h2>
-                <p>{isLogin ? 'Log in to continue chatting.' : 'Sign up to meet strangers anonymously.'}</p>
+                )}
                 
-                <form onSubmit={handleSubmit} className="auth-form">
-                  <div className="form-group">
-                    <label>Email</label>
+                <div className="form-group">
+                  <label>Password</label>
+                  <div className="password-input-wrapper">
                     <input
-                      type="email"
+                      type={showPassword ? 'text' : 'password'}
                       className="auth-input"
-                      value={email}
-                      placeholder={isLogin ? 'you@example.com' : ''}
-                      onChange={(e) => setEmail(e.target.value)}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
                       required
                     />
+                    <button type="button" className="eye-btn" onClick={() => setShowPassword(!showPassword)}>
+                      {showPassword ? '👁️' : '👁️‍🗨️'}
+                    </button>
                   </div>
-
-                  {!isLogin && (
-                    <div className="form-group">
-                      <label>Username</label>
-                      <input
-                        type="text"
-                        className="auth-input"
-                        value={username}
-                        onChange={(e) => setUsername(e.target.value)}
-                        required
-                      />
-                    </div>
-                  )}
-                  
-                  <div className="form-group">
-                    <label>Password</label>
-                    <div className="password-input-wrapper">
-                      <input
-                        type={showPassword ? 'text' : 'password'}
-                        className="auth-input"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        required
-                      />
-                      <button type="button" className="eye-btn" onClick={() => setShowPassword(!showPassword)}>
-                        {showPassword ? '👁️' : '👁️‍🗨️'}
-                      </button>
-                    </div>
-                  </div>
-
-                  {error && <div className="error-text">{error}</div>}
-
-                  <button type="submit" className="btn-gradient">
-                    {isLogin ? 'LOG IN' : 'SIGN UP'}
-                  </button>
-                </form>
-
-                {isLogin && (
-                  <div className="forgot-password">
-                    <button onClick={() => { setShowForgot(true); setError(''); }}>Forgot Password?</button>
-                  </div>
-                )}
-
-                <div className="auth-switch">
-                  {isLogin ? "Don't have an account? " : "Already have an account? "}
-                  <button onClick={() => { setIsLogin(!isLogin); setError(''); }}>
-                    {isLogin ? 'Sign Up' : 'Log In'}
-                  </button>
                 </div>
 
-                <div className="auth-divider">
-                  <span>OR</span>
-                </div>
+                {error && <div className="error-text">{error}</div>}
 
-                <div className="google-auth-wrapper">
-                  <GoogleLogin
-                    onSuccess={handleGoogleSuccess}
-                    onError={() => setError('Google login failed')}
-                    theme="filled_black"
-                    text={isLogin ? "signin_with" : "signup_with"}
-                    shape="rectangular"
-                    use_fedcm_for_prompt={true}
-                  />
+                <button type="submit" className="btn-gradient">
+                  {isLogin ? 'LOG IN' : 'SIGN UP'}
+                </button>
+              </form>
+
+              {isLogin && (
+                <div className="forgot-password">
+                  <button onClick={() => { setShowForgot(true); setError(''); }}>Forgot Password?</button>
                 </div>
-              </>
-            )}
-          </div>
+              )}
+
+              <div className="auth-switch">
+                {isLogin ? "Don't have an account? " : "Already have an account? "}
+                <button onClick={() => { setIsLogin(!isLogin); setError(''); }}>
+                  {isLogin ? 'Sign Up' : 'Log In'}
+                </button>
+              </div>
+
+              <div className="auth-divider">
+                <span>OR</span>
+              </div>
+
+              <div className="google-auth-wrapper">
+                <GoogleLogin
+                  onSuccess={handleGoogleSuccess}
+                  onError={() => setError('Google login failed')}
+                  theme="filled_black"
+                  text={isLogin ? "signin_with" : "signup_with"}
+                  shape="rectangular"
+                  use_fedcm_for_prompt={true}
+                />
+              </div>
+            </>
+          )}
         </div>
       </div>
+    </div>
+  );
+};
+
+const AuthPage = () => {
+  return (
+    <GoogleOAuthProvider clientId={googleClientId}>
+      <AuthContent />
     </GoogleOAuthProvider>
   );
 };
