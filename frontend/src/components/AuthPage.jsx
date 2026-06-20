@@ -33,7 +33,7 @@ const AuthPage = () => {
         throw new Error(data.error || 'Server error. Please try again.');
       }
 
-      login(data.token, data.user);
+      login(data.token, { username: data.username, role: data.role });
       navigate('/');
     } catch (err) {
       setError(err.message === 'Failed to fetch' ? 'Server error. Please try again.' : err.message);

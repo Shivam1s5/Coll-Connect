@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useSocket } from '../contexts/SocketContext';
+import { useAuth } from '../contexts/AuthContext';
 
 const VideoRoom = () => {
   const { socket } = useSocket();
@@ -127,11 +128,13 @@ const VideoRoom = () => {
     }
   };
 
+  const { user } = useAuth();
+
   const handleNext = () => {
-    if (socket) {
+    if (socket && user) {
       setPartnerConnected(false);
       setMessages([{ text: 'Looking for someone you can chat with...', system: true }]);
-      socket.emit('find-partner', { myGender: 'Any', interestedIn: 'Any' });
+      socket.emit('find-partner', { myGender: 'Any', interestedIn: 'Any', username: user.username });
     }
   };
 
