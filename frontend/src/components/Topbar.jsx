@@ -25,7 +25,7 @@ const Topbar = ({ toggleSidebar }) => {
         <div className="user-profile-badge">
           <div className="user-info-text">
             <span className="username">{user?.username || 'User'}</span>
-            <span className="role">{user?.role?.toUpperCase() || 'USER'}</span>
+            <span className={`badge badge-${user?.role || 'user'}`} style={{marginLeft: 0, marginTop: '2px', fontSize: '0.6rem'}}>{user?.role?.toUpperCase() || 'USER'}</span>
           </div>
           <div className="user-avatar">
             {user?.username ? user.username.charAt(0).toUpperCase() : 'U'}
