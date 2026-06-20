@@ -9,9 +9,9 @@ router.get('/announcements', authenticate, async (req, res) => {
 });
 
 router.post('/announcements', authenticate, isSuperAdmin, async (req, res) => {
-  const { title, content } = req.body;
+  const { title, content, imageUrl } = req.body;
   if (!title || !content) return res.status(400).json({ error: 'Title and content are required' });
-  const ann = new Announcement({ title, content });
+  const ann = new Announcement({ title, content, imageUrl: imageUrl || '' });
   await ann.save();
   if (req.io) req.io.emit('new-announcement', ann);
   res.json(ann);
