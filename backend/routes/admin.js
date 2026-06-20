@@ -1,0 +1,337 @@
+const express = require('express');
+const router = express.Router();
+const jwt = require('jsonwebtoken');
+const User = require('../models/User');
+const Message = require('../models/Message');
+const Report = require('../models/Report');
+const DeletionRequest = require('../models/DeletionRequest');
+const Analytics = require('../models/Analytics');
+const nodemailer = require('nodemailer');
+
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.ADMIN_EMAIL,
+    pass: process.env.ADMIN_APP_PASSWORD
+  }
+});
+
+const JWT_SECRET = process.env.JWT_SECRET || 'super-secret-key-123';
+
+const authMiddleware = (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader) return res.status(401).json({ error: 'No token' });
+  try {
+    req.user = jwt.verify(authHeader.split(' ')[1], JWT_SECRET);
+    next();
+  } catch(e) { res.status(401).json({ error: 'Invalid token' }); }
+};
+
+const isAdmin = async (req, res, next) => {
+  authMiddleware(req, res, async () => {
+    const user = await User.findOne({ username: req.user.username });
+    if (!user || (user.role !== 'admin' && user.role !== 'superadmin')) return res.status(403).json({ error: 'Forbidden' });
+    next();
+  });
+};
+
+const isSuperAdmin = async (req, res, next) => {
+  authMiddleware(req, res, async () => {
+    const user = await User.findOne({ username: req.user.username });
+    if (!user || user.role !== 'superadmin') return res.status(403).json({ error: 'Forbidden' });
+    next();
+  });
+};
+
+router.post('/account/request-deletion', authMiddleware, async (req, res) => {
+  if (await DeletionRequest.findOne({ username: req.user.username })) {
+    return res.status(400).json({ error: 'Deletion request already pending.' });
+  }
+  const newReq = new DeletionRequest({ email: req.user.email, username: req.user.username });
+  await newReq.save();
+  if (req.io) req.io.emit('admin-update');
+  res.json({ success: true });
+});
+
+router.get('/admin/deletion-requests', isSuperAdmin, async (req, res) => {
+  const requests = await DeletionRequest.find().sort({ timestamp: -1 });
+  res.json(requests);
+});
+
+router.get('/admin/users', isAdmin, async (req, res) => {
+  const reqUser = await User.findOne({ username: req.user.username });
+  const isReqSuperadmin = reqUser && reqUser.role === 'superadmin';
+  const users = await User.find();
+  const reports = await Report.find();
+  const mappedReports = reports.map(r => ({
+    id: r._id.toString(),
+    reporter: r.reporter,
+    reportedUser: r.reportedUser,
+    reason: r.reason,
+    screenshot: r.screenshot,
+    time: r.timestamp,
+    status: r.status,
+    resolvedBy: r.resolvedBy
+  }));
+
+  const safeUsers = users.map(u => ({
+    username: u.username,
+    email: u.email,
+    profilePic: u.profilePic,
+    joinedAt: u.joinedAt,
+    role: u.role,
+    reportCount: mappedReports.filter(r => r.reportedUser === u.username && r.status === 'pending').length,
+    reports: mappedReports.filter(r => r.reportedUser === u.username && r.status === 'pending'),
+    warningHistory: u.warningHistory || [],
+    blockedUntil: u.blockedUntil,
+    password: isReqSuperadmin ? u.password : undefined
+  }));
+  
+  res.json({ users: safeUsers, reports: mappedReports });
+});
+
+const cascadeDeleteUser = async (username, io) => {
+  const user = await User.findOne({ username });
+  if (!user) return;
+  await User.deleteOne({ username });
+
+  await User.updateMany({ friends: username }, { $pull: { friends: username } });
+  await User.updateMany({ "friendRequests.username": username }, { $pull: { friendRequests: { username } } });
+  
+  await Message.deleteMany({ $or: [{ sender: username }, { receiver: username }] });
+  await Report.deleteMany({ $or: [{ reporter: username }, { reportedUser: username }] });
+  await DeletionRequest.deleteMany({ username });
+
+  if (io) io.emit('user-deleted', { username });
+};
+
+router.post('/admin/approve-deletion', isSuperAdmin, async (req, res) => {
+  await cascadeDeleteUser(req.body.username, req.io);
+  res.json({ success: true });
+});
+
+router.post('/admin/force-delete-user', isSuperAdmin, async (req, res) => {
+  await cascadeDeleteUser(req.body.username, req.io);
+  res.json({ success: true });
+});
+
+router.post('/admin/reject-deletion', isSuperAdmin, async (req, res) => {
+  await DeletionRequest.deleteOne({ username: req.body.username });
+  if (req.io) req.io.emit('admin-update');
+  res.json({ success: true });
+});
+
+router.post('/admin/dismiss-report', isAdmin, async (req, res) => {
+  await Report.findByIdAndUpdate(req.body.reportId, { status: 'dismissed' });
+  if (req.io) req.io.emit('admin-update');
+  res.json({ success: true });
+});
+
+router.post('/admin/warn-user', isAdmin, async (req, res) => {
+  let { reportId, warningMessage } = req.body;
+  if (!reportId) return res.status(400).json({ error: 'Report ID required' });
+
+  // Default warning message if none provided
+  if (!warningMessage || !warningMessage.trim()) {
+    warningMessage = "WARNING: Your account has been reported for violations. Please adhere to the community guidelines. Further violations may result in a permanent ban.";
+  }
+
+  // Find the report first, then find the reported user from it (like old system)
+  const report = await Report.findById(reportId);
+  if (!report) return res.status(404).json({ error: 'Report not found' });
+
+  const user = await User.findOne({ username: report.reportedUser });
+  if (!user) return res.status(404).json({ error: 'Reported user not found' });
+
+  // Mark report as resolved
+  await Report.findByIdAndUpdate(reportId, { status: 'resolved', resolvedBy: req.user.username });
+
+  // Add to warning history (like old system)
+  if (!user.warningHistory) user.warningHistory = [];
+  user.warningHistory.push({
+    date: new Date().toISOString(),
+    message: warningMessage,
+    reporter: report.reporter,
+    reason: report.reason,
+    screenshot: report.screenshot,
+    byAdmin: req.user.username,
+    timestamp: Date.now()
+  });
+
+  await user.save();
+
+  // Send warning as a private message to the user (like old system)
+  const msg = new Message({
+    sender: req.user.username,
+    receiver: user.username,
+    text: warningMessage,
+    type: 'text',
+    timestamp: new Date()
+  });
+  await msg.save();
+
+  // Emit to user's socket if they're online
+  if (req.io && req.io.activeUsers) {
+    const targetSocketId = req.io.activeUsers.get(user.username);
+    if (targetSocketId) {
+      req.io.to(targetSocketId).emit('private-message', {
+        id: msg._id.toString(),
+        sender: req.user.username,
+        receiver: user.username,
+        text: warningMessage,
+        type: 'text',
+        timestamp: msg.timestamp
+      });
+    }
+  }
+
+  if (req.io) req.io.emit('admin-update');
+  res.json({ success: true });
+});
+
+router.post('/admin/direct-warn-user', isAdmin, async (req, res) => {
+  const { username, duration, customDuration, reason } = req.body;
+  const user = await User.findOne({ username });
+  if (!user) return res.status(404).json({ error: 'User not found' });
+
+  let blockEnd = null;
+  if (duration === 'permanent') blockEnd = 'permanent';
+  else if (duration !== 'none') {
+    const mins = duration === 'custom' ? parseFloat(customDuration) : parseFloat(duration) * 60;
+    if (!isNaN(mins) && mins > 0) blockEnd = new Date(Date.now() + mins * 60000);
+  }
+
+  if (blockEnd) {
+    user.blockedUntil = blockEnd;
+    if (req.io) req.io.emit('account-blocked', { username: user.username, duration: blockEnd });
+  }
+
+  await user.save();
+
+  const mailOptions = {
+    from: '"Coll-Connect" <' + process.env.ADMIN_EMAIL + '>',
+    to: user.email,
+    subject: 'Your Coll-Connect Account has been Blocked',
+    text: `Hello,\n\nYour account on Coll-Connect has been blocked ${blockEnd === 'permanent' ? 'permanently' : 'until ' + new Date(blockEnd).toLocaleString()}.\n\nReason: Admin action from dashboard.\n\nThank you.`
+  };
+  
+  if (process.env.ADMIN_EMAIL && process.env.ADMIN_APP_PASSWORD) {
+    transporter.sendMail(mailOptions, (e) => { if(e) console.error(e); });
+  }
+
+  if (req.io) req.io.emit('admin-update');
+  res.json({ success: true });
+});
+
+router.post('/admin/unblock-user', isAdmin, async (req, res) => {
+  const user = await User.findOne({ username: req.body.username });
+  if (!user) return res.status(404).json({ error: 'User not found' });
+  user.blockedUntil = undefined;
+  await user.save();
+
+  const mailOptions = {
+    from: '"Coll-Connect" <' + process.env.ADMIN_EMAIL + '>',
+    to: user.email,
+    subject: 'Your Coll-Connect Account has been Unblocked',
+    text: `Hello,\n\nYour account on Coll-Connect has been unblocked. You can now log in and use the platform again.\n\nThank you.`
+  };
+  
+  if (process.env.ADMIN_EMAIL && process.env.ADMIN_APP_PASSWORD) {
+    transporter.sendMail(mailOptions, (e) => { if(e) console.error(e); });
+  }
+
+  if (req.io) req.io.emit('admin-update');
+  res.json({ success: true });
+});
+
+router.get('/admin/analytics', isAdmin, async (req, res) => {
+  const data = await Analytics.find().sort({ timestamp: 1 }).limit(168);
+  res.json(data);
+});
+
+router.post('/admin/promote', isSuperAdmin, async (req, res) => {
+  const user = await User.findOneAndUpdate({ username: req.body.username }, { role: 'admin' }, { new: true });
+  if (!user) return res.status(404).json({ error: 'User not found' });
+  
+  if (user.email) {
+    const mailOptions = {
+      from: `"Coll-Connect Admin" <${process.env.ADMIN_EMAIL}>`,
+      to: user.email,
+      subject: '🎉 Congratulations! You have been promoted to Admin',
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #1e293b; color: #f8fafc; padding: 20px; border-radius: 10px;">
+          <h2 style="color: #3b82f6; text-align: center;">Welcome to the Admin Team!</h2>
+          <p style="font-size: 16px;">Hello <strong>${user.username}</strong>,</p>
+          <p style="font-size: 16px;">Congratulations! You have been officially promoted to the <strong>Admin</strong> role on Coll-Connect by the Superadmin.</p>
+          <h3 style="color: #10b981;">Your New Perks & Responsibilities:</h3>
+          <ul style="font-size: 15px; line-height: 1.6; background-color: #0f172a; padding: 15px 30px; border-radius: 8px;">
+            <li>🛡️ <strong>Global Chat Access:</strong> View and search all public chats on the platform, and chat with ANY user even if they are not your friend.</li>
+            <li>👥 <strong>Profile Access & Control:</strong> View detailed profiles of other users, and block or unblock them as necessary.</li>
+            <li>⚠️ <strong>Moderation Power:</strong> Issue official warnings to users who violate community guidelines, sending it directly to them.</li>
+            <li>🗑️ <strong>Chat Management:</strong> Unsend your own messages and clear chat histories for rule-breakers.</li>
+            <li>🛑 <strong>Enforce Rules:</strong> Help keep Coll-Connect a safe and fun place for everyone.</li>
+          </ul>
+          <p style="font-size: 16px; margin-top: 20px;">Please use your new powers responsibly. We trust you to help maintain the quality of our community!</p>
+          <br>
+          <p style="font-size: 14px; color: #94a3b8; text-align: center;">Best regards,<br>The Coll-Connect Superadmin</p>
+        </div>
+      `
+    };
+    transporter.sendMail(mailOptions, (e) => { if(e) console.error("Error sending promote email:", e); });
+  }
+
+  if (req.io) {
+    req.io.emit('admin-update');
+    req.io.emit('user-role-changed', { username: req.body.username, newRole: 'admin' });
+  }
+  res.json({ success: true });
+});
+
+router.post('/admin/dismiss', isSuperAdmin, async (req, res) => {
+  const { username } = req.body;
+  const user = await User.findOneAndUpdate({ username }, { role: 'user' });
+  if (!user) return res.status(404).json({ error: 'User not found' });
+
+  if (user.email) {
+    const mailOptions = {
+      from: `"Coll-Connect Admin" <${process.env.ADMIN_EMAIL}>`,
+      to: user.email,
+      subject: '⚠️ Notice: Admin Status Revoked',
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #1e293b; color: #f8fafc; padding: 20px; border-radius: 10px;">
+          <h2 style="color: #ef4444; text-align: center;">Admin Status Update</h2>
+          <p style="font-size: 16px;">Hello <strong>${user.username}</strong>,</p>
+          <p style="font-size: 16px;">This is a notice to inform you that your <strong>Admin</strong> privileges on Coll-Connect have been revoked by the Superadmin.</p>
+          <p style="font-size: 16px;">Your account has been reverted to a standard user role. As a result, your admin powers (such as global chat access, profile viewing, and issuing warnings) are no longer active, and any non-friend chats have been permanently deleted for privacy reasons.</p>
+          <p style="font-size: 16px;">If you have any questions or believe this was done in error, please contact the Superadmin.</p>
+          <br>
+          <p style="font-size: 14px; color: #94a3b8; text-align: center;">Best regards,<br>The Coll-Connect Team</p>
+        </div>
+      `
+    };
+    transporter.sendMail(mailOptions, (e) => { if(e) console.error("Error sending dismiss email:", e); });
+  }
+
+  const superadminUser = await User.findOne({ role: 'superadmin' });
+  const superadminName = superadminUser ? superadminUser.username : null;
+  const userFriends = user.friends || [];
+
+  const allowedOthers = [...userFriends];
+  if (superadminName) allowedOthers.push(superadminName);
+
+  await Message.deleteMany({
+    $or: [
+      { sender: username, receiver: { $nin: allowedOthers } },
+      { receiver: username, sender: { $nin: allowedOthers } }
+    ]
+  });
+
+  if (req.io) {
+    req.io.emit('admin-update');
+    req.io.emit('user-role-changed', { username, newRole: 'user' });
+    req.io.emit('chat-cleared', { targetUser: username }); // Force clients to clean up
+  }
+  res.json({ success: true, message: 'Admin dismissed and un-friended chats cleaned up' });
+});
+
+module.exports = router;
