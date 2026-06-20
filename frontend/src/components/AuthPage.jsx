@@ -4,7 +4,7 @@ import { useAuth } from '../hooks/useAuth';
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 
 const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
-const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || '732644265431-your-client-id.apps.googleusercontent.com';
+const googleClientId = '546847428748-bv1dpfra1bcb2hhu8cu0u306k8fh0lvs.apps.googleusercontent.com';
 
 const AuthPage = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -278,6 +278,7 @@ const AuthPage = () => {
                     theme="filled_black"
                     text={isLogin ? "signin_with" : "signup_with"}
                     shape="rectangular"
+                    use_fedcm_for_prompt={true}
                   />
                 </div>
               </>
