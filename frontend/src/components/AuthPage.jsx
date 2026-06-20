@@ -77,10 +77,10 @@ const AuthContent = () => {
   };
 
   // The actual One Tap hook that shows the popup in the top right
-  useGoogleOneTapLogin({
-    onSuccess: handleGoogleSuccess,
-    onError: () => console.log('Google One Tap failed or closed'),
-  });
+  // useGoogleOneTapLogin({
+  //   onSuccess: handleGoogleSuccess,
+  //   onError: () => console.log('Google One Tap failed or closed'),
+  // });
 
   const handleGoogleRegisterSubmit = async (e) => {
     e.preventDefault();
