@@ -70,6 +70,18 @@ const ManageUsers = () => {
     }
   };
 
+  const unblockUser = (username) => {
+    if (window.confirm(`Are you sure you want to unblock ${username}?`)) {
+      handleAction('unblock-user', { username });
+    }
+  };
+
+  const isBlocked = (blockedUntil) => {
+    if (!blockedUntil) return false;
+    if (blockedUntil === 'permanent') return true;
+    return new Date(blockedUntil) > new Date();
+  };
+
   const handleDurationChange = (username, value) => {
     setBlockDurations(prev => ({ ...prev, [username]: value }));
   };
@@ -155,18 +167,27 @@ const ManageUsers = () => {
                     <button className="btn-action btn-blue" onClick={() => promoteUser(u.username)}>PROMOTE TO ADMIN</button>
                   </div>
                   
-                  <div className="user-actions row-actions mt-2">
-                    <select 
-                      className="admin-select"
-                      value={blockDurations[u.username] || '30 Mins'}
-                      onChange={(e) => handleDurationChange(u.username, e.target.value)}
-                    >
-                      <option>30 Mins</option>
-                      <option>1 Hour</option>
-                      <option>Permanent</option>
-                    </select>
-                    <button className="btn-action btn-red" onClick={() => blockUser(u.username)}>BLOCK USER</button>
-                  </div>
+                  {isBlocked(u.blockedUntil) ? (
+                    <div className="user-actions row-actions mt-2" style={{alignItems: 'center'}}>
+                      <button className="btn-action btn-blue" onClick={() => unblockUser(u.username)}>UNBLOCK USER</button>
+                      <span style={{color: '#ef4444', fontSize: '0.8rem', marginLeft: '10px'}}>
+                        {u.blockedUntil === 'permanent' ? 'Permanently Blocked' : `Blocked until ${new Date(u.blockedUntil).toLocaleString()}`}
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="user-actions row-actions mt-2">
+                      <select 
+                        className="admin-select"
+                        value={blockDurations[u.username] || '30 Mins'}
+                        onChange={(e) => handleDurationChange(u.username, e.target.value)}
+                      >
+                        <option>30 Mins</option>
+                        <option>1 Hour</option>
+                        <option>Permanent</option>
+                      </select>
+                      <button className="btn-action btn-red" onClick={() => blockUser(u.username)}>BLOCK USER</button>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
