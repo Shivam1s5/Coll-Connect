@@ -17,8 +17,12 @@ const ManageUsers = () => {
   const fetchUsers = async () => {
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`${backendUrl}/api/admin/users`, {
-        headers: { 'Authorization': `Bearer ${token}` }
+      const res = await fetch(`${backendUrl}/api/admin/users?t=${new Date().getTime()}`, {
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        }
       });
       if (res.ok) {
         const data = await res.json();
