@@ -1,29 +1,25 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Outlet } from 'react-router-dom';
+import Topbar from './Topbar';
+import Sidebar from './Sidebar';
 
 const Layout = () => {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  const toggleSidebar = () => {
+    setIsSidebarOpen(!isSidebarOpen);
+  };
+
   return (
-    <div className="app-container">
-      <div className="app-navbar">
-        <h1>Coll-Connect</h1>
-      </div>
+    <div className="app-layout">
+      <Sidebar isOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
       
-      <div className="content-area">
-        <div className="ad-sidebar">
-          AD SPACE (SIDEBAR-LEFT)
-        </div>
+      <div className="main-wrapper">
+        <Topbar toggleSidebar={toggleSidebar} />
         
-        <div className="main-center">
+        <main className="main-content-area">
           <Outlet />
-        </div>
-
-        <div className="ad-sidebar">
-          AD SPACE (SIDEBAR-RIGHT)
-        </div>
-      </div>
-
-      <div className="ad-footer">
-        AD SPACE (FOOTER)
+        </main>
       </div>
     </div>
   );
