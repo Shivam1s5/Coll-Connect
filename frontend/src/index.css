@@ -1164,6 +1164,8 @@ body {
   margin: 0 0 5px 0;
   color: #60a5fa;
   font-size: 0.95rem;
+  word-wrap: break-word;
+  word-break: break-word;
 }
 
 .notification-content {
@@ -1171,11 +1173,38 @@ body {
   color: #d1d5db;
   font-size: 0.85rem;
   line-height: 1.5;
-  white-space: pre-wrap; /* Keeps newlines and wrapping intact */
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .notification-time {
   display: block;
   font-size: 0.7rem;
   color: #6b7280;
+}
+
+/* Announcement Image Styling */
+.announcement-image-wrapper {
+  margin: 10px 0;
+  width: 100%;
+}
+
+.announcement-image {
+  width: 100%;
+  max-height: 250px;
+  object-fit: contain;
+  border-radius: 12px;
+  border: 3px solid #3b82f6;
+  background-color: #111827;
+  padding: 4px;
+  box-sizing: border-box;
+}
+
+.notification-dropdown .announcement-image {
+  max-height: 150px;
+  border: 2px solid #3b82f6;
+  border-radius: 8px;
+  padding: 3px;
 }

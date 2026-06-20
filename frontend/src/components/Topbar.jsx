@@ -68,8 +68,8 @@ const Topbar = ({ toggleSidebar }) => {
                     <div key={ann._id} className="notification-item">
                       <h5 className="notification-title">{ann.title}</h5>
                       {ann.imageUrl && (
-                        <div style={{margin: '8px 0'}}>
-                          <img src={ann.imageUrl} alt="Announcement" style={{width: '100%', maxHeight: '150px', objectFit: 'cover', borderRadius: '6px', border: '1px solid #4b5563'}} />
+                        <div className="announcement-image-wrapper">
+                          <img src={ann.imageUrl} alt="Announcement" className="announcement-image" />
                         </div>
                       )}
                       <p className="notification-content">{ann.content}</p>
