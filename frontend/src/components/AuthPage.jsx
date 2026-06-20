@@ -2,13 +2,13 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 
-const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
+const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
 
 const AuthPage = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [name, setName] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
   const { login } = useAuth();
@@ -17,8 +17,8 @@ const AuthPage = () => {
     e.preventDefault();
     setError('');
     
-    const endpoint = isLogin ? '/api/auth/login' : '/api/auth/register';
-    const payload = isLogin ? { email, password } : { name, email, password };
+    const endpoint = isLogin ? '/api/login' : '/api/register';
+    const payload = isLogin ? { email, password } : { email, username, password };
 
     try {
       const response = await fetch(`${backendUrl}${endpoint}`, {
@@ -30,71 +30,69 @@ const AuthPage = () => {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || 'Authentication failed');
+        throw new Error(data.error || 'Server error. Please try again.');
       }
 
       login(data.token, data.user);
-      navigate('/app');
+      navigate('/');
     } catch (err) {
-      setError(err.message);
+      setError(err.message === 'Failed to fetch' ? 'Server error. Please try again.' : err.message);
     }
   };
 
   return (
-    <div className="center-content auth-page">
-      <div className="app-navbar" style={{ position: 'absolute', top: 0, width: '100%' }}>
-        <div className="navbar-brand">
-          <h1 onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>Coll-Connect</h1>
-        </div>
-      </div>
-
-      <div className="auth-card glass-panel">
-        <h2>{isLogin ? 'Welcome Back' : 'Create Account'}</h2>
-        <p>{isLogin ? 'Login to continue to Coll-Connect' : 'Sign up to start meeting new people'}</p>
-        
-        {error && <div style={{ color: 'var(--danger-color)', marginBottom: '1rem' }}>{error}</div>}
-
-        <form onSubmit={handleSubmit} className="auth-form">
-          {!isLogin && (
-            <input
-              type="text"
-              placeholder="Your Name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required={!isLogin}
-            />
-          )}
-          
+    <div className="auth-container">
+      <h2>{isLogin ? 'Welcome Back' : 'Create Account'}</h2>
+      <p>{isLogin ? 'Log in to continue chatting.' : 'Sign up to meet strangers anonymously.'}</p>
+      
+      <form onSubmit={handleSubmit} className="auth-form">
+        <div className="form-group">
+          <label>Email</label>
           <input
             type="email"
-            placeholder="Email Address"
+            className="auth-input"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
           />
-          
+        </div>
+
+        {!isLogin && (
+          <div className="form-group">
+            <label>Username</label>
+            <input
+              type="text"
+              className="auth-input"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              required
+            />
+          </div>
+        )}
+        
+        <div className="form-group">
+          <label>Password</label>
           <input
             type="password"
-            placeholder="Password"
+            className="auth-input"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
           />
+        </div>
 
-          <button type="submit" className="btn">
-            {isLogin ? 'Login' : 'Sign Up'}
-          </button>
-        </form>
+        {error && <div className="error-text">{error}</div>}
 
-        <p style={{ color: 'var(--text-secondary)' }}>
-          {isLogin ? "Don't have an account? " : "Already have an account? "}
-          <button
-            onClick={() => setIsLogin(!isLogin)}
-            className="text-btn"
-          >
-            {isLogin ? 'Sign Up' : 'Login'}
-          </button>
-        </p>
+        <button type="submit" className="btn-primary">
+          {isLogin ? 'Log In' : 'Sign Up'}
+        </button>
+      </form>
+
+      <div className="auth-switch">
+        {isLogin ? "Don't have an account? " : "Already have an account? "}
+        <button onClick={() => setIsLogin(!isLogin)}>
+          {isLogin ? 'Sign Up' : 'Log In'}
+        </button>
       </div>
     </div>
   );
