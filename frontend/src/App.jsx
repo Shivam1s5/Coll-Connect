@@ -16,6 +16,9 @@ function App() {
         <SocketProvider>
           <Router>
             <Routes>
+              {/* Standalone Auth Route (No Ad Spaces) */}
+              <Route path="/auth" element={<AuthPage />} />
+
               {/* App Layout Routes */}
               <Route path="/" element={<Layout />}>
                 <Route index element={
@@ -23,7 +26,6 @@ function App() {
                     <VideoRoom />
                   </AuthGuard>
                 } />
-                <Route path="auth" element={<AuthPage />} />
                 <Route path="superadmin" element={<SuperAdminPage />} />
               </Route>
 
