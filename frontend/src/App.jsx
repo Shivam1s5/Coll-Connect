@@ -8,27 +8,25 @@ import SuperAdminPage from './components/SuperAdminPage';
 import { AuthProvider } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { SocketProvider } from './contexts/SocketContext';
-import Layout from './components/Layout';
 
 function App() {
   return (
     <ThemeProvider>
       <AuthProvider>
         <SocketProvider>
-          <Router>
-            <Routes>
-              {/* Public Routes */}
-              <Route path="/" element={<LandingPage />} />
-              <Route path="/auth" element={<AuthPage />} />
-              
-              {/* Main Application */}
-              <Route path="/app" element={<Layout />}>
-                <Route index element={<VideoRoom />} />
-                <Route path="admin" element={<AdminPage />} />
-                <Route path="superadmin" element={<SuperAdminPage />} />
-              </Route>
-            </Routes>
-          </Router>
+          <div className="app-container">
+            <div className="main-content">
+              <Router>
+                <Routes>
+                  <Route path="/" element={<LandingPage />} />
+                  <Route path="/auth" element={<AuthPage />} />
+                  <Route path="/app" element={<VideoRoom />} />
+                  <Route path="/app/admin" element={<AdminPage />} />
+                  <Route path="/app/superadmin" element={<SuperAdminPage />} />
+                </Routes>
+              </Router>
+            </div>
+          </div>
         </SocketProvider>
       </AuthProvider>
     </ThemeProvider>

@@ -41,67 +41,56 @@ const AuthPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 flex items-center justify-center p-4">
-      <div className="bg-gray-800 p-8 rounded-lg shadow-xl w-full max-w-md">
-        <h2 className="text-3xl font-bold text-white text-center mb-6">
-          {isLogin ? 'Welcome Back' : 'Create Account'}
-        </h2>
-        
-        {error && (
-          <div className="bg-red-500 bg-opacity-10 border border-red-500 text-red-500 p-3 rounded mb-4 text-sm">
-            {error}
-          </div>
-        )}
+    <div className="center-content auth-page">
+      <div className="app-navbar" style={{ position: 'absolute', top: 0, width: '100%' }}>
+        <div className="navbar-brand">
+          <h1 onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>Coll-Connect</h1>
+        </div>
+      </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="auth-card glass-panel">
+        <h2>{isLogin ? 'Welcome Back' : 'Create Account'}</h2>
+        <p>{isLogin ? 'Login to continue to Coll-Connect' : 'Sign up to start meeting new people'}</p>
+        
+        {error && <div style={{ color: 'var(--danger-color)', marginBottom: '1rem' }}>{error}</div>}
+
+        <form onSubmit={handleSubmit} className="auth-form">
           {!isLogin && (
-            <div>
-              <label className="block text-gray-300 text-sm font-bold mb-2">Name</label>
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="w-full bg-gray-900 border border-gray-700 text-white rounded px-3 py-2 focus:outline-none focus:border-blue-500"
-                required={!isLogin}
-              />
-            </div>
+            <input
+              type="text"
+              placeholder="Your Name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required={!isLogin}
+            />
           )}
           
-          <div>
-            <label className="block text-gray-300 text-sm font-bold mb-2">Email</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full bg-gray-900 border border-gray-700 text-white rounded px-3 py-2 focus:outline-none focus:border-blue-500"
-              required
-            />
-          </div>
+          <input
+            type="email"
+            placeholder="Email Address"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
           
-          <div>
-            <label className="block text-gray-300 text-sm font-bold mb-2">Password</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full bg-gray-900 border border-gray-700 text-white rounded px-3 py-2 focus:outline-none focus:border-blue-500"
-              required
-            />
-          </div>
+          <input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
 
-          <button
-            type="submit"
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded transition-colors mt-6"
-          >
+          <button type="submit" className="btn">
             {isLogin ? 'Login' : 'Sign Up'}
           </button>
         </form>
 
-        <p className="text-center text-gray-400 mt-6">
+        <p style={{ color: 'var(--text-secondary)' }}>
           {isLogin ? "Don't have an account? " : "Already have an account? "}
           <button
             onClick={() => setIsLogin(!isLogin)}
-            className="text-blue-500 hover:text-blue-400 font-bold"
+            className="text-btn"
           >
             {isLogin ? 'Sign Up' : 'Login'}
           </button>
