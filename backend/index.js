@@ -38,6 +38,26 @@ app.use('/api', require('./routes/upload'));
 // Socket logic
 require('./sockets')(io);
 
+// Analytics Job - Run every 1 hour (3,600,000 ms)
+const Analytics = require('./models/Analytics');
+setInterval(async () => {
+  try {
+    const activeCount = io.activeUsers ? io.activeUsers.size : 0;
+    
+    // Save current active users count
+    const record = new Analytics({ count: activeCount });
+    await record.save();
+    
+    // Delete records older than 7 days
+    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    await Analytics.deleteMany({ timestamp: { $lt: sevenDaysAgo } });
+    
+    console.log(`[Analytics] Logged ${activeCount} active users. Cleaned up records older than 7 days.`);
+  } catch (err) {
+    console.error('[Analytics Error]:', err);
+  }
+}, 60 * 60 * 1000);
+
 const PORT = process.env.PORT || 3001;
 server.listen(PORT, '0.0.0.0', () => {
   console.log(`Server listening on port ${PORT}`);
