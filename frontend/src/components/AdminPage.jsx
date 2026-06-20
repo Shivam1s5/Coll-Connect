@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import AuthGuard from './auth/AuthGuard';
-import { useNavigate } from 'react-router-dom';
 
 const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
 
@@ -10,7 +9,6 @@ const AdminPage = () => {
   const [stats, setStats] = useState({ totalUsers: 0, activeChats: 0 });
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchAdminData = async () => {
@@ -40,17 +38,8 @@ const AdminPage = () => {
 
   return (
     <AuthGuard requiredRoles={['admin', 'superadmin']}>
-      <div className="center-content">
-        <div className="app-navbar">
-          <div className="navbar-brand">
-            <h1 onClick={() => navigate('/app')} style={{ cursor: 'pointer' }}>Coll-Connect Admin</h1>
-          </div>
-          <div className="navbar-profile">
-            <button className="btn" onClick={() => navigate('/app')}>Back to App</button>
-          </div>
-        </div>
-
-        <div className="admin-page glass-panel" style={{ marginTop: '2rem' }}>
+      <div className="center-content" style={{ padding: '2rem' }}>
+        <div className="admin-page glass-panel" style={{ width: '100%', maxWidth: '1200px', margin: '0 auto' }}>
           <h2 style={{ marginBottom: '2rem' }}>Admin Dashboard</h2>
           
           <div style={{ display: 'flex', gap: '2rem', marginBottom: '2rem' }}>
@@ -86,7 +75,9 @@ const AdminPage = () => {
                         <td style={{ padding: '1rem' }}>{u.email}</td>
                         <td style={{ padding: '1rem' }}>{u.role}</td>
                         <td style={{ padding: '1rem' }}>
-                          <button className="btn danger" style={{ padding: '0.4rem 1rem', fontSize: '0.8rem' }}>Block</button>
+                          {u.role !== 'superadmin' && u.username !== user.username && (
+                            <button className="btn danger" style={{ padding: '0.4rem 1rem', fontSize: '0.8rem' }}>Block</button>
+                          )}
                         </td>
                       </tr>
                     ))}
