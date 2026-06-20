@@ -815,6 +815,9 @@ body {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  overflow: hidden;
+  overflow-wrap: break-word;
+  word-break: break-all;
 }
 
 .user-card-row {
@@ -1150,6 +1153,7 @@ body {
   padding: 15px 20px;
   border-bottom: 1px solid #374151;
   transition: background-color 0.2s;
+  overflow: hidden;
 }
 
 .notification-item:hover {
@@ -1164,8 +1168,8 @@ body {
   margin: 0 0 5px 0;
   color: #60a5fa;
   font-size: 0.95rem;
-  word-wrap: break-word;
-  word-break: break-word;
+  overflow-wrap: break-word;
+  word-break: break-all;
 }
 
 .notification-content {
@@ -1174,9 +1178,8 @@ body {
   font-size: 0.85rem;
   line-height: 1.5;
   white-space: pre-wrap;
-  word-wrap: break-word;
-  word-break: break-word;
   overflow-wrap: break-word;
+  word-break: break-all;
 }
 
 .notification-time {
