@@ -2,7 +2,10 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import VideoRoom from './components/VideoRoom';
 import AuthPage from './components/AuthPage';
-import SuperAdminPage from './components/SuperAdminPage';
+import SuperAdminDashboard from './components/superadmin/SuperAdminDashboard';
+import ManageUsers from './components/superadmin/ManageUsers';
+import SupportTickets from './components/superadmin/SupportTickets';
+import Announcements from './components/superadmin/Announcements';
 import Layout from './components/Layout';
 import Dashboard from './components/Dashboard';
 import AuthGuard from './components/auth/AuthGuard';
@@ -25,7 +28,12 @@ function App() {
                 <Route index element={<Dashboard />} />
                 <Route path="chat" element={<VideoRoom />} />
                 <Route path="messages" element={<div style={{padding: '20px', color: 'white'}}>Messages & Friends feature coming soon!</div>} />
-                <Route path="superadmin" element={<SuperAdminPage />} />
+                
+                {/* Superadmin Routes */}
+                <Route path="superadmin" element={<AuthGuard requiredRoles={['superadmin']}><SuperAdminDashboard /></AuthGuard>} />
+                <Route path="superadmin/users" element={<AuthGuard requiredRoles={['superadmin']}><ManageUsers /></AuthGuard>} />
+                <Route path="superadmin/tickets" element={<AuthGuard requiredRoles={['superadmin']}><SupportTickets /></AuthGuard>} />
+                <Route path="superadmin/announcements" element={<AuthGuard requiredRoles={['superadmin']}><Announcements /></AuthGuard>} />
               </Route>
 
               {/* Fallback */}

@@ -1,11 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { X } from 'lucide-react';
+import ContactSupportModal from './ContactSupportModal';
 
 const Sidebar = ({ isOpen, toggleSidebar }) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const [isSupportOpen, setIsSupportOpen] = useState(false);
 
   const handleLogout = () => {
     logout();
@@ -48,9 +50,15 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
                 <NavLink to="/superadmin" end className={({isActive}) => isActive ? "nav-item active" : "nav-item"}>
                   Dashboard
                 </NavLink>
-                <div className="nav-item">Manage Users</div>
-                <div className="nav-item">Support Tickets</div>
-                <div className="nav-item">Announcements</div>
+                <NavLink to="/superadmin/users" className={({isActive}) => isActive ? "nav-item active" : "nav-item"}>
+                  Manage Users
+                </NavLink>
+                <NavLink to="/superadmin/tickets" className={({isActive}) => isActive ? "nav-item active" : "nav-item"}>
+                  Support Tickets
+                </NavLink>
+                <NavLink to="/superadmin/announcements" className={({isActive}) => isActive ? "nav-item active" : "nav-item"}>
+                  Announcements
+                </NavLink>
               </nav>
             </div>
           )}
@@ -64,10 +72,12 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
               <strong>Coll-Connect</strong> <span className="version-badge">Version 1.0</span>
             </div>
             <p className="tagline">Empowering Seamless Connections. Bridging Distances with Secure, Real-time Communication.</p>
-            <a href="#" className="support-link">Contact Support</a>
+            <a href="#" className="support-link" onClick={(e) => { e.preventDefault(); setIsSupportOpen(true); }}>Contact Support</a>
           </div>
         </div>
       </div>
+      
+      <ContactSupportModal isOpen={isSupportOpen} onClose={() => setIsSupportOpen(false)} />
     </>
   );
 };
