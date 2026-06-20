@@ -283,7 +283,6 @@ const AuthContent = () => {
                   theme="filled_black"
                   text={isLogin ? "signin_with" : "signup_with"}
                   shape="rectangular"
-                  use_fedcm_for_prompt={true}
                 />
               </div>
             </>
