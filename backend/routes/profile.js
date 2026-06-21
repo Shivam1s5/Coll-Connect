@@ -86,6 +86,7 @@ router.get('/me', authMiddleware, async (req, res) => {
     username: user.username,
     email: user.email,
     profilePic: user.profilePic,
+    bannerImage: user.bannerImage,
     gender: user.gender,
     socials: user.socials,
     friends: friendsList,
