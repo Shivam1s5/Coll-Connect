@@ -25,8 +25,6 @@ router.post('/forgot-password', async (req, res) => {
   const expiresAt = Date.now() + 15 * 60 * 1000;
   resetCodes.set(email.toLowerCase(), { code, expiresAt });
 
-  res.json({ success: true, message: 'If the email exists, an OTP has been sent.' });
-
   // Send email asynchronously
   const mailHtml = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #1e293b; color: #f8fafc; padding: 20px; border-radius: 10px;">
@@ -41,7 +39,9 @@ router.post('/forgot-password', async (req, res) => {
       <p style="font-size: 14px; color: #94a3b8; text-align: center;">Best regards,<br>The Coll-Connect Team</p>
     </div>
   `;
-  sendEmail(user.email, '🔐 Password Reset OTP', mailHtml);
+  await sendEmail(user.email, '🔐 Password Reset OTP', mailHtml);
+
+  res.json({ success: true, message: 'If the email exists, an OTP has been sent.' });
 });
 
 router.post('/reset-password', async (req, res) => {
@@ -55,8 +55,6 @@ router.post('/reset-password', async (req, res) => {
   user.password = newPassword;
   await user.save();
   resetCodes.delete(email.toLowerCase());
-  res.json({ success: true, message: 'Password reset successfully!' });
-
   // Send email asynchronously
   const mailHtml = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #1e293b; color: #f8fafc; padding: 20px; border-radius: 10px;">
@@ -68,7 +66,9 @@ router.post('/reset-password', async (req, res) => {
       <p style="font-size: 14px; color: #94a3b8; text-align: center;">Best regards,<br>The Coll-Connect Team</p>
     </div>
   `;
-  sendEmail(user.email, '✅ Password Reset Successful', mailHtml);
+  await sendEmail(user.email, '✅ Password Reset Successful', mailHtml);
+
+  res.json({ success: true, message: 'Password reset successfully!' });
 });
 
 router.post('/register', async (req, res) => {

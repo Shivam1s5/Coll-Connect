@@ -50,7 +50,7 @@ router.post('/support', authMiddleware, async (req, res) => {
       <p style="font-size: 14px; color: #94a3b8; text-align: center;">Best regards,<br>The Coll-Connect Support Team</p>
     </div>
   `;
-  sendEmail(req.user.email, '🎫 Support Ticket Received', mailHtml);
+  await sendEmail(req.user.email, '🎫 Support Ticket Received', mailHtml);
   
   res.json({ success: true, ticket });
 });

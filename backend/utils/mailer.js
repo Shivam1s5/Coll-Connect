@@ -1,22 +1,25 @@
 const nodemailer = require('nodemailer');
 
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'coder.st.15@gmail.com';
+const ADMIN_APP_PASSWORD = process.env.ADMIN_APP_PASSWORD || 'nimscdzabzpvzvki';
+
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
-    user: process.env.ADMIN_EMAIL,
-    pass: process.env.ADMIN_APP_PASSWORD
+    user: ADMIN_EMAIL,
+    pass: ADMIN_APP_PASSWORD
   }
 });
 
 const sendEmail = async (to, subject, html) => {
-  if (!process.env.ADMIN_EMAIL || !process.env.ADMIN_APP_PASSWORD) {
+  if (!ADMIN_EMAIL || !ADMIN_APP_PASSWORD) {
     console.log('Email configuration missing, skipping email to', to);
     return;
   }
   
   try {
     await transporter.sendMail({
-      from: `"Coll-Connect" <${process.env.ADMIN_EMAIL}>`,
+      from: `"Coll-Connect" <${ADMIN_EMAIL}>`,
       to,
       subject,
       html
