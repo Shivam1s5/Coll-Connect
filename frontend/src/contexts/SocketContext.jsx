@@ -22,12 +22,11 @@ export const SocketProvider = ({ children }) => {
       newSocket.on('account-deleted', () => {
         alert('Your account has been permanently deleted by the Superadmin.');
         if (logout) logout();
-        window.location.href = '/';
       });
 
       newSocket.on('deletion-request-dismissed', () => {
         alert('Your account deletion request was dismissed by the Superadmin.');
-        window.location.reload();
+        window.dispatchEvent(new Event('profile-refresh-required'));
       });
 
       setSocket(newSocket);

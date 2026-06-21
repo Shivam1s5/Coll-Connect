@@ -45,6 +45,10 @@ const MyProfile = () => {
 
   useEffect(() => {
     fetchProfile();
+    
+    const handleRefresh = () => fetchProfile();
+    window.addEventListener('profile-refresh-required', handleRefresh);
+    return () => window.removeEventListener('profile-refresh-required', handleRefresh);
   }, []);
 
   const fetchProfile = async () => {
