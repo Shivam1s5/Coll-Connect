@@ -100,20 +100,15 @@ router.post('/unfriend', authMiddleware, async (req, res) => {
   me.friends = me.friends.filter(f => f !== targetUser.username);
   targetUser.friends = targetUser.friends.filter(f => f !== me.username);
   
-  const isMeAdmin = me.role === 'admin' || me.role === 'superadmin';
-  const isTargetAdmin = targetUser.role === 'admin' || targetUser.role === 'superadmin';
-  
-  if (!isMeAdmin && !isTargetAdmin) {
-    await Message.deleteMany({
-      $or: [
-        { sender: me.username, receiver: targetUser.username },
-        { sender: targetUser.username, receiver: me.username }
-      ]
-    });
-    if (req.io) {
-      req.io.emit('chat-cleared', { targetUser: targetUser.username });
-      req.io.emit('chat-cleared', { targetUser: me.username });
-    }
+  await Message.deleteMany({
+    $or: [
+      { sender: me.username, receiver: targetUser.username },
+      { sender: targetUser.username, receiver: me.username }
+    ]
+  });
+  if (req.io) {
+    req.io.emit('chat-cleared', { targetUser: targetUser.username });
+    req.io.emit('chat-cleared', { targetUser: me.username });
   }
 
   await me.save();
