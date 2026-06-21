@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useSocket } from '../contexts/SocketContext';
 import { useToast } from '../contexts/ToastContext';
-import { Camera, Edit2, Save, X, User as UserIcon, Link as LinkIcon, Image as ImageIcon, Eye, Trash2, Upload } from 'lucide-react';
+import { Camera, Edit2, Save, X, User as UserIcon, Link as LinkIcon, Image as ImageIcon, Eye, Trash2, Upload, Lock, Unlock } from 'lucide-react';
 import { FaInstagram as Instagram, FaFacebook as Facebook, FaLinkedin as Linkedin, FaSnapchat as Snapchat } from 'react-icons/fa';
 import ImageCropperModal from './ImageCropperModal';
 import ImageModal from './ImageModal';
@@ -135,10 +135,32 @@ const MyProfile = () => {
       }
     } catch (err) {
       console.error(err);
-      showToast('Failed to update image.');
+      showToast('Upload failed');
     } finally {
       setIsUploading(false);
       setPopupMenu(null);
+    }
+  };
+
+  const handleTogglePrivacy = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const newStatus = !profileData.isPrivate;
+      const res = await fetch(`${backendUrl}/api/privacy`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ isPrivate: newStatus })
+      });
+      if (res.ok) {
+        setProfileData(prev => ({ ...prev, isPrivate: newStatus }));
+        showToast(newStatus ? 'Profile Locked (Private)' : 'Profile Unlocked (Public)');
+      }
+    } catch (err) {
+      console.error('Failed to update privacy', err);
+      showToast('Failed to update privacy setting');
     }
   };
 
@@ -391,6 +413,20 @@ const MyProfile = () => {
                     <button className="btn-action btn-blue" onClick={() => setIsEditingGender(true)}>Edit</button>
                   </div>
                 )}
+              </div>
+              
+              <div className="form-group" style={{marginTop: '20px', padding: '15px', backgroundColor: '#1f2937', borderRadius: '8px', border: '1px solid #374151', display: 'flex', alignItems: 'center', justifyContent: 'space-between'}}>
+                <div style={{display: 'flex', alignItems: 'center', gap: '10px'}}>
+                  {profileData.isPrivate ? <Lock size={20} color="#8b5cf6" /> : <Unlock size={20} color="#9ca3af" />}
+                  <div>
+                    <h4 style={{margin: 0, color: '#e5e7eb'}}>Private Profile</h4>
+                    <span style={{fontSize: '0.8rem', color: '#9ca3af'}}>Hide friends and socials from non-friends</span>
+                  </div>
+                </div>
+                <label className="toggle-switch">
+                  <input type="checkbox" checked={profileData.isPrivate || false} onChange={handleTogglePrivacy} />
+                  <span className="slider round"></span>
+                </label>
               </div>
             </div>
 

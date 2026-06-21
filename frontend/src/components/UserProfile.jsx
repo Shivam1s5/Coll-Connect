@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
-import { User as UserIcon, Eye, Trash2, MessageCircle, Clock, UserPlus, Check, X, UserMinus } from 'lucide-react';
+import { User as UserIcon, Eye, Trash2, MessageCircle, Clock, UserPlus, Check, X, UserMinus, Lock } from 'lucide-react';
 import { FaInstagram as Instagram, FaFacebook as Facebook, FaLinkedin as Linkedin, FaSnapchat as Snapchat } from 'react-icons/fa';
 import ImageModal from './ImageModal';
 import '../index.css';
@@ -185,6 +185,8 @@ const UserProfile = () => {
     }
   };
 
+  const isLocked = profileData.isPrivate && profileData.socials === null;
+
   return (
     <div className="my-profile-container">
       <div className="profile-header" style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
@@ -226,7 +228,9 @@ const UserProfile = () => {
       </div>
       <div className="profile-tabs">
         <button className={`tab-btn ${activeTab === 'profile' ? 'active' : ''}`} onClick={() => setActiveTab('profile')}>Profile</button>
-        <button className={`tab-btn ${activeTab === 'friends' ? 'active' : ''}`} onClick={() => setActiveTab('friends')}>Friends ({profileData.friends?.length || 0})</button>
+        {!isLocked && (
+          <button className={`tab-btn ${activeTab === 'friends' ? 'active' : ''}`} onClick={() => setActiveTab('friends')}>Friends ({profileData.friends?.length || 0})</button>
+        )}
       </div>
 
       {activeTab === 'profile' ? (
@@ -304,24 +308,34 @@ const UserProfile = () => {
 
             <div className="profile-card info-card">
               <h3>Social Links</h3>
-              <div className="socials-list" style={{marginTop: '15px'}}>
-                <div className="social-item">
-                  <Instagram size={18} className="social-icon text-pink"/> 
-                  <span className="social-text">{profileData.socials?.instagram || 'Not set'}</span>
+              {isLocked ? (
+                <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '30px 10px', color: '#9ca3af', textAlign: 'center'}}>
+                  <div style={{width: '60px', height: '60px', borderRadius: '50%', border: '2px solid #374151', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '15px'}}>
+                    <Lock size={30} color="#6b7280" />
+                  </div>
+                  <h4 style={{margin: '0 0 5px 0', color: '#e5e7eb'}}>This account is private</h4>
+                  <p style={{fontSize: '0.85rem', margin: 0}}>Become friends to see their social links and friends list.</p>
                 </div>
-                <div className="social-item">
-                  <Facebook size={18} className="social-icon text-blue"/> 
-                  <span className="social-text">{profileData.socials?.facebook || 'Not set'}</span>
+              ) : (
+                <div className="socials-list" style={{marginTop: '15px'}}>
+                  <div className="social-item">
+                    <Instagram size={18} className="social-icon text-pink"/> 
+                    <span className="social-text">{profileData.socials?.instagram || 'Not set'}</span>
+                  </div>
+                  <div className="social-item">
+                    <Facebook size={18} className="social-icon text-blue"/> 
+                    <span className="social-text">{profileData.socials?.facebook || 'Not set'}</span>
+                  </div>
+                  <div className="social-item">
+                    <Linkedin size={18} className="social-icon text-lightblue"/> 
+                    <span className="social-text">{profileData.socials?.linkedin || 'Not set'}</span>
+                  </div>
+                  <div className="social-item">
+                    <span style={{fontWeight: 'bold', marginRight: '8px', color: '#eab308'}}>👻</span> 
+                    <span className="social-text">{profileData.socials?.snapchat || 'Not set'}</span>
+                  </div>
                 </div>
-                <div className="social-item">
-                  <Linkedin size={18} className="social-icon text-lightblue"/> 
-                  <span className="social-text">{profileData.socials?.linkedin || 'Not set'}</span>
-                </div>
-                <div className="social-item">
-                  <span style={{fontWeight: 'bold', marginRight: '8px', color: '#eab308'}}>👻</span> 
-                  <span className="social-text">{profileData.socials?.snapchat || 'Not set'}</span>
-                </div>
-              </div>
+              )}
             </div>
           </div>
         </div>

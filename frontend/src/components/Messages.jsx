@@ -104,15 +104,24 @@ const Messages = () => {
     };
     const handleRequestReceived = () => { fetchProfileData(); showToast('You have a new friend request!'); };
     const handleRequestAccepted = () => { fetchProfileData(); showToast('Your friend request was accepted!'); };
+    const handleFriendRemoved = (data) => {
+      fetchProfileData();
+      if (activeChatUser && activeChatUser.username === data.username) {
+        setActiveChatUser(null);
+        setChatHistory([]);
+      }
+    };
 
     socket.on('private-message', handleNewMessage);
     socket.on('friend-request-received', handleRequestReceived);
     socket.on('friend-request-accepted', handleRequestAccepted);
+    socket.on('friend-removed', handleFriendRemoved);
 
     return () => {
       socket.off('private-message', handleNewMessage);
       socket.off('friend-request-received', handleRequestReceived);
       socket.off('friend-request-accepted', handleRequestAccepted);
+      socket.off('friend-removed', handleFriendRemoved);
     };
   }, [socket, activeChatUser]);
 
@@ -383,8 +392,16 @@ const Messages = () => {
         <div style={{ padding: '20px', borderBottom: '1px solid #374151' }}>
           <h2 style={{ margin: '0 0 16px 0', fontSize: '1.5rem', fontWeight: 'bold' }}>Messages</h2>
           <div style={{ position: 'relative', marginBottom: '16px' }}>
-            <input type="text" placeholder="Search users..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} style={{ width: '100%', padding: '10px 10px 10px 36px', borderRadius: '8px', border: '1px solid #4b5563', background: '#111827', color: '#f3f4f6', outline: 'none', boxSizing: 'border-box' }} />
+            <input type="text" placeholder="Search users..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} style={{ width: '100%', padding: '10px 36px 10px 36px', borderRadius: '8px', border: '1px solid #4b5563', background: '#111827', color: '#f3f4f6', outline: 'none', boxSizing: 'border-box' }} />
             <Search size={18} color="#9ca3af" style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)' }} />
+            {searchQuery && (
+              <X 
+                size={16} 
+                color="#9ca3af" 
+                style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', cursor: 'pointer' }} 
+                onClick={() => setSearchQuery('')} 
+              />
+            )}
           </div>
 
           {!searchQuery && (
