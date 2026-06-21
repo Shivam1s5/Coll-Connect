@@ -66,6 +66,9 @@ const Topbar = ({ toggleSidebar }) => {
   return (
     <div className="topbar-container">
       <div className="topbar-left">
+        <button className="icon-btn" onClick={toggleSidebar}>
+          <Menu size={24} color="#e0e0e0" />
+        </button>
         <div className="topbar-logo">
           <span className="logo-cc">CC</span>
           <span className="logo-text">Coll-Connect</span>

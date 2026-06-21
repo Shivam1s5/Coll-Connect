@@ -34,13 +34,13 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
           <div className="sidebar-section">
             <div className="section-title">HOME & CHAT</div>
             <nav className="sidebar-nav">
-              <NavLink to="/" end className={({isActive}) => isActive ? "nav-item active" : "nav-item"}>
+              <NavLink to="/" end className={({isActive}) => isActive ? "nav-item active" : "nav-item"} onClick={toggleSidebar}>
                 Random Chat
               </NavLink>
-              <NavLink to="/profile" className={({isActive}) => isActive ? "nav-item active" : "nav-item"}>
+              <NavLink to="/profile" className={({isActive}) => isActive ? "nav-item active" : "nav-item"} onClick={toggleSidebar}>
                 My Profile
               </NavLink>
-              <NavLink to="/messages" className={({isActive}) => isActive ? "nav-item active" : "nav-item"}>
+              <NavLink to="/messages" className={({isActive}) => isActive ? "nav-item active" : "nav-item"} onClick={toggleSidebar}>
                 Messages
               </NavLink>
             </nav>
@@ -50,22 +50,22 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
             <div className="sidebar-section">
               <div className="section-title">SUPERADMIN PANEL</div>
               <nav className="sidebar-nav">
-                <NavLink to="/superadmin" end className={({isActive}) => isActive ? "nav-item active" : "nav-item"}>
+                <NavLink to="/superadmin" end className={({isActive}) => isActive ? "nav-item active" : "nav-item"} onClick={toggleSidebar}>
                   Dashboard
                 </NavLink>
-                <NavLink to="/superadmin/users" className={({isActive}) => isActive ? "nav-item active" : "nav-item"}>
+                <NavLink to="/superadmin/users" className={({isActive}) => isActive ? "nav-item active" : "nav-item"} onClick={toggleSidebar}>
                   Manage Users
                 </NavLink>
-                <NavLink to="/superadmin/tickets" className={({isActive}) => isActive ? "nav-item active" : "nav-item"}>
+                <NavLink to="/superadmin/tickets" className={({isActive}) => isActive ? "nav-item active" : "nav-item"} onClick={toggleSidebar}>
                   Support Tickets
                 </NavLink>
-                <NavLink to="/superadmin/announcements" className={({isActive}) => isActive ? "nav-item active" : "nav-item"}>
+                <NavLink to="/superadmin/announcements" className={({isActive}) => isActive ? "nav-item active" : "nav-item"} onClick={toggleSidebar}>
                   Announcements
                 </NavLink>
-                <NavLink to="/superadmin/reports" className={({isActive}) => isActive ? "nav-item active" : "nav-item"}>
+                <NavLink to="/superadmin/reports" className={({isActive}) => isActive ? "nav-item active" : "nav-item"} onClick={toggleSidebar}>
                   Reports
                 </NavLink>
-                <NavLink to="/superadmin/deletion-requests" className={({isActive}) => isActive ? "nav-item active" : "nav-item"}>
+                <NavLink to="/superadmin/deletion-requests" className={({isActive}) => isActive ? "nav-item active" : "nav-item"} onClick={toggleSidebar}>
                   Deletion Requests
                 </NavLink>
               </nav>
@@ -76,13 +76,13 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
             <div className="sidebar-section">
               <div className="section-title">ADMIN PANEL</div>
               <nav className="sidebar-nav">
-                <NavLink to="/admin" end className={({isActive}) => isActive ? "nav-item active" : "nav-item"}>
+                <NavLink to="/admin" end className={({isActive}) => isActive ? "nav-item active" : "nav-item"} onClick={toggleSidebar}>
                   Dashboard
                 </NavLink>
-                <NavLink to="/admin/users" className={({isActive}) => isActive ? "nav-item active" : "nav-item"}>
+                <NavLink to="/admin/users" className={({isActive}) => isActive ? "nav-item active" : "nav-item"} onClick={toggleSidebar}>
                   Manage Users
                 </NavLink>
-                <NavLink to="/admin/reports" className={({isActive}) => isActive ? "nav-item active" : "nav-item"}>
+                <NavLink to="/admin/reports" className={({isActive}) => isActive ? "nav-item active" : "nav-item"} onClick={toggleSidebar}>
                   Reports
                 </NavLink>
               </nav>

@@ -3,6 +3,7 @@ import { useSocket } from '../contexts/SocketContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
 import { useNavigate } from 'react-router-dom';
+import EmojiPicker from 'emoji-picker-react';
 
 const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
 
@@ -35,6 +36,7 @@ const VideoRoom = () => {
 
   // Chat height state
   const [chatHeight, setChatHeight] = useState(250);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
   const localVideoRef = useRef(null);
   const remoteVideoRef = useRef(null);
@@ -282,12 +284,17 @@ const VideoRoom = () => {
 
   const sendMessage = (e) => {
     e.preventDefault();
-    if (inputMessage.trim() && socket && partnerConnected) {
+    if (inputMessage.trim() && partnerConnected) {
       socket.emit('chat-message', inputMessage);
       setMessages(prev => [...prev, { text: inputMessage, sender: 'self' }]);
       setInputMessage('');
+      setShowEmojiPicker(false);
       scrollToBottom();
     }
+  };
+
+  const onEmojiClick = (emojiObject) => {
+    setInputMessage(prevInput => prevInput + emojiObject.emoji);
   };
 
   // Friend Request Functions
@@ -497,8 +504,14 @@ const VideoRoom = () => {
           </div>
         )}
         
-        <form className="chat-input-area" onSubmit={sendMessage}>
-          <button type="button" className="icon-btn">😀</button>
+        {showEmojiPicker && (
+          <div style={{ position: 'absolute', bottom: '60px', left: '20px', zIndex: 1000 }}>
+            <EmojiPicker onEmojiClick={onEmojiClick} theme="dark" />
+          </div>
+        )}
+
+        <form className="chat-input-area" style={{ position: 'relative' }} onSubmit={sendMessage}>
+          <button type="button" className="icon-btn" onClick={() => setShowEmojiPicker(!showEmojiPicker)}>😀</button>
           <button type="button" className="icon-btn gif-btn">GIF</button>
           <input
             type="text"
