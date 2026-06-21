@@ -238,7 +238,11 @@ router.post('/admin/block/:username', isAdmin, async (req, res) => {
           </div>
         `
       };
-      transporter.sendMail(mailOptions, (e) => { if(e) console.error("Error sending block email:", e); });
+      try {
+        await transporter.sendMail(mailOptions);
+      } catch (e) {
+        console.error("Error sending block email:", e);
+      }
     }
 
     res.json({ success: true, message: `User block status updated to ${duration}` });
@@ -306,7 +310,11 @@ const cascadeDeleteUser = async (username, io) => {
         </div>
       `
     };
-    transporter.sendMail(mailOptions, (e) => { if(e) console.error("Error sending delete email:", e); });
+    try {
+      await transporter.sendMail(mailOptions);
+    } catch (e) {
+      console.error("Error sending delete email:", e);
+    }
   }
 };
 
@@ -342,7 +350,11 @@ router.post('/admin/reject-deletion', isSuperAdmin, async (req, res) => {
           </div>
         `
       };
-      transporter.sendMail(mailOptions, (e) => { if(e) console.error("Error sending reject deletion email:", e); });
+      try {
+        await transporter.sendMail(mailOptions);
+      } catch (e) {
+        console.error("Error sending reject deletion email:", e);
+      }
     }
   }
   
@@ -515,7 +527,11 @@ router.post('/admin/promote', isSuperAdmin, async (req, res) => {
         </div>
       `
     };
-    transporter.sendMail(mailOptions, (e) => { if(e) console.error("Error sending promote email:", e); });
+    try {
+      await transporter.sendMail(mailOptions);
+    } catch (e) {
+      console.error("Error sending promote email:", e);
+    }
   }
 
   if (req.io) {
@@ -547,7 +563,11 @@ router.post('/admin/dismiss', isSuperAdmin, async (req, res) => {
         </div>
       `
     };
-    transporter.sendMail(mailOptions, (e) => { if(e) console.error("Error sending dismiss email:", e); });
+    try {
+      await transporter.sendMail(mailOptions);
+    } catch (e) {
+      console.error("Error sending dismiss email:", e);
+    }
   }
 
   const superadminUser = await User.findOne({ role: 'superadmin' });

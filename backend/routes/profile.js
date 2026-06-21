@@ -408,7 +408,11 @@ router.post('/request-deletion', authMiddleware, async (req, res) => {
           </div>
         `
       };
-      transporter.sendMail(mailOptions, (e) => { if(e) console.error("Error sending deletion request email:", e); });
+      try {
+        await transporter.sendMail(mailOptions);
+      } catch (e) {
+        console.error("Error sending deletion request email:", e);
+      }
     }
     
     res.json({ success: true, message: 'Deletion request submitted.' });

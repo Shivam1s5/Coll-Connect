@@ -64,7 +64,11 @@ router.post('/support', authMiddleware, async (req, res) => {
         </div>
       `
     };
-    transporter.sendMail(mailOptions, (e) => { if(e) console.error("Error sending support email:", e); });
+      try {
+        await transporter.sendMail(mailOptions);
+      } catch (e) {
+        console.error("Error sending support email:", e);
+      }
   }
 
   res.json({ success: true, ticket });

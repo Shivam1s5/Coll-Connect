@@ -24,25 +24,29 @@ router.post('/forgot-password', async (req, res) => {
   const expiresAt = Date.now() + 15 * 60 * 1000;
   resetCodes.set(email.toLowerCase(), { code, expiresAt });
 
-  transporter.sendMail({
-    from: '"Coll-Connect" <' + process.env.ADMIN_EMAIL + '>',
-    to: user.email,
-    subject: '🔐 Password Reset Code - Coll-Connect',
-    html: `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #1e293b; color: #f8fafc; padding: 20px; border-radius: 10px;">
-        <h2 style="color: #3b82f6; text-align: center;">Password Reset Request</h2>
-        <p style="font-size: 16px;">Hello <strong>${user.username}</strong>,</p>
-        <p style="font-size: 16px;">We received a request to reset the password for your Coll-Connect account. Your one-time verification code is:</p>
-        <div style="text-align: center; margin: 30px 0;">
-          <span style="font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #10b981; background-color: #0f172a; padding: 15px 30px; border-radius: 8px;">${code}</span>
+  try {
+    await transporter.sendMail({
+      from: '"Coll-Connect" <' + process.env.ADMIN_EMAIL + '>',
+      to: user.email,
+      subject: '🔐 Password Reset Code - Coll-Connect',
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #1e293b; color: #f8fafc; padding: 20px; border-radius: 10px;">
+          <h2 style="color: #3b82f6; text-align: center;">Password Reset Request</h2>
+          <p style="font-size: 16px;">Hello <strong>${user.username}</strong>,</p>
+          <p style="font-size: 16px;">We received a request to reset the password for your Coll-Connect account. Your one-time verification code is:</p>
+          <div style="text-align: center; margin: 30px 0;">
+            <span style="font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #10b981; background-color: #0f172a; padding: 15px 30px; border-radius: 8px;">${code}</span>
+          </div>
+          <p style="font-size: 16px; color: #ef4444;">This code will expire in 15 minutes.</p>
+          <p style="font-size: 14px;">If you didn't request a password reset, you can safely ignore this email.</p>
+          <br>
+          <p style="font-size: 14px; color: #94a3b8; text-align: center;">Best regards,<br>The Coll-Connect Team</p>
         </div>
-        <p style="font-size: 16px; color: #ef4444;">This code will expire in 15 minutes.</p>
-        <p style="font-size: 14px;">If you didn't request a password reset, you can safely ignore this email.</p>
-        <br>
-        <p style="font-size: 14px; color: #94a3b8; text-align: center;">Best regards,<br>The Coll-Connect Team</p>
-      </div>
-    `
-  });
+      `
+    });
+  } catch (err) {
+    console.error("Error sending reset email:", err);
+  }
   res.json({ success: true, message: 'Reset code sent to email.' });
 });
 
