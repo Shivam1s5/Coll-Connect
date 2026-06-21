@@ -156,34 +156,7 @@ const UserProfile = () => {
 
   const isSuperadmin = authUser?.role === 'superadmin';
 
-  const getBadgeStyle = (role) => {
-    switch(role) {
-      case 'superadmin': 
-        return { 
-          background: 'linear-gradient(135deg, #FFD700 0%, #FFF8DC 50%, #FFD700 100%)', 
-          color: '#8B6508', 
-          padding: '2px 8px', borderRadius: '12px', fontSize: '0.65rem', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.5px', 
-          boxShadow: '0 2px 5px rgba(255, 215, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.8)',
-          border: '1px solid #DAA520', textShadow: '0 1px 1px rgba(255,255,255,0.8)'
-        };
-      case 'admin': 
-        return { 
-          background: 'linear-gradient(135deg, #C0C0C0 0%, #F5F5F5 50%, #C0C0C0 100%)', 
-          color: '#4F4F4F', 
-          padding: '2px 8px', borderRadius: '12px', fontSize: '0.65rem', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.5px', 
-          boxShadow: '0 2px 5px rgba(192, 192, 192, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.8)',
-          border: '1px solid #A9A9A9', textShadow: '0 1px 1px rgba(255,255,255,0.8)'
-        };
-      default: 
-        return { 
-          background: 'linear-gradient(135deg, #8B5CF6 0%, #A78BFA 50%, #8B5CF6 100%)', 
-          color: '#fff', 
-          padding: '2px 8px', borderRadius: '12px', fontSize: '0.65rem', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.5px', 
-          boxShadow: '0 2px 5px rgba(139, 92, 246, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.4)',
-          border: '1px solid #7C3AED', textShadow: '0 1px 1px rgba(0,0,0,0.3)'
-        };
-    }
-  };
+  // Removed old getBadgeStyle
 
   const isLocked = profileData.isPrivate && profileData.socials === null;
 
@@ -192,7 +165,9 @@ const UserProfile = () => {
       <div className="profile-header" style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <h1 style={{ margin: 0 }}>{profileData.username}'s Profile</h1>
-          <span style={getBadgeStyle(profileData.role)}>{profileData.role === 'superadmin' ? 'Superadmin' : profileData.role === 'admin' ? 'Admin' : 'User'}</span>
+          <span className={`badge badge-${profileData.role || 'user'}`}>
+            {(profileData.role || 'USER').toUpperCase()}
+          </span>
         </div>
         <div style={{ display: 'flex', gap: '10px' }}>
           {profileData.username !== authUser?.username && (
@@ -376,7 +351,9 @@ const UserProfile = () => {
                   )}
                   <div className="friend-info">
                     <h4>{f.username}</h4>
-                    <span className="friend-role">{f.role}</span>
+                    <span className={`badge badge-${f.role || 'user'}`} style={{fontSize: '10px', padding: '2px 6px', marginTop: '4px'}}>
+                      {(f.role || 'USER').toUpperCase()}
+                    </span>
                   </div>
                 </div>
               ))

@@ -6,6 +6,8 @@ const Dashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
 
+  const [interestedIn, setInterestedIn] = React.useState('Any');
+
   return (
     <div className="dashboard-container">
       <div className="dashboard-content">
@@ -28,17 +30,17 @@ const Dashboard = () => {
               <div className="prefs-group">
                 <label>Interested in:</label>
                 <div className="select-wrapper">
-                  <select defaultValue="Any Gender">
-                    <option>Any Gender</option>
-                    <option>Male</option>
-                    <option>Female</option>
+                  <select value={interestedIn} onChange={(e) => setInterestedIn(e.target.value)}>
+                    <option value="Any">Any Gender</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
                   </select>
                 </div>
               </div>
               
               <button 
                 className="start-chat-btn"
-                onClick={() => navigate('/chat')}
+                onClick={() => navigate('/chat', { state: { interestedIn } })}
               >
                 START VIDEO CHAT
               </button>

@@ -97,44 +97,46 @@ router.post('/unfriend', authMiddleware, async (req, res) => {
   const me = await User.findOne({ username: req.user.username });
   const targetUser = await User.findOne({ username: req.body.targetUsername });
   if (!me || !targetUser) return res.status(404).json({ error: 'User not found' });
-  if (me.role === 'superadmin' || targetUser.role === 'superadmin') {
-    return res.status(403).json({ error: 'Superadmins cannot be unfriended' });
-  }
-
   me.friends = me.friends.filter(f => f !== targetUser.username);
   targetUser.friends = targetUser.friends.filter(f => f !== me.username);
   
-  const orCondition = [
-    { sender: me.username, receiver: targetUser.username },
-    { sender: targetUser.username, receiver: me.username }
-  ];
+  const isMeAdmin = me.role === 'admin' || me.role === 'superadmin';
+  const isTargetAdmin = targetUser.role === 'admin' || targetUser.role === 'superadmin';
 
-  // Find messages with Cloudinary files to delete them
-  const messagesWithMedia = await Message.find({
-    $or: orCondition,
-    fileUrl: { $regex: 'cloudinary.com' }
-  });
+  // Only delete messages if neither is an admin/superadmin
+  if (!isMeAdmin && !isTargetAdmin) {
+    const orCondition = [
+      { sender: me.username, receiver: targetUser.username },
+      { sender: targetUser.username, receiver: me.username }
+    ];
 
-  for (const msg of messagesWithMedia) {
-    try {
-      const parts = msg.fileUrl.split('/');
-      const filename = parts.pop().split('.')[0];
-      const folder = parts.pop();
-      const publicId = `${folder}/${filename}`;
-      const resourceType = msg.type === 'video' || msg.type === 'audio' ? 'video' : 'image';
-      await cloudinary.uploader.destroy(publicId, { resource_type: resourceType });
-    } catch (err) {
-      console.error('Error deleting media from cloudinary:', err);
-    }
-  }
-
-  await Message.deleteMany({ $or: orCondition });
-  
-  if (req.io) {
-    req.io.sockets.sockets.forEach((s) => {
-      if (s.username === me.username) s.emit('friend-removed', { username: targetUser.username });
-      if (s.username === targetUser.username) s.emit('friend-removed', { username: me.username });
+    // Find messages with Cloudinary files to delete them
+    const messagesWithMedia = await Message.find({
+      $or: orCondition,
+      fileUrl: { $regex: 'cloudinary.com' }
     });
+
+    for (const msg of messagesWithMedia) {
+      try {
+        const parts = msg.fileUrl.split('/');
+        const filename = parts.pop().split('.')[0];
+        const folder = parts.pop();
+        const publicId = `${folder}/${filename}`;
+        const resourceType = msg.type === 'video' || msg.type === 'audio' ? 'video' : 'image';
+        await cloudinary.uploader.destroy(publicId, { resource_type: resourceType });
+      } catch (err) {
+        console.error('Error deleting media from cloudinary:', err);
+      }
+    }
+
+    await Message.deleteMany({ $or: orCondition });
+  }
+  
+  if (req.io && req.io.activeUsers) {
+    const meSocket = req.io.activeUsers.get(me.username);
+    const targetSocket = req.io.activeUsers.get(targetUser.username);
+    if (meSocket) req.io.to(meSocket).emit('friend-removed', { username: targetUser.username });
+    if (targetSocket) req.io.to(targetSocket).emit('friend-removed', { username: me.username });
   }
 
   await me.save();

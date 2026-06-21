@@ -393,7 +393,11 @@ const MyProfile = () => {
               )}
             </div>
             
-            <h3 className="profile-role" style={{marginBottom: '20px', marginLeft: '20px'}}>{profileData.role.toUpperCase()}</h3>
+            <div style={{marginBottom: '20px', marginLeft: '20px'}}>
+              <span className={`badge badge-${profileData.role || 'user'}`}>
+                {(profileData.role || 'USER').toUpperCase()}
+              </span>
+            </div>
           </div>
 
           {/* Details Section */}
@@ -571,7 +575,9 @@ const MyProfile = () => {
                   )}
                   <div className="friend-info">
                     <h4>{f.username}</h4>
-                    <span className="friend-role">{f.role}</span>
+                    <span className={`badge badge-${f.role || 'user'}`} style={{fontSize: '10px', padding: '2px 6px', marginTop: '4px'}}>
+                      {(f.role || 'USER').toUpperCase()}
+                    </span>
                   </div>
                 </div>
               ))
@@ -608,8 +614,8 @@ const MyProfile = () => {
                       <span className="friend-role" style={{fontSize: '11px', color: '#6b7280'}}>{timeString}</span>
                     </div>
                     <div style={{position: 'absolute', top: '10px', right: '10px'}}>
-                      <span className={`badge ${v.role === 'superadmin' ? 'badge-superadmin' : v.role === 'admin' ? 'badge-admin' : 'badge-user'}`} style={{fontSize: '9px', padding: '2px 4px'}}>
-                        {v.role?.toUpperCase()}
+                      <span className={`badge badge-${v.role || 'user'}`} style={{fontSize: '9px', padding: '2px 4px'}}>
+                        {(v.role || 'USER').toUpperCase()}
                       </span>
                     </div>
                   </div>
