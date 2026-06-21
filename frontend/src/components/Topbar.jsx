@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Menu, Bell, ChevronDown, User as UserIcon, LogOut } from 'lucide-react';
+import { Menu, Bell, ChevronDown, User as UserIcon, LogOut, Shield } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useSocket } from '../contexts/SocketContext';
 import { Link, useNavigate } from 'react-router-dom';
@@ -153,6 +153,13 @@ const Topbar = ({ toggleSidebar }) => {
                 
                 <div className="profile-dropdown-divider"></div>
                 
+                {(displayUser?.role === 'superadmin' || displayUser?.role === 'admin') && (
+                  <button className="profile-dropdown-item" onClick={() => { setShowProfileMenu(false); navigate('/superadmin'); }}>
+                    <Shield size={18} className="text-lightblue" />
+                    Admin Dashboard
+                  </button>
+                )}
+
                 <button className="profile-dropdown-item" onClick={() => { setShowProfileMenu(false); navigate('/profile'); }}>
                   <UserIcon size={18} />
                   My Profile
