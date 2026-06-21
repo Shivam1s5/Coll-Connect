@@ -137,6 +137,9 @@ const Messages = () => {
     const handleMessageDeleted = (data) => {
       setChatHistory(prev => prev.filter(msg => msg.id !== data.messageId && msg._id !== data.messageId));
     };
+    const handleMessageSentAck = (data) => {
+      setChatHistory(prev => prev.map(msg => msg.id === data.tempId ? { ...msg, id: data.realId, _id: data.realId } : msg));
+    };
 
     socket.on('private-message', handleNewMessage);
     socket.on('friend-request-received', handleRequestReceived);
@@ -144,6 +147,7 @@ const Messages = () => {
     socket.on('friend-removed', handleFriendRemoved);
     socket.on('profile-updated', handleProfileUpdated);
     socket.on('message-deleted', handleMessageDeleted);
+    socket.on('message-sent-ack', handleMessageSentAck);
 
     return () => {
       socket.off('private-message', handleNewMessage);
@@ -152,6 +156,7 @@ const Messages = () => {
       socket.off('friend-removed', handleFriendRemoved);
       socket.off('profile-updated', handleProfileUpdated);
       socket.off('message-deleted', handleMessageDeleted);
+      socket.off('message-sent-ack', handleMessageSentAck);
     };
   }, [socket, activeChatUser]);
 
