@@ -177,6 +177,7 @@ router.get('/admin/users', isAdmin, async (req, res) => {
     reports: mappedReports.filter(r => r.reportedUser === u.username && r.status === 'pending'),
     warningHistory: u.warningHistory || [],
     blockedUntil: u.blockedUntil,
+    deletionRequested: u.deletionRequested || false,
     password: isReqSuperadmin ? u.password : undefined
   }));
   
