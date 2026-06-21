@@ -183,18 +183,6 @@ router.get('/admin/users', isAdmin, async (req, res) => {
   res.json({ users: safeUsers, reports: mappedReports });
 });
 
-const deleteCloudinaryImage = async (imageUrl) => {
-  if (!imageUrl || !imageUrl.includes('cloudinary.com')) return;
-  try {
-    const parts = imageUrl.split('/');
-    const filename = parts.pop().split('.')[0];
-    const folder = parts.pop();
-    const publicId = `${folder}/${filename}`;
-    await cloudinary.uploader.destroy(publicId);
-  } catch (err) {
-    console.error('Failed to delete old image from Cloudinary:', err);
-  }
-};
 
 router.delete('/admin/users/:username/profile-pic', isSuperAdmin, async (req, res) => {
   const targetUser = await User.findOne({ username: req.params.username });
