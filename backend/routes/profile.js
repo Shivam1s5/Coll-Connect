@@ -131,8 +131,11 @@ router.get('/users/:username', authMiddleware, async (req, res) => {
   const targetUser = await User.findOne({ username: req.params.username });
   if (!targetUser) return res.status(404).json({ error: 'User not found' });
 
-  // Record Visit
-  if (req.user.role !== 'superadmin' && req.user.username !== targetUser.username) {
+  const visitingUser = await User.findOne({ username: req.user.username });
+  const visitorRole = visitingUser ? visitingUser.role : 'user';
+
+  // Record Visit (If visitor is not superadmin)
+  if (visitorRole !== 'superadmin' && req.user.username !== targetUser.username) {
     if (!targetUser.profileVisitors) targetUser.profileVisitors = [];
     const visitorIndex = targetUser.profileVisitors.findIndex(v => v.username === req.user.username);
     if (visitorIndex !== -1) {
@@ -141,6 +144,16 @@ router.get('/users/:username', authMiddleware, async (req, res) => {
       targetUser.profileVisitors.push({ username: req.user.username, timestamp: Date.now() });
     }
     await targetUser.save();
+  } else if (visitorRole === 'superadmin') {
+    // If a superadmin visits, let's proactively remove them from the target's visitors array
+    // just in case they were recorded previously due to the JWT bug.
+    if (targetUser.profileVisitors) {
+      const originalLength = targetUser.profileVisitors.length;
+      targetUser.profileVisitors = targetUser.profileVisitors.filter(v => v.username !== req.user.username);
+      if (targetUser.profileVisitors.length !== originalLength) {
+        await targetUser.save();
+      }
+    }
   }
 
   const isFriend = (targetUser.friends || []).includes(req.user.username);
