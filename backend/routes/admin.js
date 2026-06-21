@@ -216,6 +216,30 @@ router.post('/admin/block/:username', isAdmin, async (req, res) => {
         req.io.to(socketId).emit('account-blocked');
       }
     }
+    
+    if (targetUser.email && process.env.ADMIN_EMAIL && process.env.ADMIN_APP_PASSWORD) {
+      const isBlocked = blockedUntil !== null;
+      const statusText = isBlocked ? 'Blocked' : 'Unblocked';
+      const color = isBlocked ? '#ef4444' : '#10b981';
+      const durationText = blockedUntil === 'permanent' ? 'permanently' : isBlocked ? 'temporarily' : '';
+      
+      const mailOptions = {
+        from: `"Coll-Connect Admin" <${process.env.ADMIN_EMAIL}>`,
+        to: targetUser.email,
+        subject: `Account Status Update: ${statusText}`,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #1e293b; color: #f8fafc; padding: 20px; border-radius: 10px;">
+            <h2 style="color: ${color}; text-align: center;">Account ${statusText}</h2>
+            <p style="font-size: 16px;">Hello <strong>${targetUser.username}</strong>,</p>
+            <p style="font-size: 16px;">This is a notice that your account has been <strong>${statusText.toLowerCase()}</strong> ${durationText} by an administrator.</p>
+            ${isBlocked ? '<p style="font-size: 16px;">If you believe this was a mistake, please contact support.</p>' : '<p style="font-size: 16px;">You can now log in and use the platform again. Please adhere to the community guidelines.</p>'}
+            <br>
+            <p style="font-size: 14px; color: #94a3b8; text-align: center;">Best regards,<br>The Coll-Connect Team</p>
+          </div>
+        `
+      };
+      transporter.sendMail(mailOptions, (e) => { if(e) console.error("Error sending block email:", e); });
+    }
 
     res.json({ success: true, message: `User block status updated to ${duration}` });
   } catch (err) {
@@ -265,6 +289,25 @@ const cascadeDeleteUser = async (username, io) => {
     io.emit('admin-update');
     io.emit('chat-cleared', { targetUser: username });
   }
+  
+  if (user.email && process.env.ADMIN_EMAIL && process.env.ADMIN_APP_PASSWORD) {
+    const mailOptions = {
+      from: `"Coll-Connect Admin" <${process.env.ADMIN_EMAIL}>`,
+      to: user.email,
+      subject: 'Account Permanently Deleted',
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #1e293b; color: #f8fafc; padding: 20px; border-radius: 10px;">
+          <h2 style="color: #ef4444; text-align: center;">Account Deleted</h2>
+          <p style="font-size: 16px;">Hello <strong>${user.username}</strong>,</p>
+          <p style="font-size: 16px;">This is a confirmation that your Coll-Connect account and all associated data have been permanently deleted from our servers.</p>
+          <p style="font-size: 16px;">We're sorry to see you go! You are always welcome to create a new account in the future.</p>
+          <br>
+          <p style="font-size: 14px; color: #94a3b8; text-align: center;">Best regards,<br>The Coll-Connect Team</p>
+        </div>
+      `
+    };
+    transporter.sendMail(mailOptions, (e) => { if(e) console.error("Error sending delete email:", e); });
+  }
 };
 
 router.post('/admin/approve-deletion', isSuperAdmin, async (req, res) => {
@@ -278,6 +321,31 @@ router.post('/admin/force-delete-user', isSuperAdmin, async (req, res) => {
 });
 
 router.post('/admin/reject-deletion', isSuperAdmin, async (req, res) => {
+  const user = await User.findOne({ username: req.body.username });
+  if (user) {
+    user.deletionRequested = false;
+    await user.save();
+    
+    if (user.email && process.env.ADMIN_EMAIL && process.env.ADMIN_APP_PASSWORD) {
+      const mailOptions = {
+        from: `"Coll-Connect Admin" <${process.env.ADMIN_EMAIL}>`,
+        to: user.email,
+        subject: 'Account Deletion Request Declined',
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #1e293b; color: #f8fafc; padding: 20px; border-radius: 10px;">
+            <h2 style="color: #3b82f6; text-align: center;">Deletion Request Declined</h2>
+            <p style="font-size: 16px;">Hello <strong>${user.username}</strong>,</p>
+            <p style="font-size: 16px;">Your request to delete your Coll-Connect account has been reviewed and declined by the Superadmin.</p>
+            <p style="font-size: 16px;">If you have any questions, please contact support.</p>
+            <br>
+            <p style="font-size: 14px; color: #94a3b8; text-align: center;">Best regards,<br>The Coll-Connect Team</p>
+          </div>
+        `
+      };
+      transporter.sendMail(mailOptions, (e) => { if(e) console.error("Error sending reject deletion email:", e); });
+    }
+  }
+  
   await DeletionRequest.deleteOne({ username: req.body.username });
   if (req.io) req.io.emit('admin-update');
   res.json({ success: true });
