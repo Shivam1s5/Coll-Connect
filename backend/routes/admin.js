@@ -297,6 +297,7 @@ router.post('/admin/warn-user', isAdmin, async (req, res) => {
         type: 'text',
         timestamp: msg.timestamp
       });
+      req.io.to(targetSocketId).emit('warning-received', { message: warningMessage });
     }
   }
 

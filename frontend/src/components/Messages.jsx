@@ -265,7 +265,11 @@ const Messages = () => {
     try {
       // Capture the chat area automatically
       const chatArea = document.querySelector('.chat-area') || document.body;
-      const canvas = await html2canvas(chatArea, { useCORS: true, allowTaint: false });
+      const canvas = await html2canvas(chatArea, { 
+        useCORS: true, 
+        allowTaint: false,
+        ignoreElements: (element) => element.id === 'report-modal-wrapper'
+      });
       screenshotData = canvas.toDataURL('image/jpeg', 0.6); // Compress to 60% quality jpeg
     } catch (err) {
       console.error('Failed to capture screenshot', err);
@@ -882,7 +886,7 @@ const Messages = () => {
       </div>
 
       {showReportModal && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div id="report-modal-wrapper" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div style={{ background: '#1f2937', padding: '30px', borderRadius: '12px', width: '90%', maxWidth: '450px', border: '1px solid #374151' }}>
             <h3 style={{ margin: '0 0 20px 0', color: '#f3f4f6', display: 'flex', alignItems: 'center', gap: '10px' }}>
               <AlertTriangle size={24} color="#ef4444" />

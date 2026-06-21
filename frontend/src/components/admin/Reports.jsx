@@ -14,6 +14,11 @@ const Reports = () => {
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState(null);
 
+  // Warn Modal States
+  const [showWarnModal, setShowWarnModal] = useState(false);
+  const [warnReportId, setWarnReportId] = useState(null);
+  const [warnMessage, setWarnMessage] = useState('');
+
   const fetchReports = async () => {
     try {
       const token = localStorage.getItem('token');
@@ -67,19 +72,23 @@ const Reports = () => {
     });
   };
 
-  const handleWarnUser = async (reportId) => {
-    const warningMessage = window.prompt("Enter a custom warning message, or leave blank for the default warning:");
-    if (warningMessage === null) return; // User cancelled
+  const handleWarnClick = (reportId) => {
+    setWarnReportId(reportId);
+    setWarnMessage('');
+    setShowWarnModal(true);
+  };
 
+  const submitWarnUser = async () => {
     try {
       const token = localStorage.getItem('token');
       const res = await fetch(`${backendUrl}/api/admin/warn-user`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({ reportId, warningMessage })
+        body: JSON.stringify({ reportId: warnReportId, warningMessage: warnMessage })
       });
       if (res.ok) {
         showToast('User warned successfully');
+        setShowWarnModal(false);
         fetchReports();
       } else { showToast('Failed to warn user'); }
     } catch (err) { showToast('Server error'); }
@@ -103,7 +112,7 @@ const Reports = () => {
       ) : (
         <div style={{ display: 'grid', gap: '20px' }}>
           {reports.map((report) => (
-            <div key={report._id} style={{ background: '#1f2937', borderRadius: '12px', border: '1px solid #374151', overflow: 'hidden' }}>
+            <div key={report.id || report._id} style={{ background: '#1f2937', borderRadius: '12px', border: '1px solid #374151', overflow: 'hidden' }}>
               <div style={{ padding: '15px 20px', background: '#111827', borderBottom: '1px solid #374151', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
                   <div>
@@ -117,7 +126,7 @@ const Reports = () => {
                   </div>
                 </div>
                 <div style={{ color: '#9ca3af', fontSize: '0.85rem' }}>
-                  {new Date(report.timestamp).toLocaleString()}
+                  {new Date(report.time || report.timestamp).toLocaleString()}
                 </div>
               </div>
               
@@ -149,7 +158,7 @@ const Reports = () => {
 
               <div style={{ padding: '15px 20px', background: '#111827', borderTop: '1px solid #374151', display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
                 <button 
-                  onClick={() => handleDismiss(report._id)}
+                  onClick={() => handleDismiss(report.id || report._id)}
                   style={{ background: 'transparent', border: '1px solid #4b5563', color: '#d1d5db', padding: '8px 16px', borderRadius: '6px', cursor: 'pointer', transition: 'all 0.2s' }}
                   onMouseEnter={(e) => { e.currentTarget.style.background = '#374151'; }}
                   onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
@@ -157,7 +166,7 @@ const Reports = () => {
                   Dismiss
                 </button>
                 <button 
-                  onClick={() => handleWarnUser(report._id)}
+                  onClick={() => handleWarnClick(report.id || report._id)}
                   style={{ background: '#eab308', color: '#000', border: 'none', padding: '8px 16px', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', transition: 'all 0.2s' }}
                   onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; }}
                   onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; }}
@@ -173,6 +182,46 @@ const Reports = () => {
       {selectedImage && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.9)', zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px' }} onClick={() => setSelectedImage(null)}>
           <img src={selectedImage} alt="Full Evidence" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', borderRadius: '8px' }} />
+        </div>
+      )}
+
+      {showWarnModal && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ background: '#1f2937', padding: '30px', borderRadius: '12px', width: '90%', maxWidth: '450px', border: '1px solid #374151' }}>
+            <h3 style={{ margin: '0 0 20px 0', color: '#f3f4f6', display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <AlertTriangle size={24} color="#eab308" />
+              Warn User
+            </h3>
+            
+            <p style={{ color: '#9ca3af', marginBottom: '20px', fontSize: '0.9rem', lineHeight: '1.5' }}>
+              Send a warning to this user. This will be recorded in their profile history.
+            </p>
+
+            <div style={{ marginBottom: '25px' }}>
+              <label style={{ display: 'block', color: '#d1d5db', marginBottom: '8px', fontSize: '0.9rem' }}>Warning Message (Optional):</label>
+              <textarea 
+                value={warnMessage} 
+                onChange={(e) => setWarnMessage(e.target.value)}
+                placeholder="Leave blank for a default warning..."
+                style={{ width: '100%', padding: '12px', background: '#111827', border: '1px solid #374151', color: '#f3f4f6', borderRadius: '8px', outline: 'none', minHeight: '100px', resize: 'vertical' }}
+              />
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+              <button 
+                onClick={() => setShowWarnModal(false)}
+                style={{ padding: '10px 16px', background: 'transparent', border: '1px solid #4b5563', color: '#d1d5db', borderRadius: '8px', cursor: 'pointer' }}
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={submitWarnUser}
+                style={{ padding: '10px 16px', background: '#eab308', color: '#000', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}
+              >
+                Send Warning
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
