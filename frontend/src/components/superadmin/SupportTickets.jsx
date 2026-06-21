@@ -98,12 +98,14 @@ const SupportTickets = () => {
                   </div>
                 )}
               </div>
-              {ticket.status !== 'resolved' && (
-                <div className="ticket-actions mt-2" style={{display: 'flex', gap: '10px'}}>
+              <div className="ticket-actions mt-2" style={{display: 'flex', gap: '10px'}}>
+                {ticket.status !== 'resolved' && (
                   <button className="btn-action btn-blue" onClick={() => resolveTicket(ticket._id)}>Mark as Resolved</button>
-                  <button className="btn-action btn-red" onClick={() => dismissTicket(ticket._id)}>Dismiss Invalid Ticket</button>
-                </div>
-              )}
+                )}
+                <button className="btn-action btn-red" onClick={() => dismissTicket(ticket._id)}>
+                  {ticket.status === 'resolved' ? 'Delete Ticket Data' : 'Dismiss Invalid Ticket'}
+                </button>
+              </div>
             </div>
           ))}
         </div>
