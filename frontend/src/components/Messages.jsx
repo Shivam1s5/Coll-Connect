@@ -41,7 +41,7 @@ const Messages = () => {
       });
       if (res.ok) {
         const data = await res.json();
-        setFriends(data.friendsList || []);
+        setFriends(data.friends || []);
         setRequests(data.friendRequests || []);
       }
     } catch (err) {
