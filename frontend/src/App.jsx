@@ -8,6 +8,7 @@ import AdminDashboard from './components/admin/AdminDashboard';
 import SupportTickets from './components/superadmin/SupportTickets';
 import Announcements from './components/superadmin/Announcements';
 import DeletionRequests from './components/superadmin/DeletionRequests';
+import Reports from './components/admin/Reports';
 import Layout from './components/Layout';
 import Dashboard from './components/Dashboard';
 import MyProfile from './components/MyProfile';
@@ -44,10 +45,12 @@ function App() {
                 <Route path="superadmin/tickets" element={<AuthGuard requiredRoles={['superadmin']}><SupportTickets /></AuthGuard>} />
                 <Route path="superadmin/announcements" element={<AuthGuard requiredRoles={['superadmin']}><Announcements /></AuthGuard>} />
                 <Route path="superadmin/deletion-requests" element={<AuthGuard requiredRoles={['superadmin']}><DeletionRequests /></AuthGuard>} />
+                <Route path="superadmin/reports" element={<AuthGuard requiredRoles={['superadmin']}><Reports /></AuthGuard>} />
                 
                 {/* Admin Routes */}
                 <Route path="admin" element={<AuthGuard requiredRoles={['admin']}><AdminDashboard /></AuthGuard>} />
                 <Route path="admin/users" element={<AuthGuard requiredRoles={['admin']}><ManageUsers /></AuthGuard>} />
+                <Route path="admin/reports" element={<AuthGuard requiredRoles={['admin']}><Reports /></AuthGuard>} />
               </Route>
 
               {/* Fallback */}

@@ -3,6 +3,7 @@ const router = express.Router();
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const Message = require('../models/Message');
+const Report = require('../models/Report');
 const { cloudinary } = require('../config/cloudinary');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'super-secret-key-123';
@@ -387,6 +388,39 @@ router.post('/request-deletion', authMiddleware, async (req, res) => {
     res.json({ success: true, message: 'Deletion request submitted.' });
   } catch (err) {
     console.error('Error requesting deletion:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+router.post('/report', authMiddleware, async (req, res) => {
+  try {
+    const { reportedUser, reason, screenshotData } = req.body;
+    if (!reportedUser || !reason) {
+      return res.status(400).json({ error: 'Reported user and reason are required' });
+    }
+
+    let screenshotUrl = '';
+    if (screenshotData) {
+      const uploadRes = await cloudinary.uploader.upload(screenshotData, { folder: 'reports' });
+      screenshotUrl = uploadRes.secure_url;
+    }
+
+    const report = new Report({
+      reporter: req.user.username,
+      reportedUser,
+      reason,
+      screenshot: screenshotUrl
+    });
+    
+    await report.save();
+
+    if (req.io) {
+      req.io.emit('admin-update');
+    }
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Error submitting report:', err);
     res.status(500).json({ error: 'Server error' });
   }
 });

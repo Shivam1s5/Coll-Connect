@@ -62,6 +62,9 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
                 <NavLink to="/superadmin/announcements" className={({isActive}) => isActive ? "nav-item active" : "nav-item"}>
                   Announcements
                 </NavLink>
+                <NavLink to="/superadmin/reports" className={({isActive}) => isActive ? "nav-item active" : "nav-item"}>
+                  Reports
+                </NavLink>
                 <NavLink to="/superadmin/deletion-requests" className={({isActive}) => isActive ? "nav-item active" : "nav-item"}>
                   Deletion Requests
                 </NavLink>
@@ -78,6 +81,9 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
                 </NavLink>
                 <NavLink to="/admin/users" className={({isActive}) => isActive ? "nav-item active" : "nav-item"}>
                   Manage Users
+                </NavLink>
+                <NavLink to="/admin/reports" className={({isActive}) => isActive ? "nav-item active" : "nav-item"}>
+                  Reports
                 </NavLink>
               </nav>
             </div>

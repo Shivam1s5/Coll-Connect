@@ -5,6 +5,7 @@ import { useSocket } from '../contexts/SocketContext';
 import { useToast } from '../contexts/ToastContext';
 import EmojiPicker from 'emoji-picker-react';
 import { Search, Send, User, Check, X, Clock, MessageCircle, Paperclip, Mic, Smile, AlertTriangle, UserMinus, MoreVertical, Square, Trash2, Image, Play, Maximize2 } from 'lucide-react';
+import html2canvas from 'html2canvas';
 
 const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
 
@@ -51,6 +52,11 @@ const Messages = () => {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [showChatMenu, setShowChatMenu] = useState(false);
   const [showGifPicker, setShowGifPicker] = useState(false);
+  
+  // Report System States
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [reportReason, setReportReason] = useState('');
+  const [isSubmittingReport, setIsSubmittingReport] = useState(false);
   
   const [isRecording, setIsRecording] = useState(false);
   const [audioBlob, setAudioBlob] = useState(null);
@@ -243,7 +249,57 @@ const Messages = () => {
 
   const handleReport = () => {
     setShowChatMenu(false);
-    showToast('Report submitted. Our team will review this user.');
+    setShowReportModal(true);
+    setReportReason('');
+  };
+
+  const submitReport = async () => {
+    if (!reportReason.trim()) {
+      showToast('Please provide a reason for reporting.');
+      return;
+    }
+    
+    setIsSubmittingReport(true);
+    let screenshotData = '';
+    
+    try {
+      // Capture the chat area automatically
+      const chatArea = document.querySelector('.chat-area') || document.body;
+      const canvas = await html2canvas(chatArea, { useCORS: true, allowTaint: false });
+      screenshotData = canvas.toDataURL('image/jpeg', 0.6); // Compress to 60% quality jpeg
+    } catch (err) {
+      console.error('Failed to capture screenshot', err);
+      // Proceed without screenshot if it fails
+    }
+
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${backendUrl}/api/report`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          reportedUser: activeChatUser.username,
+          reason: reportReason,
+          screenshotData
+        })
+      });
+      
+      if (res.ok) {
+        showToast('Report submitted successfully.');
+        setShowReportModal(false);
+      } else {
+        const errorData = await res.json();
+        showToast(errorData.error || 'Failed to submit report');
+      }
+    } catch (err) {
+      console.error(err);
+      showToast('Server error while reporting');
+    } finally {
+      setIsSubmittingReport(false);
+    }
   };
 
   const handleClearChat = () => {
@@ -824,6 +880,55 @@ const Messages = () => {
           </div>
         )}
       </div>
+
+      {showReportModal && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ background: '#1f2937', padding: '30px', borderRadius: '12px', width: '90%', maxWidth: '450px', border: '1px solid #374151' }}>
+            <h3 style={{ margin: '0 0 20px 0', color: '#f3f4f6', display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <AlertTriangle size={24} color="#ef4444" />
+              Report User
+            </h3>
+            
+            <p style={{ color: '#9ca3af', marginBottom: '20px', fontSize: '0.9rem', lineHeight: '1.5' }}>
+              Are you sure you want to report <strong>{activeChatUser?.username}</strong>? Our system will automatically capture a screenshot of your current chat for the moderation team to review.
+            </p>
+
+            <div style={{ marginBottom: '25px' }}>
+              <label style={{ display: 'block', color: '#d1d5db', marginBottom: '8px', fontSize: '0.9rem' }}>Reason for reporting:</label>
+              <select 
+                value={reportReason} 
+                onChange={(e) => setReportReason(e.target.value)}
+                style={{ width: '100%', padding: '12px', background: '#111827', border: '1px solid #374151', color: '#f3f4f6', borderRadius: '8px', outline: 'none' }}
+              >
+                <option value="">Select a reason...</option>
+                <option value="Harassment or bullying">Harassment or bullying</option>
+                <option value="Inappropriate content">Inappropriate content</option>
+                <option value="Spam or scams">Spam or scams</option>
+                <option value="Impersonation">Impersonation</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+              <button 
+                onClick={() => setShowReportModal(false)}
+                disabled={isSubmittingReport}
+                style={{ padding: '10px 16px', background: 'transparent', border: '1px solid #4b5563', color: '#d1d5db', borderRadius: '8px', cursor: isSubmittingReport ? 'not-allowed' : 'pointer' }}
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={submitReport}
+                disabled={isSubmittingReport || !reportReason}
+                style={{ padding: '10px 16px', background: '#ef4444', color: '#fff', border: 'none', borderRadius: '8px', cursor: isSubmittingReport || !reportReason ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: '8px', opacity: isSubmittingReport || !reportReason ? 0.7 : 1 }}
+              >
+                {isSubmittingReport ? 'Capturing & Submitting...' : 'Confirm Report'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <style>{`
         @keyframes pulse {
           0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
