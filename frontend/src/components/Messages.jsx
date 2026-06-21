@@ -34,6 +34,7 @@ const Messages = () => {
 
   const [friends, setFriends] = useState([]);
   const [requests, setRequests] = useState([]);
+  const [unreadCounts, setUnreadCounts] = useState({});
   
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
@@ -88,6 +89,7 @@ const Messages = () => {
         const data = await res.json();
         setFriends(data.friends || []);
         setRequests(data.friendRequests || []);
+        setUnreadCounts(data.unreadCounts || {});
       }
     } catch (err) {
       console.error('Failed to fetch profile data', err);
@@ -100,6 +102,10 @@ const Messages = () => {
       if (activeChatUser && (msg.sender === activeChatUser.username || msg.receiver === activeChatUser.username)) {
         setChatHistory(prev => [...prev, msg]);
         scrollToBottom();
+      } else {
+        if (msg.sender !== authUser?.username) {
+          setUnreadCounts(prev => ({ ...prev, [msg.sender]: (prev[msg.sender] || 0) + 1 }));
+        }
       }
     };
     const handleRequestReceived = () => { fetchProfileData(); showToast('You have a new friend request!'); };
@@ -196,6 +202,12 @@ const Messages = () => {
   };
 
   const openChat = async (user) => {
+    if (activeChatUser && activeChatUser.username === user.username) {
+      setActiveChatUser(null);
+      setChatHistory([]);
+      return;
+    }
+    
     setActiveChatUser(user);
     setIsFetchingChat(true);
     setSearchQuery('');
@@ -204,6 +216,14 @@ const Messages = () => {
     setAudioBlob(null);
     try {
       const token = localStorage.getItem('token');
+      
+      // Clear unread
+      setUnreadCounts(prev => ({ ...prev, [user.username]: 0 }));
+      await fetch(`${backendUrl}/api/messages/${user.username}/read`, { 
+        method: 'PUT', 
+        headers: { 'Authorization': `Bearer ${token}` } 
+      });
+
       const res = await fetch(`${backendUrl}/api/messages/${user.username}`, { headers: { 'Authorization': `Bearer ${token}` } });
       if (res.ok) { setChatHistory(await res.json()); scrollToBottom(); }
     } catch (err) {} finally { setIsFetchingChat(false); }
@@ -485,8 +505,13 @@ const Messages = () => {
               ) : (
                 friends.map(f => (
                   <div key={f.username} onClick={() => openChat(f)} style={{ display: 'flex', alignItems: 'center', padding: '12px', borderRadius: '8px', background: activeChatUser?.username === f.username ? '#374151' : 'transparent', cursor: 'pointer', transition: 'background 0.2s', marginBottom: '4px' }} onMouseEnter={(e) => e.currentTarget.style.background = activeChatUser?.username === f.username ? '#374151' : '#111827'} onMouseLeave={(e) => e.currentTarget.style.background = activeChatUser?.username === f.username ? '#374151' : 'transparent'}>
-                    <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: '#4b5563', overflow: 'hidden', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      {f.profilePic ? <img src={f.profilePic} alt={f.username} style={{width: '100%', height: '100%', objectFit: 'cover'}}/> : <User size={24} color="#9ca3af" />}
+                    <div style={{ position: 'relative' }}>
+                      <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: '#4b5563', overflow: 'hidden', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        {f.profilePic ? <img src={f.profilePic} alt={f.username} style={{width: '100%', height: '100%', objectFit: 'cover'}}/> : <User size={24} color="#9ca3af" />}
+                      </div>
+                      {unreadCounts[f.username] > 0 && (
+                        <div style={{ position: 'absolute', bottom: '0', right: '0', width: '14px', height: '14px', borderRadius: '50%', background: '#3b82f6', border: '2px solid #111827' }}></div>
+                      )}
                     </div>
                     <div style={{ marginLeft: '12px', flex: 1, overflow: 'hidden' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>

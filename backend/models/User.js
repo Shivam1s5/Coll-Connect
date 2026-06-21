@@ -11,6 +11,7 @@ const userSchema = new mongoose.Schema({
   joinedAt: { type: Date, default: Date.now },
   lastUsernameChangeDate: { type: Date },
   blockedUntil: { type: mongoose.Schema.Types.Mixed }, // String ('permanent') or Date
+  isPrivate: { type: Boolean, default: false },
   socials: {
     linkedin: { type: String, default: '' },
     facebook: { type: String, default: '' },

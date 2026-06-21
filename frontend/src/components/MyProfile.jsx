@@ -415,18 +415,40 @@ const MyProfile = () => {
                 )}
               </div>
               
-              <div className="form-group" style={{marginTop: '20px', padding: '15px', backgroundColor: '#1f2937', borderRadius: '8px', border: '1px solid #374151', display: 'flex', alignItems: 'center', justifyContent: 'space-between'}}>
-                <div style={{display: 'flex', alignItems: 'center', gap: '10px'}}>
-                  {profileData.isPrivate ? <Lock size={20} color="#8b5cf6" /> : <Unlock size={20} color="#9ca3af" />}
+              <div className="form-group" style={{marginTop: '20px', padding: '20px', backgroundColor: profileData.isPrivate ? 'rgba(139, 92, 246, 0.1)' : '#1f2937', borderRadius: '12px', border: `1px solid ${profileData.isPrivate ? '#8b5cf6' : '#374151'}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', transition: 'all 0.3s ease'}}>
+                <div style={{display: 'flex', alignItems: 'center', gap: '15px'}}>
+                  <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: profileData.isPrivate ? 'linear-gradient(135deg, #8B5CF6 0%, #6D28D9 100%)' : '#374151', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: profileData.isPrivate ? '0 4px 12px rgba(139, 92, 246, 0.4)' : 'none', transition: 'all 0.3s ease' }}>
+                    {profileData.isPrivate ? <Lock size={24} color="#fff" /> : <Unlock size={24} color="#9ca3af" />}
+                  </div>
                   <div>
-                    <h4 style={{margin: 0, color: '#e5e7eb'}}>Private Profile</h4>
-                    <span style={{fontSize: '0.8rem', color: '#9ca3af'}}>Hide friends and socials from non-friends</span>
+                    <h4 style={{margin: '0 0 4px 0', color: profileData.isPrivate ? '#e5e7eb' : '#d1d5db', fontSize: '1.1rem'}}>Profile Visibility</h4>
+                    <span style={{fontSize: '0.85rem', color: '#9ca3af'}}>
+                      {profileData.isPrivate ? 'Your profile is currently Locked.' : 'Your profile is currently Public.'}
+                    </span>
                   </div>
                 </div>
-                <label className="toggle-switch">
-                  <input type="checkbox" checked={profileData.isPrivate || false} onChange={handleTogglePrivacy} />
-                  <span className="slider round"></span>
-                </label>
+                <button 
+                  onClick={() => {
+                    const fakeEvent = { target: { checked: !profileData.isPrivate } };
+                    handleTogglePrivacy(fakeEvent);
+                  }}
+                  style={{
+                    padding: '10px 20px', 
+                    borderRadius: '8px', 
+                    fontWeight: 'bold',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    background: profileData.isPrivate ? '#374151' : '#8b5cf6',
+                    color: '#fff',
+                    border: 'none',
+                    boxShadow: profileData.isPrivate ? 'none' : '0 4px 12px rgba(139, 92, 246, 0.3)',
+                    transition: 'all 0.2s ease'
+                  }}
+                >
+                  {profileData.isPrivate ? 'Unlock Profile' : 'Lock Profile'}
+                </button>
               </div>
             </div>
 

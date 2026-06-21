@@ -126,9 +126,12 @@ router.post('/unfriend', authMiddleware, async (req, res) => {
   }
 
   await Message.deleteMany({ $or: orCondition });
+  
   if (req.io) {
-    req.io.emit('chat-cleared', { targetUser: targetUser.username });
-    req.io.emit('chat-cleared', { targetUser: me.username });
+    req.io.sockets.sockets.forEach((s) => {
+      if (s.username === me.username) s.emit('friend-removed', { username: targetUser.username });
+      if (s.username === targetUser.username) s.emit('friend-removed', { username: me.username });
+    });
   }
 
   await me.save();

@@ -6,6 +6,7 @@ const messageSchema = new mongoose.Schema({
   text: { type: String, default: '' },
   type: { type: String, default: 'text' }, // text, image, video, audio
   fileUrl: { type: String, default: '' },
+  read: { type: Boolean, default: false },
   timestamp: { type: Date, default: Date.now }
 });
 

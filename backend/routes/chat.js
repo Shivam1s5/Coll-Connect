@@ -36,4 +36,16 @@ router.get('/messages/:friend', authMiddleware, async (req, res) => {
   })));
 });
 
+router.put('/messages/:friend/read', authMiddleware, async (req, res) => {
+  const me = req.user.username;
+  const friend = req.params.friend;
+  
+  await Message.updateMany(
+    { sender: friend, receiver: me, read: false },
+    { $set: { read: true } }
+  );
+  
+  res.json({ success: true });
+});
+
 module.exports = router;

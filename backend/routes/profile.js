@@ -30,9 +30,15 @@ router.get('/me', authMiddleware, async (req, res) => {
   const actualFriends = user.friends || [];
   const interactedUsers = new Set();
   const msgs = await Message.find({ $or: [{ sender: user.username }, { receiver: user.username }] });
+  const unreadCounts = {};
   msgs.forEach(m => {
     if (m.sender === user.username) interactedUsers.add(m.receiver);
-    else interactedUsers.add(m.sender);
+    else {
+      interactedUsers.add(m.sender);
+      if (m.receiver === user.username && m.read === false) {
+        unreadCounts[m.sender] = (unreadCounts[m.sender] || 0) + 1;
+      }
+    }
   });
   
   const friendsAndInteracted = new Set([...actualFriends, ...interactedUsers]);
@@ -123,8 +129,20 @@ router.get('/me', authMiddleware, async (req, res) => {
     friends: friendsList,
     friendRequests,
     profileVisitors: populatedVisitors,
-    role: user.role
+    role: user.role,
+    isPrivate: user.isPrivate || false,
+    unreadCounts
   });
+});
+
+router.put('/privacy', authMiddleware, async (req, res) => {
+  const user = await User.findOne({ username: req.user.username });
+  if (!user) return res.status(404).json({ error: 'User not found' });
+  
+  user.isPrivate = req.body.isPrivate;
+  await user.save();
+  
+  res.json({ success: true, isPrivate: user.isPrivate });
 });
 
 router.get('/users/:username', authMiddleware, async (req, res) => {
@@ -172,17 +190,29 @@ router.get('/users/:username', authMiddleware, async (req, res) => {
     }
   }
 
+  const isViewerSuperadmin = visitingUser && visitingUser.role === 'superadmin';
+  const isPrivate = targetUser.isPrivate || false;
+
+  let returnSocials = targetUser.socials;
+  let returnFriends = friendsList;
+
+  if (isPrivate && !isFriend && !isViewerSuperadmin && req.user.username !== targetUser.username) {
+    returnSocials = null;
+    returnFriends = null;
+  }
+
   res.json({
     username: targetUser.username,
     profilePic: targetUser.profilePic,
     bannerImage: targetUser.bannerImage,
     gender: targetUser.gender,
-    socials: targetUser.socials,
+    socials: returnSocials,
     role: targetUser.role,
     isFriend: isFriend,
     hasSentRequest,
     hasReceivedRequest,
-    friends: friendsList
+    friends: returnFriends,
+    isPrivate: isPrivate
   });
 });
 
