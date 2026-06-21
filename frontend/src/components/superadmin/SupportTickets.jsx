@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useSocket } from '../../contexts/SocketContext';
+import { useToast } from '../../contexts/ToastContext';
 import ImageModal from '../ImageModal';
 
 const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
@@ -9,6 +10,7 @@ const SupportTickets = () => {
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState(null);
   const { socket } = useSocket();
+  const { showConfirm } = useToast();
 
   const fetchTickets = useCallback(async () => {
     try {
@@ -52,8 +54,7 @@ const SupportTickets = () => {
     }
   };
 
-  const dismissTicket = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this ticket?')) return;
+  const performDismiss = async (id) => {
     try {
       const token = localStorage.getItem('token');
       const res = await fetch(`${backendUrl}/api/support/${id}`, {
@@ -64,6 +65,10 @@ const SupportTickets = () => {
     } catch (err) {
       console.error(err);
     }
+  };
+
+  const dismissTicket = (id) => {
+    showConfirm('Are you sure you want to delete this ticket?', () => performDismiss(id));
   };
 
   return (

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useToast } from '../contexts/ToastContext';
 import { User as UserIcon, Eye, Trash2, MessageCircle } from 'lucide-react';
 import { FaInstagram as Instagram, FaFacebook as Facebook, FaLinkedin as Linkedin, FaSnapchat as Snapchat } from 'react-icons/fa';
 import ImageModal from './ImageModal';
@@ -12,6 +13,7 @@ const UserProfile = () => {
   const { username } = useParams();
   const navigate = useNavigate();
   const { user: authUser } = useAuth();
+  const { showToast, showConfirm } = useToast();
   const [profileData, setProfileData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('profile');
@@ -58,7 +60,6 @@ const UserProfile = () => {
   };
 
   const handleForceRemoveImage = async (target) => {
-    if (!window.confirm(`SUPERADMIN ACTION: Are you sure you want to FORCE REMOVE this user's ${target}? This cannot be undone.`)) return;
     setIsProcessing(true);
     setPopupMenu(null);
     try {
@@ -71,14 +72,14 @@ const UserProfile = () => {
         }
       });
       if (res.ok) {
-        alert(`${target === 'profile' ? 'Profile picture' : 'Background banner'} forcefully removed.`);
+        showToast(`${target === 'profile' ? 'Profile picture' : 'Background banner'} forcefully removed.`);
         fetchProfile();
       } else {
-        alert('Failed to remove image.');
+        showToast('Failed to remove image.');
       }
     } catch (err) {
       console.error('Failed to remove image', err);
-      alert('Failed to remove image.');
+      showToast('Failed to remove image.');
     } finally {
       setIsProcessing(false);
     }
@@ -132,7 +133,10 @@ const UserProfile = () => {
                     <button onClick={(e) => { e.stopPropagation(); setImageModalSrc(getOriginalImageUrl(profileData.bannerImage)); setPopupMenu(null); }} className="popup-menu-btn"><Eye size={16}/> View Banner</button>
                   )}
                   {isSuperadmin && profileData.bannerImage && (
-                    <button onClick={(e) => { e.stopPropagation(); handleForceRemoveImage('banner'); }} className="popup-menu-btn text-red"><Trash2 size={16}/> Force Remove</button>
+                    <button onClick={(e) => { 
+                      e.stopPropagation(); 
+                      showConfirm(`SUPERADMIN ACTION: Are you sure you want to FORCE REMOVE this user's banner? This cannot be undone.`, () => handleForceRemoveImage('banner'));
+                    }} className="popup-menu-btn text-red"><Trash2 size={16}/> Remove Banner</button>
                   )}
                   {(!profileData.bannerImage && !isSuperadmin) && <span style={{padding: '5px', color: '#9ca3af', fontSize: '12px'}}>No banner</span>}
                 </div>
@@ -154,7 +158,10 @@ const UserProfile = () => {
                     <button onClick={(e) => { e.stopPropagation(); setImageModalSrc(getOriginalImageUrl(profileData.profilePic)); setPopupMenu(null); }} className="popup-menu-btn"><Eye size={16}/> View Picture</button>
                   )}
                   {isSuperadmin && profileData.profilePic && (
-                    <button onClick={(e) => { e.stopPropagation(); handleForceRemoveImage('profile'); }} className="popup-menu-btn text-red"><Trash2 size={16}/> Force Remove</button>
+                    <button onClick={(e) => { 
+                      e.stopPropagation(); 
+                      showConfirm(`SUPERADMIN ACTION: Are you sure you want to FORCE REMOVE this user's profile picture? This cannot be undone.`, () => handleForceRemoveImage('profile'));
+                    }} className="popup-menu-btn text-red"><Trash2 size={16}/> Remove Picture</button>
                   )}
                   {(!profileData.profilePic && !isSuperadmin) && <span style={{padding: '5px', color: '#9ca3af', fontSize: '12px'}}>No picture</span>}
                 </div>

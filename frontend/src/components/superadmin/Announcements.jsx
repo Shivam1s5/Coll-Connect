@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useSocket } from '../../contexts/SocketContext';
+import { useToast } from '../../contexts/ToastContext';
 import { Image as ImageIcon } from 'lucide-react';
 import ImageModal from '../ImageModal';
 
@@ -15,6 +16,7 @@ const Announcements = () => {
   const [loading, setLoading] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
   const { socket } = useSocket();
+  const { showToast, showConfirm } = useToast();
 
   useEffect(() => {
     fetchAnnouncements();
@@ -51,7 +53,7 @@ const Announcements = () => {
   const handleImageChange = (e) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
-      if (file.size > 5 * 1024 * 1024) return alert('Image must be less than 5MB');
+      if (file.size > 5 * 1024 * 1024) return showToast('Image must be less than 5MB');
       
       setImageFile(file);
       const reader = new FileReader();
@@ -62,7 +64,7 @@ const Announcements = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!title || !content) return alert('Title and content are required');
+    if (!title || !content) return showToast('Title and content are required');
     setLoading(true);
     
     try {
@@ -81,7 +83,7 @@ const Announcements = () => {
           imageUrl = uploadData.url;
         } else {
           setLoading(false);
-          return alert('Failed to upload image. Please try again or check Cloudinary keys.');
+          return showToast('Failed to upload image. Please try again or check Cloudinary keys.');
         }
       }
 
@@ -100,10 +102,10 @@ const Announcements = () => {
         setImageFile(null);
         setImagePreview('');
         // fetchAnnouncements(); // No longer need to fetch, socket handles it
-        alert('Announcement sent to all users!');
+        showToast('Announcement sent to all users!');
       } else {
         const data = await res.json();
-        alert(data.error || 'Failed to send announcement');
+        showToast(data.error || 'Failed to send announcement');
       }
     } catch (err) {
       console.error(err);
@@ -112,8 +114,7 @@ const Announcements = () => {
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this announcement?')) return;
+  const performDelete = async (id) => {
     try {
       const res = await fetch(`${backendUrl}/api/announcements/${id}`, {
         method: 'DELETE',
@@ -123,6 +124,10 @@ const Announcements = () => {
     } catch (err) {
       console.error(err);
     }
+  };
+
+  const handleDelete = (id) => {
+    showConfirm('Are you sure you want to delete this announcement?', () => performDelete(id));
   };
 
   return (

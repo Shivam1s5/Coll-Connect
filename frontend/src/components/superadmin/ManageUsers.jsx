@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useSocket } from '../../contexts/SocketContext';
+import { useToast } from '../../contexts/ToastContext';
 
 const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
 
@@ -9,6 +10,7 @@ const ManageUsers = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { socket } = useSocket();
+  const { showConfirm, showToast } = useToast();
   const [users, setUsers] = useState([]);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
@@ -70,9 +72,9 @@ const ManageUsers = () => {
   const promoteUser = (username) => handleAction('promote', { username });
   const dismissAdmin = (username) => handleAction('dismiss', { username });
   const deleteUser = (username) => {
-    if (window.confirm(`Are you sure you want to permanently delete ${username}?`)) {
+    showConfirm(`Are you sure you want to permanently delete ${username}?`, () => {
       handleAction('force-delete-user', { username });
-    }
+    });
   };
   
   const blockUser = (username) => {
@@ -82,15 +84,15 @@ const ManageUsers = () => {
     else if (duration === '1 Hour') apiDuration = '60';
     else if (duration === 'Permanent') apiDuration = 'permanent';
     
-    if (window.confirm(`Block ${username} for ${duration}?`)) {
+    showConfirm(`Block ${username} for ${duration}?`, () => {
       handleAction('direct-warn-user', { username, duration: apiDuration, reason: 'Superadmin Block' });
-    }
+    });
   };
 
   const unblockUser = (username) => {
-    if (window.confirm(`Are you sure you want to unblock ${username}?`)) {
+    showConfirm(`Are you sure you want to unblock ${username}?`, () => {
       handleAction('unblock-user', { username });
-    }
+    });
   };
 
   const isBlocked = (blockedUntil) => {

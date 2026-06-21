@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useToast } from '../contexts/ToastContext';
 import { GoogleOAuthProvider, GoogleLogin, useGoogleOneTapLogin } from '@react-oauth/google';
 
 const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
@@ -22,6 +23,7 @@ const AuthContent = () => {
 
   const navigate = useNavigate();
   const { login } = useAuth();
+  const { showToast } = useToast();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -122,7 +124,7 @@ const AuthContent = () => {
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error);
-        alert('Password reset successfully!');
+        showToast('Password reset successfully!');
         setShowForgot(false);
         setForgotStep(1);
       }

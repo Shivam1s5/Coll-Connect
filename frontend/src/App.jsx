@@ -14,13 +14,15 @@ import AuthGuard from './components/auth/AuthGuard';
 import { AuthProvider } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { SocketProvider } from './contexts/SocketContext';
+import { ToastProvider } from './contexts/ToastContext';
 
 function App() {
   return (
     <ThemeProvider>
-      <AuthProvider>
-        <SocketProvider>
-          <Router>
+      <ToastProvider>
+        <AuthProvider>
+          <SocketProvider>
+            <Router>
             <Routes>
               {/* Standalone Auth Route */}
               <Route path="/auth" element={<AuthPage />} />
@@ -46,6 +48,7 @@ function App() {
           </Router>
         </SocketProvider>
       </AuthProvider>
+      </ToastProvider>
     </ThemeProvider>
   );
 }
