@@ -8,17 +8,15 @@ import ImageModal from './ImageModal';
 const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
 
 const Topbar = ({ toggleSidebar }) => {
-  const { user } = useAuth();
+  const { user, globalProfileData } = useAuth();
   const { socket } = useSocket();
   const [showNotifications, setShowNotifications] = useState(false);
   const [announcements, setAnnouncements] = useState([]);
   const [selectedImage, setSelectedImage] = useState(null);
-  const [profileData, setProfileData] = useState(null);
   const dropdownRef = useRef(null);
 
   useEffect(() => {
     fetchAnnouncements();
-    if (user) fetchProfile();
     
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -57,18 +55,7 @@ const Topbar = ({ toggleSidebar }) => {
     }
   };
 
-  const fetchProfile = async () => {
-    try {
-      const res = await fetch(`${backendUrl}/api/me`, {
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-      });
-      if (res.ok) setProfileData(await res.json());
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  const displayUser = profileData || user;
+  const displayUser = globalProfileData || user;
 
   return (
     <div className="topbar-container">

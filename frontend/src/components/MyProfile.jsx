@@ -12,7 +12,7 @@ const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
 
 const MyProfile = () => {
   const navigate = useNavigate();
-  const { user: authUser, login } = useAuth();
+  const { user: authUser, login, updateGlobalProfile } = useAuth();
   const { socket } = useSocket();
   const [profileData, setProfileData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -128,6 +128,7 @@ const MyProfile = () => {
       if (saveRes.ok) {
         const data = await saveRes.json();
         setProfileData(prev => ({ ...prev, ...data }));
+        if (updateGlobalProfile) updateGlobalProfile(data);
         alert(`${cropperTarget === 'profile' ? 'Profile picture' : 'Background banner'} updated successfully!`);
       }
     } catch (err) {
@@ -155,6 +156,7 @@ const MyProfile = () => {
       if (res.ok) {
         const data = await res.json();
         setProfileData(prev => ({ ...prev, ...data }));
+        if (updateGlobalProfile) updateGlobalProfile(data);
         alert(`${target === 'profile' ? 'Profile picture' : 'Background banner'} removed successfully.`);
       }
     } catch (err) {
