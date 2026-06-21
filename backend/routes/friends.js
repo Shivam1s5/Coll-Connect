@@ -3,6 +3,7 @@ const router = express.Router();
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const Message = require('../models/Message');
+const { cloudinary } = require('../config/cloudinary');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'super-secret-key-123';
 
@@ -100,12 +101,31 @@ router.post('/unfriend', authMiddleware, async (req, res) => {
   me.friends = me.friends.filter(f => f !== targetUser.username);
   targetUser.friends = targetUser.friends.filter(f => f !== me.username);
   
-  await Message.deleteMany({
-    $or: [
-      { sender: me.username, receiver: targetUser.username },
-      { sender: targetUser.username, receiver: me.username }
-    ]
+  const orCondition = [
+    { sender: me.username, receiver: targetUser.username },
+    { sender: targetUser.username, receiver: me.username }
+  ];
+
+  // Find messages with Cloudinary files to delete them
+  const messagesWithMedia = await Message.find({
+    $or: orCondition,
+    fileUrl: { $regex: 'cloudinary.com' }
   });
+
+  for (const msg of messagesWithMedia) {
+    try {
+      const parts = msg.fileUrl.split('/');
+      const filename = parts.pop().split('.')[0];
+      const folder = parts.pop();
+      const publicId = `${folder}/${filename}`;
+      const resourceType = msg.type === 'video' || msg.type === 'audio' ? 'video' : 'image';
+      await cloudinary.uploader.destroy(publicId, { resource_type: resourceType });
+    } catch (err) {
+      console.error('Error deleting media from cloudinary:', err);
+    }
+  }
+
+  await Message.deleteMany({ $or: orCondition });
   if (req.io) {
     req.io.emit('chat-cleared', { targetUser: targetUser.username });
     req.io.emit('chat-cleared', { targetUser: me.username });
