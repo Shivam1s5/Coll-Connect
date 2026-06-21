@@ -317,7 +317,7 @@ const MyProfile = () => {
               )}
             </div>
             
-            <h3 className="profile-role" style={{marginBottom: '20px'}}>{profileData.role.toUpperCase()}</h3>
+            <h3 className="profile-role" style={{marginBottom: '20px', marginLeft: '20px'}}>{profileData.role.toUpperCase()}</h3>
           </div>
 
           {/* Details Section */}

@@ -1294,16 +1294,16 @@ body {
 .avatar-card {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  text-align: center;
+  align-items: flex-start;
+  text-align: left;
 }
 
 .avatar-wrapper {
   position: relative;
   margin-bottom: 15px;
-  width: max-content;
-  margin-left: auto;
-  margin-right: auto;
+  width: 150px;
+  height: 150px;
+  margin-left: 20px;
 }
 
 .profile-large-avatar {
