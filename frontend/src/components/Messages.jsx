@@ -437,7 +437,7 @@ const Messages = () => {
           )}
         </div>
 
-        <div style={{ flex: 1, overflowY: 'auto', padding: '10px' }}>
+        <div className="custom-scrollbar" style={{ flex: 1, overflowY: 'auto', padding: '10px' }}>
           {searchQuery ? (
             <div>
               <p style={{ color: '#9ca3af', fontSize: '0.9rem', marginBottom: '10px', paddingLeft: '5px' }}>Search Results</p>
@@ -552,9 +552,11 @@ const Messages = () => {
                 </button>
                 {showChatMenu && (
                   <div style={{ position: 'absolute', top: '40px', right: '0', background: '#1f2937', border: '1px solid #374151', borderRadius: '8px', boxShadow: '0 4px 15px rgba(0, 0, 0, 0.5)', zIndex: 50, width: '160px', overflow: 'hidden' }}>
-                    <button onClick={handleUnfriend} style={{ width: '100%', textAlign: 'left', padding: '12px 16px', background: 'transparent', border: 'none', borderBottom: '1px solid #374151', color: '#ef4444', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem' }} onMouseEnter={(e) => e.currentTarget.style.background = '#374151'} onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}>
-                      <UserMinus size={16} /> Unfriend
-                    </button>
+                    {authUser?.role !== 'superadmin' && activeChatUser?.role !== 'superadmin' && (
+                      <button onClick={handleUnfriend} style={{ width: '100%', textAlign: 'left', padding: '12px 16px', background: 'transparent', border: 'none', borderBottom: '1px solid #374151', color: '#ef4444', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem' }} onMouseEnter={(e) => e.currentTarget.style.background = '#374151'} onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}>
+                        <UserMinus size={16} /> Unfriend
+                      </button>
+                    )}
                     <button onClick={handleReport} style={{ width: '100%', textAlign: 'left', padding: '12px 16px', background: 'transparent', border: 'none', color: '#f3f4f6', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem' }} onMouseEnter={(e) => e.currentTarget.style.background = '#374151'} onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}>
                       <AlertTriangle size={16} color="#eab308" /> Report User
                     </button>

@@ -45,22 +45,40 @@ router.get('/me', authMiddleware, async (req, res) => {
   const friendsList = [];
   const isMeAdmin = user.role === 'admin' || user.role === 'superadmin';
 
-  for (let uname of friendsAndInteracted) {
-    if (uname === user.username || uname.toLowerCase() === 'admin') continue;
-    const fUser = await User.findOne({ username: uname });
-    if (fUser) {
-      if (!isMeAdmin && !actualFriends.includes(uname) && fUser.role !== 'admin' && fUser.role !== 'superadmin') continue;
+  if (user.role === 'superadmin') {
+    const allUsers = await User.find({ username: { $ne: user.username } });
+    for (let u of allUsers) {
+      if (u.username.toLowerCase() === 'admin') continue;
       friendsList.push({
-        username: fUser.username,
-        email: fUser.email,
-        profilePic: fUser.profilePic,
-        gender: fUser.gender,
-        socials: fUser.socials,
-        role: fUser.role,
-        isFriend: actualFriends.includes(fUser.username),
-        warningHistory: fUser.warningHistory,
-        blockedUntil: fUser.blockedUntil
+        username: u.username,
+        email: u.email,
+        profilePic: u.profilePic,
+        gender: u.gender,
+        socials: u.socials,
+        role: u.role,
+        isFriend: true,
+        warningHistory: u.warningHistory,
+        blockedUntil: u.blockedUntil
       });
+    }
+  } else {
+    for (let uname of friendsAndInteracted) {
+      if (uname === user.username || uname.toLowerCase() === 'admin') continue;
+      const fUser = await User.findOne({ username: uname });
+      if (fUser) {
+        if (!isMeAdmin && !actualFriends.includes(uname) && fUser.role !== 'admin' && fUser.role !== 'superadmin') continue;
+        friendsList.push({
+          username: fUser.username,
+          email: fUser.email,
+          profilePic: fUser.profilePic,
+          gender: fUser.gender,
+          socials: fUser.socials,
+          role: fUser.role,
+          isFriend: actualFriends.includes(fUser.username),
+          warningHistory: fUser.warningHistory,
+          blockedUntil: fUser.blockedUntil
+        });
+      }
     }
   }
 

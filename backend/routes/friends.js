@@ -97,6 +97,9 @@ router.post('/unfriend', authMiddleware, async (req, res) => {
   const me = await User.findOne({ username: req.user.username });
   const targetUser = await User.findOne({ username: req.body.targetUsername });
   if (!me || !targetUser) return res.status(404).json({ error: 'User not found' });
+  if (me.role === 'superadmin' || targetUser.role === 'superadmin') {
+    return res.status(403).json({ error: 'Superadmins cannot be unfriended' });
+  }
 
   me.friends = me.friends.filter(f => f !== targetUser.username);
   targetUser.friends = targetUser.friends.filter(f => f !== me.username);
