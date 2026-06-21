@@ -179,7 +179,7 @@ const Announcements = () => {
       <h3 className="section-heading blue-heading">Past Announcements</h3>
       <div className="user-list" style={{maxHeight: '600px', overflowY: 'auto', paddingRight: '10px'}}>
         {announcements.length === 0 ? <p style={{color: '#9ca3af'}}>No announcements yet.</p> : announcements.map(ann => (
-          <div key={ann._id} className="user-card" style={{display: 'flex', flexDirection: 'column', wordWrap: 'break-word', borderLeft: '4px solid #ef4444'}}>
+          <div key={ann._id} className="user-card" style={{display: 'flex', flexDirection: 'column', wordWrap: 'break-word', borderLeft: '4px solid #ef4444', flexShrink: 0}}>
             <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', width: '100%', wordBreak: 'break-all'}}>
               <h4 style={{margin: '0 0 10px 0', color: '#60a5fa', wordBreak: 'break-all', paddingRight: '10px'}}>{ann.title}</h4>
               <button className="btn-action btn-red" onClick={() => handleDelete(ann._id)} style={{padding: '4px 8px', flexShrink: 0}}>Delete</button>
