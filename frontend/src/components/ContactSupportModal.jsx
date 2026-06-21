@@ -58,8 +58,15 @@ const ContactSupportModal = ({ isOpen, onClose }) => {
           },
           body: formData
         });
-        const uploadData = await uploadRes.json();
-        if (uploadData.url) imageUrl = uploadData.url;
+        
+        if (uploadRes.ok) {
+          const uploadData = await uploadRes.json();
+          if (uploadData.url) imageUrl = uploadData.url;
+        } else {
+          setLoading(false);
+          setError('Failed to upload image. Please try again.');
+          return;
+        }
       }
 
       // Submit ticket
