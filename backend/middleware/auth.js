@@ -13,11 +13,19 @@ const authenticate = (req, res, next) => {
   }
 };
 
-const isSuperAdmin = (req, res, next) => {
-  if (req.user && req.user.role === 'superadmin') {
-    next();
-  } else {
-    res.status(403).json({ error: 'Forbidden' });
+const User = require('../models/User');
+
+const isSuperAdmin = async (req, res, next) => {
+  if (!req.user) return res.status(403).json({ error: 'Forbidden' });
+  try {
+    const user = await User.findOne({ username: req.user.username });
+    if (user && user.role === 'superadmin') {
+      next();
+    } else {
+      res.status(403).json({ error: 'Forbidden' });
+    }
+  } catch (err) {
+    res.status(500).json({ error: 'Server error' });
   }
 };
 
