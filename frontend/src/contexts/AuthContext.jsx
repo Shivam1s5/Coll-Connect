@@ -44,6 +44,9 @@ export const AuthProvider = ({ children }) => {
               localStorage.setItem('user', JSON.stringify(updatedUser));
               setUser(updatedUser);
             }
+          } else if (res.status === 404 || res.status === 401) {
+            // User deleted or token invalid
+            logout();
           }
         } catch (err) {
           console.error('Failed to fetch global profile data', err);
