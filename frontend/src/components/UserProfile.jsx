@@ -111,17 +111,19 @@ const UserProfile = () => {
 
       {activeTab === 'profile' ? (
         <div className="profile-content grid-layout" onClick={() => setPopupMenu(null)}>
-          <div className="premium-profile-card">
+          <div className="profile-card avatar-card" style={{padding: 0}}>
             <div className="banner-area" 
               onClick={(e) => { e.stopPropagation(); setPopupMenu('banner'); }}
               style={{ 
-                height: '140px', 
+                height: '120px', 
                 width: '100%', 
                 backgroundColor: '#374151',
                 backgroundImage: profileData.bannerImage ? `url(${profileData.bannerImage})` : 'linear-gradient(135deg, #374151 0%, #1f2937 100%)',
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
                 position: 'relative',
+                borderTopLeftRadius: '12px',
+                borderTopRightRadius: '12px',
                 cursor: 'pointer'
               }}>
               {popupMenu === 'banner' && (
@@ -137,32 +139,29 @@ const UserProfile = () => {
               )}
             </div>
 
-            <div className="premium-profile-body">
-              <div className="avatar-wrapper" style={{ marginTop: '-70px' }} onClick={(e) => { e.stopPropagation(); setPopupMenu('profile'); }}>
-                {profileData.profilePic ? (
-                  <img src={profileData.profilePic} alt="Profile" className="profile-large-avatar" style={{backgroundColor: '#1f2937', cursor: 'pointer'}} />
-                ) : (
-                  <div className="profile-large-avatar" style={{backgroundColor: '#1f2937', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
-                    <UserIcon size={60} color="#9ca3af" />
-                  </div>
-                )}
-                
-                {popupMenu === 'profile' && (
-                  <div className="image-popup-menu" style={{position: 'absolute', top: '50px', left: '50%', transform: 'translateX(-50%)', background: '#1f2937', border: '1px solid #374151', borderRadius: '8px', padding: '5px', zIndex: 20, boxShadow: '0 4px 6px rgba(0,0,0,0.3)', display: 'flex', flexDirection: 'column', minWidth: '150px'}}>
-                    {profileData.profilePic && (
-                      <button onClick={(e) => { e.stopPropagation(); setImageModalSrc(getOriginalImageUrl(profileData.profilePic)); setPopupMenu(null); }} className="popup-menu-btn"><Eye size={16}/> View Picture</button>
-                    )}
-                    {isSuperadmin && profileData.profilePic && (
-                      <button onClick={(e) => { e.stopPropagation(); handleForceRemoveImage('profile'); }} className="popup-menu-btn text-red"><Trash2 size={16}/> Force Remove</button>
-                    )}
-                    {(!profileData.profilePic && !isSuperadmin) && <span style={{padding: '5px', color: '#9ca3af', fontSize: '12px'}}>No picture</span>}
-                  </div>
-                )}
-              </div>
+            <div className="avatar-wrapper" style={{ marginTop: '-60px', position: 'relative' }} onClick={(e) => { e.stopPropagation(); setPopupMenu('profile'); }}>
+              {profileData.profilePic ? (
+                <img src={profileData.profilePic} alt="Profile" className="profile-large-avatar" style={{backgroundColor: '#1f2937', cursor: 'pointer'}} />
+              ) : (
+                <div className="profile-large-avatar" style={{backgroundColor: '#1f2937', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+                  <UserIcon size={80} color="#9ca3af" />
+                </div>
+              )}
               
-              <h2 className="premium-profile-username">{profileData.username}</h2>
-              <span className={`premium-profile-role badge-${profileData.role}`}>{profileData.role?.toUpperCase()}</span>
+              {popupMenu === 'profile' && (
+                <div className="image-popup-menu" style={{position: 'absolute', top: '50px', left: '50%', transform: 'translateX(-50%)', background: '#1f2937', border: '1px solid #374151', borderRadius: '8px', padding: '5px', zIndex: 20, boxShadow: '0 4px 6px rgba(0,0,0,0.3)', display: 'flex', flexDirection: 'column', minWidth: '150px'}}>
+                  {profileData.profilePic && (
+                    <button onClick={(e) => { e.stopPropagation(); setImageModalSrc(getOriginalImageUrl(profileData.profilePic)); setPopupMenu(null); }} className="popup-menu-btn"><Eye size={16}/> View Picture</button>
+                  )}
+                  {isSuperadmin && profileData.profilePic && (
+                    <button onClick={(e) => { e.stopPropagation(); handleForceRemoveImage('profile'); }} className="popup-menu-btn text-red"><Trash2 size={16}/> Force Remove</button>
+                  )}
+                  {(!profileData.profilePic && !isSuperadmin) && <span style={{padding: '5px', color: '#9ca3af', fontSize: '12px'}}>No picture</span>}
+                </div>
+              )}
             </div>
+            
+            <h3 className="profile-role" style={{marginBottom: '20px', marginLeft: '20px'}}>{profileData.role?.toUpperCase()}</h3>
           </div>
 
           <div className="profile-details-grid">

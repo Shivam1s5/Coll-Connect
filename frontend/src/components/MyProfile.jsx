@@ -265,18 +265,20 @@ const MyProfile = () => {
       {activeTab === 'profile' ? (
         <div className="profile-content grid-layout" onClick={() => setPopupMenu(null)}>
           {/* Avatar Section */}
-          <div className="premium-profile-card">
+          <div className="profile-card avatar-card" style={{padding: 0}}>
             {/* Banner Area */}
             <div className="banner-area" 
               onClick={(e) => { e.stopPropagation(); setPopupMenu('banner'); }}
               style={{ 
-                height: '140px', 
+                height: '120px', 
                 width: '100%', 
                 backgroundColor: '#374151',
                 backgroundImage: profileData.bannerImage ? `url(${profileData.bannerImage})` : 'linear-gradient(135deg, #374151 0%, #1f2937 100%)',
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
                 position: 'relative',
+                borderTopLeftRadius: '12px',
+                borderTopRightRadius: '12px',
                 cursor: 'pointer'
               }}>
               <div className="banner-edit-btn" style={{position: 'absolute', top: '15px', right: '15px', backgroundColor: '#3b82f6', color: 'white', width: '36px', height: '36px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 10, boxShadow: '0 2px 4px rgba(0,0,0,0.2)'}}>
@@ -298,38 +300,35 @@ const MyProfile = () => {
               )}
             </div>
 
-            <div className="premium-profile-body">
-              <div className="avatar-wrapper" style={{ marginTop: '-70px' }} onClick={(e) => { e.stopPropagation(); setPopupMenu('profile'); }}>
-                {profileData.profilePic ? (
-                  <img src={profileData.profilePic} alt="Profile" className="profile-large-avatar" style={{backgroundColor: '#1f2937', cursor: 'pointer'}} />
-                ) : (
-                  <div className="profile-large-avatar" style={{backgroundColor: '#1f2937', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
-                    <UserIcon size={60} color="#9ca3af" />
-                  </div>
-                )}
-                <div className="avatar-edit-btn" style={{cursor: 'pointer', zIndex: 10}}>
-                  <Camera size={18} />
+            <div className="avatar-wrapper" style={{ marginTop: '-60px', position: 'relative' }} onClick={(e) => { e.stopPropagation(); setPopupMenu('profile'); }}>
+              {profileData.profilePic ? (
+                <img src={profileData.profilePic} alt="Profile" className="profile-large-avatar" style={{backgroundColor: '#1f2937', cursor: 'pointer'}} />
+              ) : (
+                <div className="profile-large-avatar" style={{backgroundColor: '#1f2937', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+                  <UserIcon size={80} color="#9ca3af" />
                 </div>
-                
-                {popupMenu === 'profile' && (
-                  <div className="image-popup-menu" style={{position: 'absolute', top: '50px', left: '50%', transform: 'translateX(-50%)', background: '#1f2937', border: '1px solid #374151', borderRadius: '8px', padding: '5px', zIndex: 20, boxShadow: '0 4px 6px rgba(0,0,0,0.3)', display: 'flex', flexDirection: 'column', minWidth: '150px'}}>
-                    {profileData.profilePic && (
-                      <button onClick={(e) => { e.stopPropagation(); setImageModalSrc(getOriginalImageUrl(profileData.profilePic)); setPopupMenu(null); }} className="popup-menu-btn"><Eye size={16}/> View Picture</button>
-                    )}
-                    <label className="popup-menu-btn" onClick={(e) => e.stopPropagation()} style={{cursor: 'pointer', margin: 0}}>
-                      <Upload size={16}/> Update Picture
-                      <input type="file" accept="image/*" style={{display: 'none'}} onChange={(e) => { e.stopPropagation(); handleImageChange(e, 'profile'); }} />
-                    </label>
-                    {profileData.profilePic && (
-                      <button onClick={(e) => { e.stopPropagation(); handleRemoveImage('profile'); }} className="popup-menu-btn text-red"><Trash2 size={16}/> Remove Picture</button>
-                    )}
-                  </div>
-                )}
+              )}
+              <div className="avatar-edit-btn" style={{cursor: 'pointer', zIndex: 10}}>
+                <Camera size={18} />
               </div>
               
-              <h2 className="premium-profile-username">{profileData.username}</h2>
-              <span className={`premium-profile-role badge-${profileData.role}`}>{profileData.role.toUpperCase()}</span>
+              {popupMenu === 'profile' && (
+                <div className="image-popup-menu" style={{position: 'absolute', top: '50px', left: '50%', transform: 'translateX(-50%)', background: '#1f2937', border: '1px solid #374151', borderRadius: '8px', padding: '5px', zIndex: 20, boxShadow: '0 4px 6px rgba(0,0,0,0.3)', display: 'flex', flexDirection: 'column', minWidth: '150px'}}>
+                  {profileData.profilePic && (
+                    <button onClick={(e) => { e.stopPropagation(); setImageModalSrc(getOriginalImageUrl(profileData.profilePic)); setPopupMenu(null); }} className="popup-menu-btn"><Eye size={16}/> View Picture</button>
+                  )}
+                  <label className="popup-menu-btn" onClick={(e) => e.stopPropagation()} style={{cursor: 'pointer', margin: 0}}>
+                    <Upload size={16}/> Update Picture
+                    <input type="file" accept="image/*" style={{display: 'none'}} onChange={(e) => { e.stopPropagation(); handleImageChange(e, 'profile'); }} />
+                  </label>
+                  {profileData.profilePic && (
+                    <button onClick={(e) => { e.stopPropagation(); handleRemoveImage('profile'); }} className="popup-menu-btn text-red"><Trash2 size={16}/> Remove Picture</button>
+                  )}
+                </div>
+              )}
             </div>
+            
+            <h3 className="profile-role" style={{marginBottom: '20px', marginLeft: '20px'}}>{profileData.role.toUpperCase()}</h3>
           </div>
 
           {/* Details Section */}
