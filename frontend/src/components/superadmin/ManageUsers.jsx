@@ -18,6 +18,7 @@ const ManageUsers = () => {
   const [showReportsModal, setShowReportsModal] = useState(false);
   const [selectedUserReports, setSelectedUserReports] = useState([]);
   const [selectedUsername, setSelectedUsername] = useState('');
+  const [selectedImage, setSelectedImage] = useState(null);
 
   const isAdmin = user?.role === 'admin';
   const isSuperadmin = user?.role === 'superadmin';
@@ -288,7 +289,14 @@ const ManageUsers = () => {
                   {warning.screenshot && (
                     <div style={{ marginTop: '10px' }}>
                       <p style={{ color: '#9ca3af', fontSize: '0.85rem', marginBottom: '4px' }}>Screenshot Evidence:</p>
-                      <img src={warning.screenshot} alt="evidence" style={{ width: '100%', borderRadius: '8px', border: '1px solid #374151' }} />
+                      <img 
+                        src={warning.screenshot} 
+                        alt="evidence" 
+                        onClick={() => setSelectedImage(warning.screenshot)}
+                        style={{ width: '100%', borderRadius: '8px', border: '1px solid #374151', cursor: 'pointer', transition: 'opacity 0.2s' }} 
+                        onMouseEnter={(e) => e.currentTarget.style.opacity = 0.8}
+                        onMouseLeave={(e) => e.currentTarget.style.opacity = 1}
+                      />
                     </div>
                   )}
                 </div>
@@ -298,6 +306,12 @@ const ManageUsers = () => {
               <button onClick={() => setShowReportsModal(false)} style={{ background: '#374151', color: '#fff', border: 'none', padding: '8px 16px', borderRadius: '6px', cursor: 'pointer' }}>Close</button>
             </div>
           </div>
+        </div>
+      )}
+
+      {selectedImage && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.9)', zIndex: 10001, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px' }} onClick={() => setSelectedImage(null)}>
+          <img src={selectedImage} alt="Full Evidence" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', borderRadius: '8px' }} />
         </div>
       )}
 
