@@ -261,7 +261,10 @@ router.post('/profile-pic', authMiddleware, async (req, res) => {
   oldUser.profilePic = req.body.profilePic || '';
   await oldUser.save();
 
-  if (req.io) req.io.emit('admin-update');
+  if (req.io) {
+    req.io.emit('admin-update');
+    req.io.emit('profile-updated', { username: oldUser.username, profilePic: oldUser.profilePic, bannerImage: oldUser.bannerImage });
+  }
   res.json({ success: true, profilePic: oldUser.profilePic });
 });
 
@@ -275,7 +278,10 @@ router.delete('/profile-pic', authMiddleware, async (req, res) => {
   user.profilePic = '';
   await user.save();
 
-  if (req.io) req.io.emit('admin-update');
+  if (req.io) {
+    req.io.emit('admin-update');
+    req.io.emit('profile-updated', { username: user.username, profilePic: user.profilePic, bannerImage: user.bannerImage });
+  }
   res.json({ success: true, profilePic: '' });
 });
 
@@ -290,7 +296,10 @@ router.post('/profile-banner', authMiddleware, async (req, res) => {
   oldUser.bannerImage = req.body.bannerImage || '';
   await oldUser.save();
 
-  if (req.io) req.io.emit('admin-update');
+  if (req.io) {
+    req.io.emit('admin-update');
+    req.io.emit('profile-updated', { username: oldUser.username, profilePic: oldUser.profilePic, bannerImage: oldUser.bannerImage });
+  }
   res.json({ success: true, bannerImage: oldUser.bannerImage });
 });
 
@@ -304,7 +313,10 @@ router.delete('/profile-banner', authMiddleware, async (req, res) => {
   user.bannerImage = '';
   await user.save();
 
-  if (req.io) req.io.emit('admin-update');
+  if (req.io) {
+    req.io.emit('admin-update');
+    req.io.emit('profile-updated', { username: user.username, profilePic: user.profilePic, bannerImage: user.bannerImage });
+  }
   res.json({ success: true, bannerImage: '' });
 });
 

@@ -117,17 +117,27 @@ const Messages = () => {
         setChatHistory([]);
       }
     };
+    const handleProfileUpdated = (data) => {
+      setFriends(prev => prev.map(f => f.username === data.username ? { ...f, profilePic: data.profilePic, bannerImage: data.bannerImage } : f));
+      setRequests(prev => prev.map(r => r.username === data.username ? { ...r, profilePic: data.profilePic, bannerImage: data.bannerImage } : r));
+      setSearchResults(prev => prev.map(u => u.username === data.username ? { ...u, profilePic: data.profilePic, bannerImage: data.bannerImage } : u));
+      if (activeChatUser && activeChatUser.username === data.username) {
+        setActiveChatUser(prev => ({ ...prev, profilePic: data.profilePic, bannerImage: data.bannerImage }));
+      }
+    };
 
     socket.on('private-message', handleNewMessage);
     socket.on('friend-request-received', handleRequestReceived);
     socket.on('friend-request-accepted', handleRequestAccepted);
     socket.on('friend-removed', handleFriendRemoved);
+    socket.on('profile-updated', handleProfileUpdated);
 
     return () => {
       socket.off('private-message', handleNewMessage);
       socket.off('friend-request-received', handleRequestReceived);
       socket.off('friend-request-accepted', handleRequestAccepted);
       socket.off('friend-removed', handleFriendRemoved);
+      socket.off('profile-updated', handleProfileUpdated);
     };
   }, [socket, activeChatUser]);
 

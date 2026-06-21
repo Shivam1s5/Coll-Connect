@@ -115,7 +115,10 @@ router.delete('/admin/users/:username/profile-pic', isSuperAdmin, async (req, re
     await deleteCloudinaryImage(targetUser.profilePic);
     targetUser.profilePic = '';
     await targetUser.save();
-    if (req.io) req.io.emit('admin-update');
+    if (req.io) {
+      req.io.emit('admin-update');
+      req.io.emit('profile-updated', { username: targetUser.username, profilePic: '', bannerImage: targetUser.bannerImage });
+    }
   }
   res.json({ success: true });
 });
@@ -128,7 +131,10 @@ router.delete('/admin/users/:username/banner', isSuperAdmin, async (req, res) =>
     await deleteCloudinaryImage(targetUser.bannerImage);
     targetUser.bannerImage = '';
     await targetUser.save();
-    if (req.io) req.io.emit('admin-update');
+    if (req.io) {
+      req.io.emit('admin-update');
+      req.io.emit('profile-updated', { username: targetUser.username, profilePic: targetUser.profilePic, bannerImage: '' });
+    }
   }
   res.json({ success: true });
 });
