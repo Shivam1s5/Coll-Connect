@@ -63,24 +63,23 @@ router.get('/me', authMiddleware, async (req, res) => {
       });
     }
   } else {
-    for (let uname of friendsAndInteracted) {
-      if (uname === user.username || uname.toLowerCase() === 'admin') continue;
-      const fUser = await User.findOne({ username: uname });
-      if (fUser) {
-        if (!isMeAdmin && !actualFriends.includes(uname) && fUser.role !== 'admin' && fUser.role !== 'superadmin') continue;
-        friendsList.push({
-          username: fUser.username,
-          email: fUser.email,
-          profilePic: fUser.profilePic,
-          bannerImage: fUser.bannerImage,
-          gender: fUser.gender,
-          socials: fUser.socials,
-          role: fUser.role,
-          isFriend: actualFriends.includes(fUser.username),
-          warningHistory: fUser.warningHistory,
-          blockedUntil: fUser.blockedUntil
-        });
-      }
+    const interactionUsernames = Array.from(friendsAndInteracted).filter(uname => uname !== user.username && uname.toLowerCase() !== 'admin');
+    const fUsers = await User.find({ username: { $in: interactionUsernames } });
+    
+    for (let fUser of fUsers) {
+      if (!isMeAdmin && !actualFriends.includes(fUser.username) && fUser.role !== 'admin' && fUser.role !== 'superadmin') continue;
+      friendsList.push({
+        username: fUser.username,
+        email: fUser.email,
+        profilePic: fUser.profilePic,
+        bannerImage: fUser.bannerImage,
+        gender: fUser.gender,
+        socials: fUser.socials,
+        role: fUser.role,
+        isFriend: actualFriends.includes(fUser.username),
+        warningHistory: fUser.warningHistory,
+        blockedUntil: fUser.blockedUntil
+      });
     }
   }
 

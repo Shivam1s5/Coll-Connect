@@ -99,7 +99,16 @@ module.exports = (io) => {
       } else {
         return; // Normal users cannot delete
       }
-
+      if (msg.fileUrl && msg.fileUrl.includes('cloudinary.com')) {
+        try {
+          const parts = msg.fileUrl.split('/');
+          const filename = parts.pop().split('.')[0];
+          const folder = parts.pop();
+          const publicId = `${folder}/${filename}`;
+          const resourceType = msg.type === 'video' || msg.type === 'audio' ? 'video' : 'image';
+          await cloudinary.uploader.destroy(publicId, { resource_type: resourceType });
+        } catch(e) { console.error('Cloudinary delete error:', e); }
+      }
       await Message.findByIdAndDelete(messageId);
       io.emit('message-deleted', { messageId });
     });
@@ -108,12 +117,28 @@ module.exports = (io) => {
       const u = await User.findOne({ username: socket.username });
       if (!u || u.role !== 'superadmin') return; 
       
-      await Message.deleteMany({
+      const query = {
         $or: [
           { sender: socket.username, receiver: targetUser },
           { sender: targetUser, receiver: socket.username }
         ]
-      });
+      };
+      
+      const oldMessages = await Message.find(query);
+      for (const msg of oldMessages) {
+        if (msg.fileUrl && msg.fileUrl.includes('cloudinary.com')) {
+          try {
+            const parts = msg.fileUrl.split('/');
+            const filename = parts.pop().split('.')[0];
+            const folder = parts.pop();
+            const publicId = `${folder}/${filename}`;
+            const resourceType = msg.type === 'video' || msg.type === 'audio' ? 'video' : 'image';
+            await cloudinary.uploader.destroy(publicId, { resource_type: resourceType });
+          } catch(e) { console.error('Cloudinary delete error:', e); }
+        }
+      }
+
+      await Message.deleteMany(query);
       io.emit('chat-cleared', { targetUser });
     });
 

@@ -39,8 +39,10 @@ app.use('/api', require('./routes/upload'));
 // Socket logic
 require('./sockets')(io);
 
-// Analytics Job - Run every 1 hour (3,600,000 ms)
+// Analytics & Chat Auto-Cleanup Job - Run every 1 hour (3,600,000 ms)
 const Analytics = require('./models/Analytics');
+const Message = require('./models/Message');
+const { cloudinary } = require('./config/cloudinary');
 setInterval(async () => {
   try {
     const activeCount = io.activeUsers ? io.activeUsers.size : 0;
@@ -49,13 +51,36 @@ setInterval(async () => {
     const record = new Analytics({ count: activeCount });
     await record.save();
     
-    // Delete records older than 7 days
+    // Delete analytics records older than 7 days
     const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
     await Analytics.deleteMany({ timestamp: { $lt: sevenDaysAgo } });
+
+    // Chat Auto-Cleanup: Delete messages older than 7 days
+    const oldMessages = await Message.find({ timestamp: { $lt: sevenDaysAgo } });
+    let deletedMediaCount = 0;
+    for (const msg of oldMessages) {
+      if (msg.fileUrl && msg.fileUrl.includes('cloudinary.com')) {
+        try {
+          const parts = msg.fileUrl.split('/');
+          const filename = parts.pop().split('.')[0];
+          const folder = parts.pop();
+          const publicId = `${folder}/${filename}`;
+          const resourceType = msg.type === 'video' || msg.type === 'audio' ? 'video' : 'image';
+          await cloudinary.uploader.destroy(publicId, { resource_type: resourceType });
+          deletedMediaCount++;
+        } catch (err) {
+          console.error('Error deleting media from cloudinary in auto-cleanup:', err);
+        }
+      }
+    }
+    await Message.deleteMany({ timestamp: { $lt: sevenDaysAgo } });
+    if (oldMessages.length > 0) {
+      io.emit('chat-cleared', { targetUser: 'auto-cleanup' }); // Trigger clients to refresh if needed
+    }
     
-    console.log(`[Analytics] Logged ${activeCount} active users. Cleaned up records older than 7 days.`);
+    console.log(`[Analytics & Auto-Cleanup] Logged ${activeCount} active users. Cleaned up ${oldMessages.length} old messages and ${deletedMediaCount} media files.`);
   } catch (err) {
-    console.error('[Analytics Error]:', err);
+    console.error('[Background Job Error]:', err);
   }
 }, 60 * 60 * 1000);
 

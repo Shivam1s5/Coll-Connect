@@ -246,6 +246,13 @@ const Messages = () => {
     showToast('Report submitted. Our team will review this user.');
   };
 
+  const handleClearChat = () => {
+    setShowChatMenu(false);
+    showConfirm('Are you sure you want to clear the entire chat history with this user?', () => {
+      socket.emit('admin-clear-chat', { targetUser: activeChatUser.username });
+    });
+  };
+
   const handleUnsend = (messageId) => {
     showConfirm('Are you sure you want to unsend this message?', () => {
       socket.emit('admin-delete-message', { messageId });
@@ -621,6 +628,11 @@ const Messages = () => {
                     {authUser?.role !== 'superadmin' && activeChatUser?.role !== 'superadmin' && friends.some(f => f.username === activeChatUser?.username && f.isFriend) && (
                       <button onClick={handleUnfriend} style={{ width: '100%', textAlign: 'left', padding: '12px 16px', background: 'transparent', border: 'none', borderBottom: '1px solid #374151', color: '#ef4444', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem' }} onMouseEnter={(e) => e.currentTarget.style.background = '#374151'} onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}>
                         <UserMinus size={16} /> Unfriend
+                      </button>
+                    )}
+                    {authUser?.role === 'superadmin' && (
+                      <button onClick={handleClearChat} style={{ width: '100%', textAlign: 'left', padding: '12px 16px', background: 'transparent', border: 'none', borderBottom: '1px solid #374151', color: '#ef4444', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem' }} onMouseEnter={(e) => e.currentTarget.style.background = '#374151'} onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}>
+                        <Trash2 size={16} /> Clear Chat
                       </button>
                     )}
                     <button onClick={handleReport} style={{ width: '100%', textAlign: 'left', padding: '12px 16px', background: 'transparent', border: 'none', color: '#f3f4f6', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem' }} onMouseEnter={(e) => e.currentTarget.style.background = '#374151'} onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}>
