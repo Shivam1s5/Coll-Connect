@@ -284,7 +284,14 @@ router.post('/admin/reject-deletion', isSuperAdmin, async (req, res) => {
 });
 
 router.post('/admin/dismiss-report', isAdmin, async (req, res) => {
-  await Report.findByIdAndUpdate(req.body.reportId, { status: 'dismissed' });
+  const report = await Report.findById(req.body.reportId);
+  if (!report) return res.status(404).json({ error: 'Report not found' });
+  
+  if (report.screenshot) {
+    await deleteCloudinaryImage(report.screenshot);
+  }
+  await Report.findByIdAndDelete(req.body.reportId);
+  
   if (req.io) req.io.emit('admin-update');
   res.json({ success: true });
 });
