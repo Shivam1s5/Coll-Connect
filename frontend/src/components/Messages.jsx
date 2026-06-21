@@ -472,35 +472,7 @@ const Messages = () => {
     setShowGifPicker(false);
   };
 
-  // Ultra-realistic Badges
-  const getBadgeStyle = (role) => {
-    switch(role) {
-      case 'superadmin': 
-        return { 
-          background: 'linear-gradient(135deg, #FFD700 0%, #FFF8DC 50%, #FFD700 100%)', 
-          color: '#8B6508', 
-          padding: '2px 8px', borderRadius: '12px', fontSize: '0.65rem', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.5px', 
-          boxShadow: '0 2px 5px rgba(255, 215, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.8)',
-          border: '1px solid #DAA520', textShadow: '0 1px 1px rgba(255,255,255,0.8)'
-        };
-      case 'admin': 
-        return { 
-          background: 'linear-gradient(135deg, #C0C0C0 0%, #F5F5F5 50%, #C0C0C0 100%)', 
-          color: '#4F4F4F', 
-          padding: '2px 8px', borderRadius: '12px', fontSize: '0.65rem', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.5px', 
-          boxShadow: '0 2px 5px rgba(192, 192, 192, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.8)',
-          border: '1px solid #A9A9A9', textShadow: '0 1px 1px rgba(255,255,255,0.8)'
-        };
-      default: 
-        return { 
-          background: 'linear-gradient(135deg, #8B5CF6 0%, #A78BFA 50%, #8B5CF6 100%)', 
-          color: '#fff', 
-          padding: '2px 8px', borderRadius: '12px', fontSize: '0.65rem', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.5px', 
-          boxShadow: '0 2px 5px rgba(139, 92, 246, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.4)',
-          border: '1px solid #7C3AED', textShadow: '0 1px 1px rgba(0,0,0,0.3)'
-        };
-    }
-  };
+  // Use global CSS badges from index.css instead of inline styles
 
   const formatDuration = (seconds) => {
     const mins = Math.floor(seconds / 60);
@@ -575,7 +547,7 @@ const Messages = () => {
                       <div style={{ flex: 1, overflow: 'hidden' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                           <h4 onClick={() => navigate(`/user/${u.username}`)} style={{ margin: 0, fontSize: '1rem', cursor: 'pointer', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{u.username}</h4>
-                          <span style={getBadgeStyle(u.role)}>{u.role}</span>
+                          <span className={`badge badge-${u.role || 'user'}`}>{(u.role || 'USER').toUpperCase()}</span>
                         </div>
                       </div>
                       <div style={{ flexShrink: 0, display: 'flex', gap: '8px' }}>
@@ -607,7 +579,7 @@ const Messages = () => {
                       <div style={{ flex: 1 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                           <h4 onClick={() => navigate(`/user/${req.username}`)} style={{ margin: 0, fontSize: '1.1rem', cursor: 'pointer' }}>{req.username}</h4>
-                          <span style={getBadgeStyle(req.role)}>{req.role}</span>
+                          <span className={`badge badge-${req.role || 'user'}`}>{(req.role || 'USER').toUpperCase()}</span>
                         </div>
                         <span style={{ fontSize: '0.8rem', color: '#9ca3af' }}>Wants to be friends</span>
                       </div>
@@ -649,7 +621,7 @@ const Messages = () => {
                       <div style={{ flex: 1, overflow: 'hidden', paddingBottom: '4px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '2px' }}>
                           <h4 style={{ margin: 0, fontSize: '1.15rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: '#fff', textShadow: '2px 2px 0px #000, -1px -1px 0px rgba(255,255,255,0.3), 0px 4px 4px rgba(0,0,0,0.8)', fontWeight: '800', letterSpacing: '0.5px' }}>{f.username}</h4>
-                          <span style={{...getBadgeStyle(f.role), transform: 'scale(0.85)', transformOrigin: 'left center'}}>{f.role}</span>
+                          <span className={`badge badge-${f.role || 'user'}`} style={{transform: 'scale(0.85)', transformOrigin: 'left center'}}>{(f.role || 'USER').toUpperCase()}</span>
                         </div>
                         <span style={{ fontSize: '0.8rem', color: '#9ca3af', display: 'block', textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}>{unreadCounts[f.username] > 0 ? <strong style={{color: '#3b82f6'}}>{unreadCounts[f.username]} new messages</strong> : 'Tap to chat'}</span>
                       </div>
@@ -675,7 +647,7 @@ const Messages = () => {
                 <div style={{ marginLeft: '12px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <h3 onClick={() => navigate(`/user/${activeChatUser.username}`)} style={{ margin: 0, cursor: 'pointer' }}>{activeChatUser.username}</h3>
-                    <span style={getBadgeStyle(activeChatUser.role)}>{activeChatUser.role}</span>
+                    <span className={`badge badge-${activeChatUser.role || 'user'}`}>{(activeChatUser.role || 'USER').toUpperCase()}</span>
                   </div>
                 </div>
               </div>

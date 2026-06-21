@@ -5,6 +5,7 @@ import { useToast } from '../contexts/ToastContext';
 import { useNavigate } from 'react-router-dom';
 import EmojiPicker from 'emoji-picker-react';
 import html2canvas from 'html2canvas';
+import { Smile, Send } from 'lucide-react';
 
 const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
 
@@ -49,6 +50,18 @@ const VideoRoom = () => {
   const chatMessagesRef = useRef(null);
   const peerConnectionRef = useRef(null);
   const localStreamRef = useRef(null);
+  const emojiPickerRef = useRef(null);
+
+  // Close emoji picker when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (emojiPickerRef.current && !emojiPickerRef.current.contains(event.target)) {
+        setShowEmojiPicker(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   // Stop media tracks when leaving the page
   useEffect(() => {
@@ -123,11 +136,7 @@ const VideoRoom = () => {
 
     socket.on('partner-username', (data) => {
       setPartnerUsername(data.username);
-      if (data.username.toLowerCase() === 'admin' || data.role === 'admin' || data.role === 'superadmin') {
-        setPartnerRole('ADMIN');
-      } else {
-        setPartnerRole('USER');
-      }
+      setPartnerRole(data.role || 'user');
       setMessages([{ text: `You're now chatting with ${data.username}.`, system: true }]);
     });
 
@@ -486,9 +495,13 @@ const VideoRoom = () => {
             ) : (
               <>
                 <div className="user-badge">
-                  <span className="username">{partnerUsername || 'user'}</span>
-                  <span className={`role-badge ${partnerRole === 'ADMIN' ? 'admin' : partnerRole === 'SUPERADMIN' ? 'superadmin' : ''}`}>
-                    {partnerRole}
+                  <span style={{ fontSize: '0.85rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    {partnerUsername || 'Waiting...'} 
+                    {partnerConnected && (
+                      <span className={`badge badge-${partnerRole.toLowerCase()}`}>
+                        {partnerRole.toUpperCase()}
+                      </span>
+                    )}
                   </span>
                 </div>
                 <video 
@@ -584,14 +597,17 @@ const VideoRoom = () => {
           </div>
         )}
         
-        {showEmojiPicker && (
-          <div style={{ position: 'absolute', bottom: '60px', left: '20px', zIndex: 1000 }}>
-            <EmojiPicker onEmojiClick={onEmojiClick} theme="dark" />
+        <form className="chat-input-area" style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: '10px' }} onSubmit={sendMessage}>
+          <div style={{ position: 'relative' }} ref={emojiPickerRef}>
+            <button type="button" onClick={() => setShowEmojiPicker(!showEmojiPicker)} style={{ background: 'transparent', border: 'none', color: '#9ca3af', cursor: 'pointer', padding: '8px', borderRadius: '50%', transition: 'background 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onMouseEnter={(e) => e.currentTarget.style.background = '#374151'} onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'} title="Emojis">
+              <Smile size={20} />
+            </button>
+            {showEmojiPicker && (
+              <div style={{ position: 'absolute', bottom: '50px', left: '0', zIndex: 1000, boxShadow: '0 10px 25px rgba(0,0,0,0.5)' }}>
+                <EmojiPicker onEmojiClick={onEmojiClick} theme="dark" />
+              </div>
+            )}
           </div>
-        )}
-
-        <form className="chat-input-area" style={{ position: 'relative' }} onSubmit={sendMessage}>
-          <button type="button" className="icon-btn" onClick={() => setShowEmojiPicker(!showEmojiPicker)}>😀</button>
           <button type="button" className="icon-btn gif-btn">GIF</button>
           <input
             type="text"
@@ -600,9 +616,10 @@ const VideoRoom = () => {
             onChange={(e) => setInputMessage(e.target.value)}
             placeholder="Type a message..."
             disabled={!partnerConnected}
+            style={{ width: '100%', padding: '12px 16px', borderRadius: '24px', border: '1px solid #4b5563', background: '#111827', color: '#f3f4f6', outline: 'none' }}
           />
-          <button type="submit" className="send-btn" disabled={!inputMessage.trim() || !partnerConnected}>
-            Send
+          <button type="submit" disabled={!inputMessage.trim() || !partnerConnected} style={{ background: inputMessage.trim() && partnerConnected ? '#3b82f6' : '#374151', border: 'none', color: inputMessage.trim() && partnerConnected ? '#fff' : '#6b7280', cursor: inputMessage.trim() && partnerConnected ? 'pointer' : 'default', width: '40px', height: '40px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.2s', flexShrink: 0 }}>
+            <Send size={18} style={{ marginLeft: '2px' }} />
           </button>
         </form>
       </div>
