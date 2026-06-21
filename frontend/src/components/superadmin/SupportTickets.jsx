@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useSocket } from '../../contexts/SocketContext';
 import ImageModal from '../ImageModal';
 
 const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
@@ -7,12 +8,9 @@ const SupportTickets = () => {
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState(null);
+  const { socket } = useSocket();
 
-  useEffect(() => {
-    fetchTickets();
-  }, []);
-
-  const fetchTickets = async () => {
+  const fetchTickets = useCallback(async () => {
     try {
       const token = localStorage.getItem('token');
       const res = await fetch(`${backendUrl}/api/support`, {
@@ -26,7 +24,20 @@ const SupportTickets = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchTickets();
+  }, [fetchTickets]);
+
+  useEffect(() => {
+    if (socket) {
+      socket.on('refresh-support-tickets', fetchTickets);
+    }
+    return () => {
+      if (socket) socket.off('refresh-support-tickets', fetchTickets);
+    };
+  }, [socket, fetchTickets]);
 
   const resolveTicket = async (id) => {
     try {

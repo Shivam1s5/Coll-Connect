@@ -35,6 +35,7 @@ router.post('/support', authMiddleware, async (req, res) => {
     imageUrl: imageUrl || ''
   });
   await ticket.save();
+  if (req.io) req.io.emit('refresh-support-tickets');
   res.json({ success: true, ticket });
 });
 
@@ -45,11 +46,13 @@ router.get('/support', isSuperAdmin, async (req, res) => {
 
 router.post('/support/:id/resolve', isSuperAdmin, async (req, res) => {
   await SupportTicket.findByIdAndUpdate(req.params.id, { status: 'resolved', resolvedAt: Date.now() });
+  if (req.io) req.io.emit('refresh-support-tickets');
   res.json({ success: true });
 });
 
 router.delete('/support/:id', isSuperAdmin, async (req, res) => {
   await SupportTicket.findByIdAndDelete(req.params.id);
+  if (req.io) req.io.emit('refresh-support-tickets');
   res.json({ success: true });
 });
 
