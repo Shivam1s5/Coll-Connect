@@ -82,6 +82,37 @@ router.get('/me', authMiddleware, async (req, res) => {
     });
   }
 
+  // Clean up expired profile visitors (older than 24 hours)
+  const now = Date.now();
+  const oneDayMs = 24 * 60 * 60 * 1000;
+  let visitorsModified = false;
+  
+  if (user.profileVisitors && user.profileVisitors.length > 0) {
+    const originalLength = user.profileVisitors.length;
+    user.profileVisitors = user.profileVisitors.filter(v => (now - new Date(v.timestamp).getTime()) < oneDayMs);
+    if (user.profileVisitors.length !== originalLength) {
+      visitorsModified = true;
+    }
+  }
+  if (visitorsModified) {
+    await user.save();
+  }
+
+  // Populate visitors details
+  const populatedVisitors = [];
+  for (let v of (user.profileVisitors || [])) {
+    const vUser = await User.findOne({ username: v.username });
+    if (vUser) {
+      populatedVisitors.push({
+        username: vUser.username,
+        profilePic: vUser.profilePic,
+        role: vUser.role,
+        timestamp: v.timestamp
+      });
+    }
+  }
+  populatedVisitors.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
   res.json({
     username: user.username,
     email: user.email,
@@ -91,6 +122,7 @@ router.get('/me', authMiddleware, async (req, res) => {
     socials: user.socials,
     friends: friendsList,
     friendRequests,
+    profileVisitors: populatedVisitors,
     role: user.role
   });
 });
@@ -98,6 +130,18 @@ router.get('/me', authMiddleware, async (req, res) => {
 router.get('/users/:username', authMiddleware, async (req, res) => {
   const targetUser = await User.findOne({ username: req.params.username });
   if (!targetUser) return res.status(404).json({ error: 'User not found' });
+
+  // Record Visit
+  if (req.user.role !== 'superadmin' && req.user.username !== targetUser.username) {
+    if (!targetUser.profileVisitors) targetUser.profileVisitors = [];
+    const visitorIndex = targetUser.profileVisitors.findIndex(v => v.username === req.user.username);
+    if (visitorIndex !== -1) {
+      targetUser.profileVisitors[visitorIndex].timestamp = Date.now();
+    } else {
+      targetUser.profileVisitors.push({ username: req.user.username, timestamp: Date.now() });
+    }
+    await targetUser.save();
+  }
 
   const isFriend = (targetUser.friends || []).includes(req.user.username);
   

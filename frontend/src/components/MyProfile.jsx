@@ -256,6 +256,7 @@ const MyProfile = () => {
         <div className="profile-tabs">
           <button className={`tab-btn ${activeTab === 'profile' ? 'active' : ''}`} onClick={() => setActiveTab('profile')}>Settings</button>
           <button className={`tab-btn ${activeTab === 'friends' ? 'active' : ''}`} onClick={() => setActiveTab('friends')}>My Friends</button>
+          <button className={`tab-btn ${activeTab === 'visitors' ? 'active' : ''}`} onClick={() => setActiveTab('visitors')}>Profile Visitors</button>
         </div>
       </div>
 
@@ -418,7 +419,7 @@ const MyProfile = () => {
             </div>
           </div>
         </div>
-      ) : (
+      ) : activeTab === 'friends' ? (
         <div className="friends-section">
           <h3>Your Friends ({profileData.friends?.length || 0})</h3>
           <div className="friends-grid">
@@ -440,6 +441,46 @@ const MyProfile = () => {
               ))
             ) : (
               <p className="text-muted">You have no friends yet. Start chatting to make friends!</p>
+            )}
+          </div>
+        </div>
+      ) : (
+        <div className="friends-section">
+          <div style={{display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '15px'}}>
+            <h3>Profile Visitors ({profileData.profileVisitors?.length || 0})</h3>
+            <span style={{fontSize: '12px', color: '#9ca3af', backgroundColor: '#374151', padding: '2px 8px', borderRadius: '12px'}}>Last 24 Hours</span>
+          </div>
+          <div className="friends-grid">
+            {profileData.profileVisitors?.length > 0 ? (
+              profileData.profileVisitors.map(v => {
+                const diffMs = Date.now() - new Date(v.timestamp).getTime();
+                const diffMins = Math.floor(diffMs / 60000);
+                const diffHrs = Math.floor(diffMins / 60);
+                let timeString = diffMins < 1 ? 'Just now' : diffMins < 60 ? `${diffMins}m ago` : `${diffHrs}h ago`;
+                
+                return (
+                  <div key={v.username} className="friend-card" style={{cursor: 'pointer', position: 'relative'}} onClick={() => navigate(`/user/${v.username}`)}>
+                    {v.profilePic ? (
+                      <img src={v.profilePic} alt={v.username} className="friend-avatar" />
+                    ) : (
+                      <div className="friend-avatar" style={{backgroundColor: '#374151', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+                        <UserIcon size={24} color="#9ca3af" />
+                      </div>
+                    )}
+                    <div className="friend-info">
+                      <h4>{v.username}</h4>
+                      <span className="friend-role" style={{fontSize: '11px', color: '#6b7280'}}>{timeString}</span>
+                    </div>
+                    <div style={{position: 'absolute', top: '10px', right: '10px'}}>
+                      <span className={`badge ${v.role === 'superadmin' ? 'badge-superadmin' : v.role === 'admin' ? 'badge-admin' : 'badge-user'}`} style={{fontSize: '9px', padding: '2px 4px'}}>
+                        {v.role?.toUpperCase()}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              <p className="text-muted">No one has visited your profile in the last 24 hours.</p>
             )}
           </div>
         </div>

@@ -22,6 +22,10 @@ const userSchema = new mongoose.Schema({
     username: String,
     timestamp: { type: Date, default: Date.now }
   }],
+  profileVisitors: [{
+    username: String,
+    timestamp: { type: Date, default: Date.now }
+  }],
   warningHistory: [{
     message: String,
     reason: String,
