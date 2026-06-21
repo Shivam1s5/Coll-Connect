@@ -149,7 +149,9 @@ const ManageUsers = () => {
                   </div>
                   
                   <div className="user-actions row-actions" style={{marginTop: '10px'}}>
-                    <button className="btn-action" style={{backgroundColor: '#3b82f6', color: 'white'}} onClick={() => navigate(`/user/${u.username}`)}>VISIT PROFILE</button>
+                    {u.role !== 'superadmin' && (
+                      <button className="btn-action" style={{backgroundColor: '#3b82f6', color: 'white'}} onClick={() => navigate(`/user/${u.username}`)}>VISIT PROFILE</button>
+                    )}
                     {u.role === 'admin' && (
                       <button className="btn-action btn-red" onClick={() => dismissAdmin(u.username)}>
                         DISMISS ADMIN
