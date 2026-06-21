@@ -13,10 +13,12 @@ const Topbar = ({ toggleSidebar }) => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [announcements, setAnnouncements] = useState([]);
   const [selectedImage, setSelectedImage] = useState(null);
+  const [profileData, setProfileData] = useState(null);
   const dropdownRef = useRef(null);
 
   useEffect(() => {
     fetchAnnouncements();
+    if (user) fetchProfile();
     
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -25,7 +27,7 @@ const Topbar = ({ toggleSidebar }) => {
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  }, [user]);
 
   useEffect(() => {
     if (socket) {
@@ -54,6 +56,19 @@ const Topbar = ({ toggleSidebar }) => {
       console.error(err);
     }
   };
+
+  const fetchProfile = async () => {
+    try {
+      const res = await fetch(`${backendUrl}/api/me`, {
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+      });
+      if (res.ok) setProfileData(await res.json());
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const displayUser = profileData || user;
 
   return (
     <div className="topbar-container">
@@ -110,18 +125,18 @@ const Topbar = ({ toggleSidebar }) => {
           )}
         </div>
         
-        <Link to="/profile" style={{textDecoration: 'none', color: 'inherit'}}>
-          <div className="user-profile-badge" style={{cursor: 'pointer'}}>
-            <div className="user-info-text">
-              <span className="username">{user?.username || 'User'}</span>
-              <span className={`badge badge-${user?.role || 'user'}`} style={{marginLeft: 0, marginTop: '2px', fontSize: '0.6rem'}}>{user?.role?.toUpperCase() || 'USER'}</span>
-            </div>
-            <div className="user-avatar" style={{overflow: 'hidden'}}>
-              {user?.profilePic ? (
-                <img src={user.profilePic} alt="Profile" style={{width: '100%', height: '100%', objectFit: 'cover'}} />
+        <Link to="/profile" style={{textDecoration: 'none'}}>
+          <div className={`topbar-profile-badge ${displayUser?.bannerImage ? 'has-banner' : ''}`} style={displayUser?.bannerImage ? { '--banner-url': `url(${displayUser.bannerImage})` } : {}}>
+            <div className="topbar-profile-avatar">
+              {displayUser?.profilePic ? (
+                <img src={displayUser.profilePic} alt="Profile" style={{width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%'}} />
               ) : (
-                user?.username ? user.username.charAt(0).toUpperCase() : 'U'
+                displayUser?.username ? displayUser.username.charAt(0).toUpperCase() : 'U'
               )}
+            </div>
+            <div className="topbar-profile-info">
+              <span className="topbar-profile-username">{displayUser?.username || 'User'}</span>
+              <span className="topbar-profile-role">{displayUser?.role || 'user'}</span>
             </div>
           </div>
         </Link>
