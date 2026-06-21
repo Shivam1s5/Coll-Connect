@@ -509,7 +509,8 @@ const Messages = () => {
   };
 
   return (
-    <div className="messages-layout" style={{ display: 'flex', height: 'calc(100vh - 60px)', background: '#111827', color: '#f3f4f6' }}>
+    <div className="messages-wrapper" style={{ padding: '20px', height: 'calc(100vh - 70px)', boxSizing: 'border-box' }}>
+      <div className="messages-layout" style={{ display: 'flex', height: '100%', maxWidth: '1400px', margin: '0 auto', background: '#111827', color: '#f3f4f6', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 4px 20px rgba(0,0,0,0.4)', border: '1px solid #374151' }}>
       
       {/* Lightbox / Media Modal */}
       {previewMedia && (
@@ -940,6 +941,7 @@ const Messages = () => {
           100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
         }
       `}</style>
+      </div>
     </div>
   );
 };

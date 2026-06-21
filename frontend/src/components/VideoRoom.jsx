@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
 import { useNavigate } from 'react-router-dom';
 import EmojiPicker from 'emoji-picker-react';
+import html2canvas from 'html2canvas';
 
 const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
 
@@ -27,6 +28,11 @@ const VideoRoom = () => {
   const [micOn, setMicOn] = useState(true);
   const [videoOn, setVideoOn] = useState(true);
   const [isBlurred, setIsBlurred] = useState(true);
+
+  // Report System States
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [reportReason, setReportReason] = useState('');
+  const [isSubmittingReport, setIsSubmittingReport] = useState(false);
 
   // Friend status: 'none', 'sent', 'received', 'friends'
   const [friendStatus, setFriendStatus] = useState('none');
@@ -233,6 +239,80 @@ const VideoRoom = () => {
       socket.emit('skip');
       handlePartnerDisconnect();
       setMessages([{ text: 'You have disconnected.', system: true }]);
+    }
+    navigate('/');
+  };
+
+  const handleReportClick = () => {
+    if (!partnerConnected) {
+      showToast("You are not connected to anyone to report.");
+      return;
+    }
+    setShowReportModal(true);
+    setReportReason('');
+  };
+
+  const submitReport = async () => {
+    if (!reportReason.trim()) {
+      showToast('Please provide a reason for reporting.');
+      return;
+    }
+    
+    setIsSubmittingReport(true);
+    let screenshotData = '';
+    
+    try {
+      const localVideo = localVideoRef.current;
+      const remoteVideo = remoteVideoRef.current;
+      const localWasBlurred = localVideo?.classList.contains('blurred-video');
+      const remoteWasBlurred = remoteVideo?.classList.contains('blurred-video');
+      
+      if (localVideo) localVideo.classList.remove('blurred-video');
+      if (remoteVideo) remoteVideo.classList.remove('blurred-video');
+      
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      const chatArea = document.querySelector('.video-room-container') || document.body;
+      const canvas = await html2canvas(chatArea, { 
+        useCORS: true, 
+        allowTaint: false,
+        ignoreElements: (element) => element.id === 'report-modal-wrapper'
+      });
+      screenshotData = canvas.toDataURL('image/jpeg', 0.6);
+
+      if (localWasBlurred && localVideo) localVideo.classList.add('blurred-video');
+      if (remoteWasBlurred && remoteVideo) remoteVideo.classList.add('blurred-video');
+    } catch (err) {
+      console.error('Failed to capture screenshot', err);
+    }
+
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${backendUrl}/api/report`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          reportedUser: partnerUsername,
+          reason: reportReason,
+          screenshotData
+        })
+      });
+      
+      if (res.ok) {
+        showToast('Report submitted successfully.');
+        setShowReportModal(false);
+      } else {
+        const errorData = await res.json();
+        showToast(errorData.error || 'Failed to submit report');
+      }
+    } catch (err) {
+      console.error(err);
+      showToast('Server error while reporting');
+    } finally {
+      setIsSubmittingReport(false);
     }
   };
 
@@ -466,7 +546,7 @@ const VideoRoom = () => {
             </>
           )}
 
-          <button className="control-btn btn-red" onClick={handleReport}>REPORT</button>
+          <button className="control-btn btn-red" onClick={handleReportClick}>REPORT</button>
           <button className="control-btn btn-red" onClick={handleStop}>STOP</button>
           <button className="control-btn btn-purple" onClick={handleNext}>NEXT (SPACE)</button>
         </div>
@@ -526,6 +606,35 @@ const VideoRoom = () => {
           </button>
         </form>
       </div>
+
+      {showReportModal && (
+        <div id="report-modal-wrapper" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }}>
+          <div style={{ background: '#1f2937', padding: '24px', borderRadius: '12px', width: '90%', maxWidth: '400px', border: '1px solid #374151' }}>
+            <h3 style={{ margin: '0 0 16px 0', color: '#f3f4f6' }}>Report User</h3>
+            <textarea
+              value={reportReason}
+              onChange={(e) => setReportReason(e.target.value)}
+              placeholder="Please provide details about the violation..."
+              style={{ width: '100%', height: '100px', padding: '12px', borderRadius: '8px', border: '1px solid #4b5563', background: '#111827', color: '#f3f4f6', resize: 'none', marginBottom: '16px', boxSizing: 'border-box' }}
+            />
+            <p style={{ fontSize: '0.8rem', color: '#9ca3af', marginBottom: '16px' }}>* A screenshot of the chat and video will be securely sent with this report for review.</p>
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+              <button 
+                onClick={() => setShowReportModal(false)}
+                style={{ padding: '8px 16px', borderRadius: '6px', border: 'none', background: '#374151', color: '#f3f4f6', cursor: 'pointer' }}
+                disabled={isSubmittingReport}
+              >Cancel</button>
+              <button 
+                onClick={submitReport}
+                style={{ padding: '8px 16px', borderRadius: '6px', border: 'none', background: '#ef4444', color: '#fff', cursor: 'pointer', opacity: isSubmittingReport ? 0.7 : 1 }}
+                disabled={isSubmittingReport}
+              >
+                {isSubmittingReport ? 'Submitting...' : 'Submit Report'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

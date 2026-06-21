@@ -2000,13 +2000,14 @@ body {
   flex-direction: column;
   gap: 15px;
   flex: 1;
+  min-height: 150px;
 }
 
 .video-grid {
   display: flex;
   gap: 15px;
   flex: 1;
-  min-height: 400px;
+  min-height: 150px;
 }
 
 .video-box {
@@ -2127,6 +2128,8 @@ body {
   display: flex;
   flex-direction: column;
   transition: height 0.1s ease;
+  flex: none;
+  overflow: hidden;
 }
 
 .chat-resizer {
