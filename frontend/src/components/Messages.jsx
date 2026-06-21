@@ -134,12 +134,16 @@ const Messages = () => {
         setActiveChatUser(prev => ({ ...prev, profilePic: data.profilePic, bannerImage: data.bannerImage }));
       }
     };
+    const handleMessageDeleted = (data) => {
+      setChatHistory(prev => prev.filter(msg => msg.id !== data.messageId && msg._id !== data.messageId));
+    };
 
     socket.on('private-message', handleNewMessage);
     socket.on('friend-request-received', handleRequestReceived);
     socket.on('friend-request-accepted', handleRequestAccepted);
     socket.on('friend-removed', handleFriendRemoved);
     socket.on('profile-updated', handleProfileUpdated);
+    socket.on('message-deleted', handleMessageDeleted);
 
     return () => {
       socket.off('private-message', handleNewMessage);
@@ -147,6 +151,7 @@ const Messages = () => {
       socket.off('friend-request-accepted', handleRequestAccepted);
       socket.off('friend-removed', handleFriendRemoved);
       socket.off('profile-updated', handleProfileUpdated);
+      socket.off('message-deleted', handleMessageDeleted);
     };
   }, [socket, activeChatUser]);
 
@@ -218,6 +223,12 @@ const Messages = () => {
   const handleReport = () => {
     setShowChatMenu(false);
     showToast('Report submitted. Our team will review this user.');
+  };
+
+  const handleUnsend = (messageId) => {
+    showConfirm('Are you sure you want to unsend this message?', () => {
+      socket.emit('admin-delete-message', { messageId });
+    });
   };
 
   const openChat = async (user) => {
@@ -586,7 +597,7 @@ const Messages = () => {
                 </button>
                 {showChatMenu && (
                   <div style={{ position: 'absolute', top: '40px', right: '0', background: '#1f2937', border: '1px solid #374151', borderRadius: '8px', boxShadow: '0 4px 15px rgba(0, 0, 0, 0.5)', zIndex: 50, width: '160px', overflow: 'hidden' }}>
-                    {authUser?.role !== 'superadmin' && activeChatUser?.role !== 'superadmin' && (
+                    {authUser?.role !== 'superadmin' && activeChatUser?.role !== 'superadmin' && friends.some(f => f.username === activeChatUser?.username) && (
                       <button onClick={handleUnfriend} style={{ width: '100%', textAlign: 'left', padding: '12px 16px', background: 'transparent', border: 'none', borderBottom: '1px solid #374151', color: '#ef4444', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem' }} onMouseEnter={(e) => e.currentTarget.style.background = '#374151'} onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}>
                         <UserMinus size={16} /> Unfriend
                       </button>
@@ -612,7 +623,20 @@ const Messages = () => {
                 chatHistory.map((msg, idx) => {
                   const isMe = msg.sender === authUser.username;
                   return (
-                    <div key={msg.id || idx} style={{ display: 'flex', justifyContent: isMe ? 'flex-end' : 'flex-start' }}>
+                    <div key={msg.id || idx} style={{ display: 'flex', justifyContent: isMe ? 'flex-end' : 'flex-start', marginBottom: '16px', alignItems: 'center', gap: '8px' }}>
+                      
+                      {authUser?.role === 'superadmin' && !isMe && (
+                        <button onClick={() => handleUnsend(msg.id)} style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '4px', opacity: 0.7 }} title="Delete Message" onMouseEnter={(e) => e.currentTarget.style.opacity = 1} onMouseLeave={(e) => e.currentTarget.style.opacity = 0.7}>
+                          <Trash2 size={16} />
+                        </button>
+                      )}
+                      
+                      {isMe && ((authUser?.role === 'admin') || (authUser?.role === 'superadmin')) && (
+                        <button onClick={() => handleUnsend(msg.id)} style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '4px', opacity: 0.7 }} title="Unsend Message" onMouseEnter={(e) => e.currentTarget.style.opacity = 1} onMouseLeave={(e) => e.currentTarget.style.opacity = 0.7}>
+                          <Trash2 size={16} />
+                        </button>
+                      )}
+
                       <div style={{ 
                         maxWidth: '70%', 
                         padding: '10px 16px', 
