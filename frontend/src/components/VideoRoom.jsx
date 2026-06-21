@@ -11,7 +11,7 @@ const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
 
 const VideoRoom = () => {
   const { socket } = useSocket();
-  const { user } = useAuth();
+  const { user, globalProfileData } = useAuth();
   const { showToast } = useToast();
   const navigate = useNavigate();
 
@@ -25,7 +25,8 @@ const VideoRoom = () => {
 
   const location = useLocation();
   const interestedIn = location.state?.interestedIn || 'Any';
-  const myGender = user?.gender || 'Any';
+  const myGender = globalProfileData?.gender && globalProfileData.gender !== 'Not Specified' ? globalProfileData.gender : 'Any';
+  const hasStartedSearching = useRef(false);
 
   const [mediaError, setMediaError] = useState(false);
   
@@ -239,13 +240,20 @@ const VideoRoom = () => {
     }
   };
 
-  const handleNext = () => {
+  const handleNext = useCallback(() => {
     if (socket && user) {
       handlePartnerDisconnect();
       setMessages([{ text: 'Looking for a stranger...', system: true }]);
       socket.emit('find-partner', { myGender, interestedIn, username: user.username });
     }
-  };
+  }, [socket, user, myGender, interestedIn]);
+
+  useEffect(() => {
+    if (socket && user && !hasStartedSearching.current) {
+      hasStartedSearching.current = true;
+      handleNext();
+    }
+  }, [socket, user, handleNext]);
 
   const handleStop = () => {
     if (socket) {
