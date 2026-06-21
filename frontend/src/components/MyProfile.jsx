@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useSocket } from '../contexts/SocketContext';
-import { Camera, Edit2, Save, X, User as UserIcon, Link as LinkIcon, Instagram, Facebook, Linkedin, Github } from 'lucide-react';
+import { Camera, Edit2, Save, X, User as UserIcon, Link as LinkIcon } from 'lucide-react';
+import { FaInstagram as Instagram, FaFacebook as Facebook, FaLinkedin as Linkedin, FaSnapchat as Snapchat } from 'react-icons/fa';
 import '../index.css';
 
 const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
