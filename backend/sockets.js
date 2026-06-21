@@ -195,13 +195,18 @@ module.exports = (io) => {
       const matchIndex = waitingUsers.findIndex(u => {
         if (u.id === socket.id) return false;
         
-        const partnerWants = u.preferences.interestedIn;
-        const iAm = socket.preferences.myGender;
-        const iWant = socket.preferences.interestedIn;
-        const partnerIs = u.preferences.myGender;
+        const partnerWants = String(u.preferences.interestedIn || 'Any').toLowerCase();
+        const iAm = String(socket.preferences.myGender || 'Any').toLowerCase();
+        const iWant = String(socket.preferences.interestedIn || 'Any').toLowerCase();
+        const partnerIs = String(u.preferences.myGender || 'Any').toLowerCase();
         
-        const partnerLikesMe = partnerWants === 'Any' || partnerWants === iAm;
-        const iLikePartner = iWant === 'Any' || iWant === partnerIs;
+        let partnerLikesMe = partnerWants === 'any' || partnerWants === iAm || iAm === 'any';
+        let iLikePartner = iWant === 'any' || iWant === partnerIs || partnerIs === 'any';
+        
+        // Owner Requirement: "Any gender preference users should connect with ALL types of preference users"
+        // This makes 'Any' preference act as a universal wildcard that bypasses the other person's strict filters.
+        if (iWant === 'any') partnerLikesMe = true;
+        if (partnerWants === 'any') iLikePartner = true;
         
         return partnerLikesMe && iLikePartner;
       });
