@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import ImageModal from '../ImageModal';
 
 const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
 
 const SupportTickets = () => {
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedImage, setSelectedImage] = useState(null);
 
   useEffect(() => {
     fetchTickets();
@@ -47,7 +49,7 @@ const SupportTickets = () => {
       ) : (
         <div className="ticket-list">
           {tickets.map(ticket => (
-            <div key={ticket._id} className={`ticket-card ${ticket.status === 'resolved' ? 'resolved' : ''}`}>
+            <div key={ticket._id} className={`ticket-card ${ticket.status === 'resolved' ? 'resolved' : ''}`} style={{flexShrink: 0}}>
               <div className="ticket-header">
                 <div>
                   <span className="ticket-subject">{ticket.subject}</span>
@@ -61,12 +63,13 @@ const SupportTickets = () => {
                 From: <strong>{ticket.username}</strong> ({ticket.email})
               </div>
               <div className="ticket-body">
-                <p>{ticket.message}</p>
+                <p className="custom-scrollbar" style={{margin: 0, color: '#e5e7eb', fontSize: '0.9rem', whiteSpace: 'pre-wrap', lineHeight: '1.4', wordBreak: 'break-all', overflowWrap: 'break-word', maxHeight: '150px', overflowY: 'auto', overflowX: 'hidden', width: '100%', maxWidth: '100%', minWidth: 0, paddingRight: '5px', display: 'block', flexShrink: 0}}>
+                  {ticket.message}
+                </p>
                 {ticket.imageUrl && (
-                  <div className="ticket-image">
-                    <a href={ticket.imageUrl} target="_blank" rel="noopener noreferrer">
-                      <img src={ticket.imageUrl} alt="Attachment" style={{maxWidth: '200px', borderRadius: '8px', marginTop: '10px'}} />
-                    </a>
+                  <div className="announcement-image-wrapper" onClick={() => setSelectedImage(ticket.imageUrl)} style={{cursor: 'pointer', marginTop: '10px'}}>
+                    <img src={ticket.imageUrl} alt="Attachment" className="announcement-image" style={{maxHeight: '200px', objectFit: 'cover', width: '100%', borderRadius: '8px'}} />
+                    <div style={{textAlign: 'center', fontSize: '0.8rem', color: '#9ca3af', marginTop: '4px'}}>Tap to view full image</div>
                   </div>
                 )}
               </div>
@@ -79,6 +82,7 @@ const SupportTickets = () => {
           ))}
         </div>
       )}
+      <ImageModal imageUrl={selectedImage} onClose={() => setSelectedImage(null)} />
     </div>
   );
 };
