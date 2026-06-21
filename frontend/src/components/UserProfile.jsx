@@ -159,11 +159,29 @@ const UserProfile = () => {
   const getBadgeStyle = (role) => {
     switch(role) {
       case 'superadmin': 
-        return { background: 'linear-gradient(135deg, #FFD700 0%, #FDB931 100%)', color: '#000', padding: '2px 8px', borderRadius: '12px', fontSize: '0.65rem', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.5px', boxShadow: '0 2px 4px rgba(255, 215, 0, 0.2)' };
+        return { 
+          background: 'linear-gradient(135deg, #FFD700 0%, #FFF8DC 50%, #FFD700 100%)', 
+          color: '#8B6508', 
+          padding: '2px 8px', borderRadius: '12px', fontSize: '0.65rem', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.5px', 
+          boxShadow: '0 2px 5px rgba(255, 215, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.8)',
+          border: '1px solid #DAA520', textShadow: '0 1px 1px rgba(255,255,255,0.8)'
+        };
       case 'admin': 
-        return { background: 'linear-gradient(135deg, #C0C0C0 0%, #A9A9A9 100%)', color: '#000', padding: '2px 8px', borderRadius: '12px', fontSize: '0.65rem', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.5px', boxShadow: '0 2px 4px rgba(192, 192, 192, 0.2)' };
+        return { 
+          background: 'linear-gradient(135deg, #C0C0C0 0%, #F5F5F5 50%, #C0C0C0 100%)', 
+          color: '#4F4F4F', 
+          padding: '2px 8px', borderRadius: '12px', fontSize: '0.65rem', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.5px', 
+          boxShadow: '0 2px 5px rgba(192, 192, 192, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.8)',
+          border: '1px solid #A9A9A9', textShadow: '0 1px 1px rgba(255,255,255,0.8)'
+        };
       default: 
-        return { background: 'linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%)', color: '#fff', padding: '2px 8px', borderRadius: '12px', fontSize: '0.65rem', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.5px', boxShadow: '0 2px 4px rgba(139, 92, 246, 0.2)' };
+        return { 
+          background: 'linear-gradient(135deg, #8B5CF6 0%, #A78BFA 50%, #8B5CF6 100%)', 
+          color: '#fff', 
+          padding: '2px 8px', borderRadius: '12px', fontSize: '0.65rem', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.5px', 
+          boxShadow: '0 2px 5px rgba(139, 92, 246, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.4)',
+          border: '1px solid #7C3AED', textShadow: '0 1px 1px rgba(0,0,0,0.3)'
+        };
     }
   };
 
