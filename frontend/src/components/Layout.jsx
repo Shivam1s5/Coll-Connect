@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Outlet } from 'react-router-dom';
 import Topbar from './Topbar';
 import Sidebar from './Sidebar';
+import { Menu } from 'lucide-react';
 import { useSocket } from '../contexts/SocketContext';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -43,6 +44,16 @@ const Layout = () => {
     <div className="app-layout">
       <Sidebar isOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
       
+      {!isSidebarOpen && (
+        <button 
+          className="icon-btn fixed-hamburger" 
+          onClick={toggleSidebar}
+          style={{ position: 'fixed', top: '15px', left: '20px', zIndex: 1001, backgroundColor: '#151a2d', padding: '8px', borderRadius: '8px' }}
+        >
+          <Menu size={24} color="#e0e0e0" />
+        </button>
+      )}
+
       <div className="main-wrapper">
         <Topbar toggleSidebar={toggleSidebar} />
         

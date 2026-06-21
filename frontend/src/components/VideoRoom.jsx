@@ -33,6 +33,9 @@ const VideoRoom = () => {
   // Ad banner state
   const [showAd, setShowAd] = useState(true);
 
+  // Chat height state
+  const [chatHeight, setChatHeight] = useState(250);
+
   const localVideoRef = useRef(null);
   const remoteVideoRef = useRef(null);
   const chatMessagesRef = useRef(null);
@@ -463,7 +466,18 @@ const VideoRoom = () => {
       </div>
 
       {/* Chat Section */}
-      <div className="chat-section">
+      <div className="chat-section" style={{ height: `${chatHeight}px` }}>
+        <div className="chat-resizer">
+          <label>Chat Size: </label>
+          <input 
+            type="range" 
+            min="150" 
+            max="600" 
+            value={chatHeight} 
+            onChange={(e) => setChatHeight(e.target.value)}
+            style={{ width: '150px' }}
+          />
+        </div>
         {showAd ? (
           <div className="ad-banner">
             <p>Google Ads Placeholder</p>
