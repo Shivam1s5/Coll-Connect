@@ -201,7 +201,7 @@ const UserProfile = () => {
           </div>
         </div>
       ) : (
-        <div className="friends-section">
+        <div className="friends-section" style={{marginTop: '20px'}}>
           <h3>{profileData.username}'s Friends ({profileData.friends?.length || 0})</h3>
           <div className="friends-grid">
             {profileData.friends?.length > 0 ? (

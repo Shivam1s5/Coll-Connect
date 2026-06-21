@@ -420,7 +420,7 @@ const MyProfile = () => {
           </div>
         </div>
       ) : activeTab === 'friends' ? (
-        <div className="friends-section">
+        <div className="friends-section" style={{marginTop: '20px'}}>
           <h3>Your Friends ({profileData.friends?.length || 0})</h3>
           <div className="friends-grid">
             {profileData.friends?.length > 0 ? (
@@ -445,7 +445,7 @@ const MyProfile = () => {
           </div>
         </div>
       ) : (
-        <div className="friends-section">
+        <div className="friends-section" style={{marginTop: '20px'}}>
           <div style={{display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '15px'}}>
             <h3>Profile Visitors ({profileData.profileVisitors?.length || 0})</h3>
             <span style={{fontSize: '12px', color: '#9ca3af', backgroundColor: '#374151', padding: '2px 8px', borderRadius: '12px'}}>Last 24 Hours</span>
