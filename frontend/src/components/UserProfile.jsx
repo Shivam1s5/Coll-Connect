@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
-import { User as UserIcon, Eye, Trash2, MessageCircle } from 'lucide-react';
+import { User as UserIcon, Eye, Trash2, MessageCircle, Clock, UserPlus, Check, X, UserMinus } from 'lucide-react';
 import { FaInstagram as Instagram, FaFacebook as Facebook, FaLinkedin as Linkedin, FaSnapchat as Snapchat } from 'react-icons/fa';
 import ImageModal from './ImageModal';
 import '../index.css';
@@ -46,6 +46,67 @@ const UserProfile = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const sendFriendRequest = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${backendUrl}/api/friend-request`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ targetUsername: username })
+      });
+      if (res.ok) {
+        showToast(`Friend request sent to ${username}`);
+        fetchProfile();
+      } else {
+        const data = await res.json();
+        showToast(data.error || 'Failed to send request');
+      }
+    } catch (err) {
+      showToast('Server error');
+    }
+  };
+
+  const respondToRequest = async (action) => {
+    try {
+      const token = localStorage.getItem('token');
+      const endpoint = action === 'accept' ? '/api/friend-accept' : '/api/friend-decline';
+      const res = await fetch(`${backendUrl}${endpoint}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ targetUsername: username })
+      });
+      if (res.ok) {
+        showToast(`Request ${action}ed`);
+        fetchProfile();
+      } else {
+        showToast(`Failed to ${action} request`);
+      }
+    } catch (err) {
+      showToast('Server error');
+    }
+  };
+
+  const unfriend = async () => {
+    showConfirm(`Are you sure you want to unfriend ${username}? This will also delete your chat history.`, async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const res = await fetch(`${backendUrl}/api/unfriend`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify({ targetUsername: username })
+        });
+        if (res.ok) {
+          showToast(`Unfriended ${username}`);
+          fetchProfile();
+        } else {
+          showToast(`Failed to unfriend`);
+        }
+      } catch (err) {
+        showToast('Server error');
+      }
+    });
   };
 
   const getOriginalImageUrl = (url) => {
@@ -99,11 +160,37 @@ const UserProfile = () => {
     <div className="my-profile-container">
       <div className="profile-header" style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
         <h1>{profileData.username}'s Profile</h1>
-        {profileData.isFriend && (
-          <button className="btn-action btn-blue" style={{display: 'flex', alignItems: 'center', gap: '8px'}} onClick={() => navigate('/messages')}>
-            <MessageCircle size={18} /> Message
-          </button>
-        )}
+        <div style={{ display: 'flex', gap: '10px' }}>
+          {profileData.username !== authUser?.username && (
+            profileData.isFriend ? (
+              <>
+                <button className="btn-action" style={{display: 'flex', alignItems: 'center', gap: '8px', background: '#374151', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer'}} onClick={unfriend}>
+                  <UserMinus size={18} /> Unfriend
+                </button>
+                <button className="btn-action" style={{display: 'flex', alignItems: 'center', gap: '8px', background: '#10b981', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer'}} onClick={() => navigate('/messages')}>
+                  <MessageCircle size={18} /> Message
+                </button>
+              </>
+            ) : profileData.hasSentRequest ? (
+              <button disabled className="btn-action" style={{display: 'flex', alignItems: 'center', gap: '8px', background: '#374151', color: '#9ca3af', border: 'none', padding: '8px 16px', borderRadius: '8px'}}>
+                <Clock size={18} /> Request Pending
+              </button>
+            ) : profileData.hasReceivedRequest ? (
+              <>
+                <button className="btn-action" style={{display: 'flex', alignItems: 'center', gap: '8px', background: '#10b981', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer'}} onClick={() => respondToRequest('accept')}>
+                  <Check size={18} /> Accept Request
+                </button>
+                <button className="btn-action" style={{display: 'flex', alignItems: 'center', gap: '8px', background: '#ef4444', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer'}} onClick={() => respondToRequest('decline')}>
+                  <X size={18} /> Decline
+                </button>
+              </>
+            ) : (
+              <button className="btn-action" style={{display: 'flex', alignItems: 'center', gap: '8px', background: '#3b82f6', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer'}} onClick={sendFriendRequest}>
+                <UserPlus size={18} /> Add Friend
+              </button>
+            )
+          )}
+        </div>
       </div>
       <div className="profile-tabs">
         <button className={`tab-btn ${activeTab === 'profile' ? 'active' : ''}`} onClick={() => setActiveTab('profile')}>Profile</button>
