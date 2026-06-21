@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
 const SupportTicket = require('../models/SupportTicket');
+const { deleteImageFromCloudinary } = require('../config/cloudinary');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'super-secret-key-123';
 
@@ -51,6 +52,10 @@ router.post('/support/:id/resolve', isSuperAdmin, async (req, res) => {
 });
 
 router.delete('/support/:id', isSuperAdmin, async (req, res) => {
+  const ticket = await SupportTicket.findById(req.params.id);
+  if (ticket && ticket.imageUrl) {
+    await deleteImageFromCloudinary(ticket.imageUrl);
+  }
   await SupportTicket.findByIdAndDelete(req.params.id);
   if (req.io) req.io.emit('refresh-support-tickets');
   res.json({ success: true });
