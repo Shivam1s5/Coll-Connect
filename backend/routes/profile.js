@@ -53,6 +53,7 @@ router.get('/me', authMiddleware, async (req, res) => {
         username: u.username,
         email: u.email,
         profilePic: u.profilePic,
+        bannerImage: u.bannerImage,
         gender: u.gender,
         socials: u.socials,
         role: u.role,
@@ -71,6 +72,7 @@ router.get('/me', authMiddleware, async (req, res) => {
           username: fUser.username,
           email: fUser.email,
           profilePic: fUser.profilePic,
+          bannerImage: fUser.bannerImage,
           gender: fUser.gender,
           socials: fUser.socials,
           role: fUser.role,
@@ -87,6 +89,7 @@ router.get('/me', authMiddleware, async (req, res) => {
     friendsList.push({
       username: superadminUser.username,
       profilePic: superadminUser.profilePic,
+      bannerImage: superadminUser.bannerImage,
       gender: superadminUser.gender,
       socials: superadminUser.socials,
       role: 'superadmin',
