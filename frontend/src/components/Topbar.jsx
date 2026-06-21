@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Menu, Bell } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useSocket } from '../contexts/SocketContext';
+import ImageModal from './ImageModal';
 
 const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
 
@@ -10,6 +11,7 @@ const Topbar = ({ toggleSidebar }) => {
   const { socket } = useSocket();
   const [showNotifications, setShowNotifications] = useState(false);
   const [announcements, setAnnouncements] = useState([]);
+  const [selectedImage, setSelectedImage] = useState(null);
   const dropdownRef = useRef(null);
 
   useEffect(() => {
@@ -92,8 +94,9 @@ const Topbar = ({ toggleSidebar }) => {
                         <h5 className="notification-title">{ann.title}</h5>
                       </div>
                       {ann.imageUrl && (
-                        <div className="announcement-image-wrapper">
+                        <div className="announcement-image-wrapper" onClick={() => setSelectedImage(ann.imageUrl)} style={{cursor: 'pointer'}}>
                           <img src={ann.imageUrl} alt="Announcement" className="announcement-image" />
+                          <div style={{textAlign: 'center', fontSize: '0.8rem', color: '#9ca3af', marginTop: '4px'}}>Tap to view full image</div>
                         </div>
                       )}
                       <p className="notification-content">{ann.content}</p>
@@ -116,6 +119,7 @@ const Topbar = ({ toggleSidebar }) => {
           </div>
         </div>
       </div>
+      <ImageModal imageUrl={selectedImage} onClose={() => setSelectedImage(null)} />
     </div>
   );
 };
