@@ -507,26 +507,26 @@ const Messages = () => {
                   <div key={f.username} onClick={() => openChat(f)} style={{ position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column', padding: '0', borderRadius: '12px', background: activeChatUser?.username === f.username ? '#374151' : '#1f2937', cursor: 'pointer', transition: 'transform 0.2s, box-shadow 0.2s', marginBottom: '12px', border: activeChatUser?.username === f.username ? '1px solid #8b5cf6' : '1px solid #374151', boxShadow: activeChatUser?.username === f.username ? '0 0 10px rgba(139, 92, 246, 0.3)' : '0 4px 6px rgba(0,0,0,0.3)' }} onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 6px 12px rgba(0,0,0,0.5)'; }} onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = activeChatUser?.username === f.username ? '0 0 10px rgba(139, 92, 246, 0.3)' : '0 4px 6px rgba(0,0,0,0.3)'; }}>
                     
                     {/* Banner Background */}
-                    <div style={{ height: '55px', width: '100%', background: f.bannerImage ? `url(${f.bannerImage}) center/cover` : 'linear-gradient(135deg, #4b5563, #1f2937)', position: 'relative' }}>
-                       <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(31, 41, 55, 1))' }}></div>
+                    <div style={{ height: '60px', width: '100%', backgroundImage: f.bannerImage ? `url(${f.bannerImage})` : 'linear-gradient(135deg, #6366f1, #a855f7, #ec4899)', backgroundSize: 'cover', backgroundPosition: 'center', position: 'relative' }}>
+                       <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(31, 41, 55, 0), rgba(31, 41, 55, 1))' }}></div>
                     </div>
 
                     {/* Content overlapping banner */}
-                    <div style={{ padding: '0 12px 12px 12px', display: 'flex', alignItems: 'flex-end', marginTop: '-25px', position: 'relative', zIndex: 2 }}>
+                    <div style={{ padding: '0 12px 12px 12px', display: 'flex', alignItems: 'flex-end', marginTop: '-30px', position: 'relative', zIndex: 2 }}>
                       <div style={{ position: 'relative', marginRight: '12px' }}>
-                        <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: '#374151', overflow: 'hidden', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '3px solid #1f2937', boxShadow: '0 4px 8px rgba(0,0,0,0.5)' }}>
+                        <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: '#374151', overflow: 'hidden', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '3px solid #1f2937', boxShadow: '0 4px 8px rgba(0,0,0,0.6)' }}>
                           {f.profilePic ? <img src={f.profilePic} alt={f.username} style={{width: '100%', height: '100%', objectFit: 'cover'}}/> : <User size={28} color="#9ca3af" />}
                         </div>
                         {unreadCounts[f.username] > 0 && (
                           <div style={{ position: 'absolute', bottom: '2px', right: '2px', width: '14px', height: '14px', borderRadius: '50%', background: '#3b82f6', border: '2px solid #1f2937', boxShadow: '0 0 5px rgba(59,130,246,0.5)' }}></div>
                         )}
                       </div>
-                      <div style={{ flex: 1, overflow: 'hidden', paddingBottom: '2px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          <h4 style={{ margin: 0, fontSize: '1.1rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: '#fff', textShadow: '1px 2px 3px rgba(0,0,0,0.9), 0px -1px 1px rgba(255,255,255,0.2)', fontWeight: 'bold' }}>{f.username}</h4>
-                          <span style={{...getBadgeStyle(f.role), transform: 'scale(0.85)', transformOrigin: 'left center', marginTop: '2px'}}>{f.role}</span>
+                      <div style={{ flex: 1, overflow: 'hidden', paddingBottom: '4px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '2px' }}>
+                          <h4 style={{ margin: 0, fontSize: '1.15rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: '#fff', textShadow: '2px 2px 0px #000, -1px -1px 0px rgba(255,255,255,0.3), 0px 4px 4px rgba(0,0,0,0.8)', fontWeight: '800', letterSpacing: '0.5px' }}>{f.username}</h4>
+                          <span style={{...getBadgeStyle(f.role), transform: 'scale(0.85)', transformOrigin: 'left center'}}>{f.role}</span>
                         </div>
-                        <span style={{ fontSize: '0.8rem', color: '#9ca3af', display: 'block', marginTop: '2px', textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}>{unreadCounts[f.username] > 0 ? <strong style={{color: '#3b82f6'}}>{unreadCounts[f.username]} new messages</strong> : 'Tap to chat'}</span>
+                        <span style={{ fontSize: '0.8rem', color: '#9ca3af', display: 'block', textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}>{unreadCounts[f.username] > 0 ? <strong style={{color: '#3b82f6'}}>{unreadCounts[f.username]} new messages</strong> : 'Tap to chat'}</span>
                       </div>
                     </div>
                   </div>
