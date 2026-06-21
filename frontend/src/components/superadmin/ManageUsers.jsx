@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useSocket } from '../../contexts/SocketContext';
 
 const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
 
 const ManageUsers = () => {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { socket } = useSocket();
   const [users, setUsers] = useState([]);
@@ -146,13 +148,14 @@ const ManageUsers = () => {
                     <span className="value text-danger">{u.password || '*********'}</span>
                   </div>
                   
-                  {u.role === 'admin' && (
-                    <div className="user-actions">
+                  <div className="user-actions row-actions" style={{marginTop: '10px'}}>
+                    <button className="btn-action" style={{backgroundColor: '#3b82f6', color: 'white'}} onClick={() => navigate(`/user/${u.username}`)}>VISIT PROFILE</button>
+                    {u.role === 'admin' && (
                       <button className="btn-action btn-red" onClick={() => dismissAdmin(u.username)}>
                         DISMISS ADMIN
                       </button>
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
@@ -177,7 +180,8 @@ const ManageUsers = () => {
                     <span className="value text-danger">{u.password || '*********'}</span>
                   </div>
                   
-                  <div className="user-actions row-actions">
+                  <div className="user-actions row-actions mt-2">
+                    <button className="btn-action" style={{backgroundColor: '#3b82f6', color: 'white'}} onClick={() => navigate(`/user/${u.username}`)}>VISIT PROFILE</button>
                     <button className="btn-action btn-red" onClick={() => deleteUser(u.username)}>DELETE ID</button>
                     <button className="btn-action btn-blue" onClick={() => promoteUser(u.username)}>PROMOTE TO ADMIN</button>
                   </div>

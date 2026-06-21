@@ -9,6 +9,7 @@ import Announcements from './components/superadmin/Announcements';
 import Layout from './components/Layout';
 import Dashboard from './components/Dashboard';
 import MyProfile from './components/MyProfile';
+import UserProfile from './components/UserProfile';
 import AuthGuard from './components/auth/AuthGuard';
 import { AuthProvider } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
@@ -29,6 +30,7 @@ function App() {
                 <Route index element={<Dashboard />} />
                 <Route path="chat" element={<VideoRoom />} />
                 <Route path="profile" element={<MyProfile />} />
+                <Route path="user/:username" element={<UserProfile />} />
                 <Route path="messages" element={<div style={{padding: '20px', color: 'white'}}>Messages & Friends feature coming soon!</div>} />
                 
                 {/* Superadmin Routes */}

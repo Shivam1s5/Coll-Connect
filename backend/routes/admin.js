@@ -7,6 +7,7 @@ const Report = require('../models/Report');
 const DeletionRequest = require('../models/DeletionRequest');
 const Analytics = require('../models/Analytics');
 const nodemailer = require('nodemailer');
+const { cloudinary } = require('../config/cloudinary');
 
 const transporter = nodemailer.createTransport({
   service: 'gmail',
@@ -78,6 +79,9 @@ router.get('/admin/users', isAdmin, async (req, res) => {
     username: u.username,
     email: u.email,
     profilePic: u.profilePic,
+    bannerImage: u.bannerImage,
+    gender: u.gender,
+    socials: u.socials,
     joinedAt: u.joinedAt,
     role: u.role,
     reportCount: mappedReports.filter(r => r.reportedUser === u.username && r.status === 'pending').length,
@@ -88,6 +92,45 @@ router.get('/admin/users', isAdmin, async (req, res) => {
   }));
   
   res.json({ users: safeUsers, reports: mappedReports });
+});
+
+const deleteCloudinaryImage = async (imageUrl) => {
+  if (!imageUrl || !imageUrl.includes('cloudinary.com')) return;
+  try {
+    const parts = imageUrl.split('/');
+    const filename = parts.pop().split('.')[0];
+    const folder = parts.pop();
+    const publicId = `${folder}/${filename}`;
+    await cloudinary.uploader.destroy(publicId);
+  } catch (err) {
+    console.error('Failed to delete old image from Cloudinary:', err);
+  }
+};
+
+router.delete('/admin/users/:username/profile-pic', isSuperAdmin, async (req, res) => {
+  const targetUser = await User.findOne({ username: req.params.username });
+  if (!targetUser) return res.status(404).json({ error: 'User not found' });
+  
+  if (targetUser.profilePic) {
+    await deleteCloudinaryImage(targetUser.profilePic);
+    targetUser.profilePic = '';
+    await targetUser.save();
+    if (req.io) req.io.emit('admin-update');
+  }
+  res.json({ success: true });
+});
+
+router.delete('/admin/users/:username/banner', isSuperAdmin, async (req, res) => {
+  const targetUser = await User.findOne({ username: req.params.username });
+  if (!targetUser) return res.status(404).json({ error: 'User not found' });
+  
+  if (targetUser.bannerImage) {
+    await deleteCloudinaryImage(targetUser.bannerImage);
+    targetUser.bannerImage = '';
+    await targetUser.save();
+    if (req.io) req.io.emit('admin-update');
+  }
+  res.json({ success: true });
 });
 
 const cascadeDeleteUser = async (username, io) => {

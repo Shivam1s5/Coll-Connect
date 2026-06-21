@@ -95,6 +95,36 @@ router.get('/me', authMiddleware, async (req, res) => {
   });
 });
 
+router.get('/users/:username', authMiddleware, async (req, res) => {
+  const targetUser = await User.findOne({ username: req.params.username });
+  if (!targetUser) return res.status(404).json({ error: 'User not found' });
+
+  const isFriend = (targetUser.friends || []).includes(req.user.username);
+  
+  const friendsList = [];
+  for (let fName of (targetUser.friends || [])) {
+    const fUser = await User.findOne({ username: fName });
+    if (fUser) {
+      friendsList.push({
+        username: fUser.username,
+        profilePic: fUser.profilePic,
+        role: fUser.role
+      });
+    }
+  }
+
+  res.json({
+    username: targetUser.username,
+    profilePic: targetUser.profilePic,
+    bannerImage: targetUser.bannerImage,
+    gender: targetUser.gender,
+    socials: targetUser.socials,
+    role: targetUser.role,
+    isFriend: isFriend,
+    friends: friendsList
+  });
+});
+
 const deleteCloudinaryImage = async (imageUrl) => {
   if (!imageUrl || !imageUrl.includes('cloudinary.com')) return;
   try {

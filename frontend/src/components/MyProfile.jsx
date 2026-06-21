@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useSocket } from '../contexts/SocketContext';
 import { Camera, Edit2, Save, X, User as UserIcon, Link as LinkIcon, Image as ImageIcon, Eye, Trash2, Upload } from 'lucide-react';
@@ -10,6 +11,7 @@ import '../index.css';
 const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
 
 const MyProfile = () => {
+  const navigate = useNavigate();
   const { user: authUser, login } = useAuth();
   const { socket } = useSocket();
   const [profileData, setProfileData] = useState(null);
@@ -422,8 +424,14 @@ const MyProfile = () => {
           <div className="friends-grid">
             {profileData.friends?.length > 0 ? (
               profileData.friends.map(f => (
-                <div key={f.username} className="friend-card">
-                  <img src={f.profilePic || 'https://via.placeholder.com/60'} alt={f.username} className="friend-avatar" />
+                <div key={f.username} className="friend-card" style={{cursor: 'pointer'}} onClick={() => navigate(`/user/${f.username}`)}>
+                  {f.profilePic ? (
+                    <img src={f.profilePic} alt={f.username} className="friend-avatar" />
+                  ) : (
+                    <div className="friend-avatar" style={{backgroundColor: '#374151', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+                      <UserIcon size={24} color="#9ca3af" />
+                    </div>
+                  )}
                   <div className="friend-info">
                     <h4>{f.username}</h4>
                     <span className="friend-role">{f.role}</span>
