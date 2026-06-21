@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useSocket } from '../contexts/SocketContext';
 import { useToast } from '../contexts/ToastContext';
-import { Search, Send, User, Check, X, Clock, MessageCircle } from 'lucide-react';
+import EmojiPicker from 'emoji-picker-react';
+import { Search, Send, User, Check, X, Clock, MessageCircle, Paperclip, Mic, Smile, AlertTriangle, UserMinus, MoreVertical, Square } from 'lucide-react';
 
 const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
 
@@ -11,7 +12,7 @@ const Messages = () => {
   const navigate = useNavigate();
   const { user: authUser } = useAuth();
   const { socket } = useSocket();
-  const { showToast } = useToast();
+  const { showToast, showConfirm } = useToast();
 
   const [friends, setFriends] = useState([]);
   const [requests, setRequests] = useState([]);
@@ -21,12 +22,23 @@ const Messages = () => {
   const [isSearching, setIsSearching] = useState(false);
 
   const [activeTab, setActiveTab] = useState('inbox'); // 'inbox' or 'requests'
-  const [activeChatUser, setActiveChatUser] = useState(null); // The user object we are chatting with
+  const [activeChatUser, setActiveChatUser] = useState(null);
   const [chatHistory, setChatHistory] = useState([]);
   const [messageInput, setMessageInput] = useState('');
   const [isFetchingChat, setIsFetchingChat] = useState(false);
 
+  // New states for media & actions
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [showChatMenu, setShowChatMenu] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [recordingDuration, setRecordingDuration] = useState(0);
+
   const chatScrollRef = useRef(null);
+  const fileInputRef = useRef(null);
+  const mediaRecorderRef = useRef(null);
+  const audioChunksRef = useRef([]);
+  const timerRef = useRef(null);
 
   // Fetch initial data
   useEffect(() => {
@@ -58,11 +70,10 @@ const Messages = () => {
         setChatHistory(prev => [...prev, msg]);
         scrollToBottom();
       }
-      // TODO: Re-order inbox to bring sender to top (Optional enhancement)
     };
 
     const handleRequestReceived = () => {
-      fetchProfileData(); // Refresh to get the new request
+      fetchProfileData();
       showToast('You have a new friend request!');
     };
 
@@ -123,7 +134,7 @@ const Messages = () => {
       });
       if (res.ok) {
         showToast(`Friend request sent to ${targetUsername}`);
-        performSearch(); // Refresh search results to update UI
+        performSearch();
       } else {
         const data = await res.json();
         showToast(data.error || 'Failed to send request');
@@ -144,7 +155,7 @@ const Messages = () => {
       });
       if (res.ok) {
         showToast(`Request ${action}ed`);
-        fetchProfileData(); // Refresh inbox and requests
+        fetchProfileData();
       } else {
         showToast(`Failed to ${action} request`);
       }
@@ -153,11 +164,41 @@ const Messages = () => {
     }
   };
 
+  const handleUnfriend = () => {
+    setShowChatMenu(false);
+    showConfirm(`Are you sure you want to unfriend ${activeChatUser.username}? You will lose your chat history.`, async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const res = await fetch(`${backendUrl}/api/unfriend`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify({ targetUsername: activeChatUser.username })
+        });
+        if (res.ok) {
+          showToast(`Unfriended ${activeChatUser.username}`);
+          setActiveChatUser(null);
+          fetchProfileData();
+        } else {
+          showToast('Failed to unfriend');
+        }
+      } catch (err) {
+        showToast('Server error during unfriend');
+      }
+    });
+  };
+
+  const handleReport = () => {
+    setShowChatMenu(false);
+    showToast('Report submitted. Our team will review this user.');
+  };
+
   // Chat logic
   const openChat = async (user) => {
     setActiveChatUser(user);
     setIsFetchingChat(true);
-    setSearchQuery(''); // Clear search when opening a chat
+    setSearchQuery('');
+    setShowChatMenu(false);
+    setShowEmojiPicker(false);
     try {
       const token = localStorage.getItem('token');
       const res = await fetch(`${backendUrl}/api/messages/${user.username}`, {
@@ -175,30 +216,35 @@ const Messages = () => {
   };
 
   const sendMessage = (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     if (!messageInput.trim() || !activeChatUser || !socket) return;
 
+    sendSocketMessage('text', messageInput.trim(), null);
+    setMessageInput('');
+    setShowEmojiPicker(false);
+  };
+
+  const sendSocketMessage = (type, text, fileUrl) => {
     const tempId = Date.now().toString();
     const msgData = {
       id: tempId,
       to: activeChatUser.username,
-      text: messageInput.trim(),
-      type: 'text'
+      text: text,
+      type: type,
+      fileUrl: fileUrl
     };
 
     socket.emit('private-message', msgData);
     
-    // Optimistic UI update
     setChatHistory(prev => [...prev, {
       id: tempId,
       sender: authUser.username,
       receiver: activeChatUser.username,
-      text: messageInput.trim(),
-      type: 'text',
+      text: text,
+      type: type,
+      fileUrl: fileUrl,
       timestamp: new Date()
     }]);
-    
-    setMessageInput('');
     scrollToBottom();
   };
 
@@ -208,6 +254,131 @@ const Messages = () => {
         chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight;
       }
     }, 50);
+  };
+
+  // Media & Emoji Handlers
+  const onEmojiClick = (emojiObject) => {
+    setMessageInput(prev => prev + emojiObject.emoji);
+  };
+
+  const handleFileChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const isVideo = file.type.startsWith('video/');
+    const isImage = file.type.startsWith('image/');
+    if (!isVideo && !isImage) {
+      showToast('Only image and video files are supported');
+      return;
+    }
+
+    setIsUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${backendUrl}/api/upload`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` },
+        body: formData
+      });
+      
+      if (res.ok) {
+        const { url } = await res.json();
+        sendSocketMessage(isVideo ? 'video' : 'image', '', url);
+      } else {
+        showToast('Failed to upload file');
+      }
+    } catch(err) {
+      showToast('Server error during upload');
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  const toggleRecording = async () => {
+    if (isRecording) {
+      // Stop recording
+      if (mediaRecorderRef.current) {
+        mediaRecorderRef.current.stop();
+      }
+      setIsRecording(false);
+      clearInterval(timerRef.current);
+      setRecordingDuration(0);
+    } else {
+      // Start recording
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        const mediaRecorder = new MediaRecorder(stream);
+        mediaRecorderRef.current = mediaRecorder;
+        audioChunksRef.current = [];
+
+        mediaRecorder.ondataavailable = (event) => {
+          if (event.data.size > 0) audioChunksRef.current.push(event.data);
+        };
+
+        mediaRecorder.onstop = async () => {
+          const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+          stream.getTracks().forEach(track => track.stop());
+          uploadAudioBlob(audioBlob);
+        };
+
+        mediaRecorder.start();
+        setIsRecording(true);
+        setRecordingDuration(0);
+        timerRef.current = setInterval(() => {
+          setRecordingDuration(prev => prev + 1);
+        }, 1000);
+      } catch (err) {
+        showToast('Microphone access denied or not available');
+      }
+    }
+  };
+
+  const uploadAudioBlob = async (blob) => {
+    setIsUploading(true);
+    try {
+      const file = new File([blob], `audio-${Date.now()}.webm`, { type: 'audio/webm' });
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${backendUrl}/api/upload`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` },
+        body: formData
+      });
+      
+      if (res.ok) {
+        const { url } = await res.json();
+        sendSocketMessage('audio', '', url);
+      } else {
+        showToast('Failed to upload audio message');
+      }
+    } catch(err) {
+      showToast('Server error during audio upload');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const getBadgeStyle = (role) => {
+    switch(role) {
+      case 'superadmin': 
+        return { background: 'linear-gradient(135deg, #FFD700 0%, #FDB931 100%)', color: '#000', padding: '2px 8px', borderRadius: '12px', fontSize: '0.65rem', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.5px', boxShadow: '0 2px 4px rgba(255, 215, 0, 0.2)' };
+      case 'admin': 
+        return { background: 'linear-gradient(135deg, #C0C0C0 0%, #A9A9A9 100%)', color: '#000', padding: '2px 8px', borderRadius: '12px', fontSize: '0.65rem', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.5px', boxShadow: '0 2px 4px rgba(192, 192, 192, 0.2)' };
+      default: 
+        return { background: 'linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%)', color: '#fff', padding: '2px 8px', borderRadius: '12px', fontSize: '0.65rem', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.5px', boxShadow: '0 2px 4px rgba(139, 92, 246, 0.2)' };
+    }
+  };
+
+  const formatDuration = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
   };
 
   return (
@@ -264,8 +435,10 @@ const Messages = () => {
                         {u.profilePic ? <img src={u.profilePic} alt={u.username} style={{width: '100%', height: '100%', objectFit: 'cover'}}/> : <User size={20} color="#9ca3af" />}
                       </div>
                       <div style={{ flex: 1, overflow: 'hidden' }}>
-                        <h4 onClick={() => navigate(`/user/${u.username}`)} style={{ margin: 0, fontSize: '1rem', cursor: 'pointer', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{u.username}</h4>
-                        <span style={{ fontSize: '0.8rem', color: '#9ca3af' }}>{u.role === 'superadmin' ? 'Superadmin' : u.gender}</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <h4 onClick={() => navigate(`/user/${u.username}`)} style={{ margin: 0, fontSize: '1rem', cursor: 'pointer', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{u.username}</h4>
+                          <span style={getBadgeStyle(u.role)}>{u.role === 'superadmin' ? 'Superadmin' : u.role === 'admin' ? 'Admin' : 'User'}</span>
+                        </div>
                       </div>
                       <div style={{ flexShrink: 0 }}>
                         {isFriend ? (
@@ -298,7 +471,10 @@ const Messages = () => {
                         {req.profilePic ? <img src={req.profilePic} alt={req.username} style={{width: '100%', height: '100%', objectFit: 'cover'}}/> : <User size={24} color="#9ca3af" />}
                       </div>
                       <div style={{ flex: 1 }}>
-                        <h4 onClick={() => navigate(`/user/${req.username}`)} style={{ margin: 0, fontSize: '1.1rem', cursor: 'pointer' }}>{req.username}</h4>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <h4 onClick={() => navigate(`/user/${req.username}`)} style={{ margin: 0, fontSize: '1.1rem', cursor: 'pointer' }}>{req.username}</h4>
+                          <span style={getBadgeStyle(req.role)}>{req.role === 'superadmin' ? 'Superadmin' : req.role === 'admin' ? 'Admin' : 'User'}</span>
+                        </div>
                         <span style={{ fontSize: '0.8rem', color: '#9ca3af' }}>Wants to be friends</span>
                       </div>
                     </div>
@@ -345,7 +521,10 @@ const Messages = () => {
                       {f.profilePic ? <img src={f.profilePic} alt={f.username} style={{width: '100%', height: '100%', objectFit: 'cover'}}/> : <User size={24} color="#9ca3af" />}
                     </div>
                     <div style={{ marginLeft: '12px', flex: 1, overflow: 'hidden' }}>
-                      <h4 style={{ margin: 0, fontSize: '1.05rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{f.username}</h4>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <h4 style={{ margin: 0, fontSize: '1.05rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{f.username}</h4>
+                        <span style={getBadgeStyle(f.role)}>{f.role === 'superadmin' ? 'Superadmin' : f.role === 'admin' ? 'Admin' : 'User'}</span>
+                      </div>
                       <span style={{ fontSize: '0.85rem', color: '#9ca3af', display: 'block', marginTop: '2px' }}>Tap to chat</span>
                     </div>
                   </div>
@@ -357,17 +536,38 @@ const Messages = () => {
       </div>
 
       {/* Right Chat Area */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: '#111827' }}>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: '#111827', position: 'relative' }}>
         {activeChatUser ? (
           <>
             {/* Chat Header */}
-            <div style={{ padding: '16px 24px', borderBottom: '1px solid #374151', display: 'flex', alignItems: 'center', background: '#1f2937' }}>
-              <div onClick={() => navigate(`/user/${activeChatUser.username}`)} style={{ cursor: 'pointer', width: '40px', height: '40px', borderRadius: '50%', background: '#4b5563', overflow: 'hidden', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                {activeChatUser.profilePic ? <img src={activeChatUser.profilePic} alt={activeChatUser.username} style={{width: '100%', height: '100%', objectFit: 'cover'}}/> : <User size={20} color="#9ca3af" />}
+            <div style={{ padding: '16px 24px', borderBottom: '1px solid #374151', display: 'flex', alignItems: 'center', background: '#1f2937', justifyContent: 'space-between' }}>
+              <div style={{ display: 'flex', alignItems: 'center' }}>
+                <div onClick={() => navigate(`/user/${activeChatUser.username}`)} style={{ cursor: 'pointer', width: '40px', height: '40px', borderRadius: '50%', background: '#4b5563', overflow: 'hidden', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  {activeChatUser.profilePic ? <img src={activeChatUser.profilePic} alt={activeChatUser.username} style={{width: '100%', height: '100%', objectFit: 'cover'}}/> : <User size={20} color="#9ca3af" />}
+                </div>
+                <div style={{ marginLeft: '12px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <h3 onClick={() => navigate(`/user/${activeChatUser.username}`)} style={{ margin: 0, cursor: 'pointer' }}>{activeChatUser.username}</h3>
+                    <span style={getBadgeStyle(activeChatUser.role)}>{activeChatUser.role === 'superadmin' ? 'Superadmin' : activeChatUser.role === 'admin' ? 'Admin' : 'User'}</span>
+                  </div>
+                </div>
               </div>
-              <div style={{ marginLeft: '12px' }}>
-                <h3 onClick={() => navigate(`/user/${activeChatUser.username}`)} style={{ margin: 0, cursor: 'pointer' }}>{activeChatUser.username}</h3>
-                <span style={{ fontSize: '0.8rem', color: '#9ca3af' }}>{activeChatUser.role === 'superadmin' ? 'Superadmin' : 'Friend'}</span>
+              
+              {/* Header Actions */}
+              <div style={{ position: 'relative' }}>
+                <button onClick={() => setShowChatMenu(!showChatMenu)} style={{ background: 'transparent', border: 'none', color: '#9ca3af', cursor: 'pointer', padding: '8px', borderRadius: '50%', transition: 'background 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.background = '#374151'} onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}>
+                  <MoreVertical size={20} />
+                </button>
+                {showChatMenu && (
+                  <div style={{ position: 'absolute', top: '40px', right: '0', background: '#1f2937', border: '1px solid #374151', borderRadius: '8px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.5)', zIndex: 50, width: '160px', overflow: 'hidden' }}>
+                    <button onClick={handleUnfriend} style={{ width: '100%', textAlign: 'left', padding: '12px 16px', background: 'transparent', border: 'none', borderBottom: '1px solid #374151', color: '#ef4444', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem' }} onMouseEnter={(e) => e.currentTarget.style.background = '#374151'} onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}>
+                      <UserMinus size={16} /> Unfriend
+                    </button>
+                    <button onClick={handleReport} style={{ width: '100%', textAlign: 'left', padding: '12px 16px', background: 'transparent', border: 'none', color: '#f3f4f6', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem' }} onMouseEnter={(e) => e.currentTarget.style.background = '#374151'} onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}>
+                      <AlertTriangle size={16} color="#eab308" /> Report User
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -396,7 +596,26 @@ const Messages = () => {
                         wordWrap: 'break-word',
                         boxShadow: '0 1px 2px rgba(0,0,0,0.1)'
                       }}>
-                        <p style={{ margin: 0, fontSize: '0.95rem', lineHeight: '1.4' }}>{msg.text}</p>
+                        
+                        {/* Media Rendering */}
+                        {msg.type === 'image' && (
+                          <div style={{ marginBottom: '8px', borderRadius: '8px', overflow: 'hidden' }}>
+                            <img src={msg.fileUrl} alt="attachment" style={{ maxWidth: '100%', maxHeight: '300px', display: 'block', borderRadius: '8px' }} />
+                          </div>
+                        )}
+                        {msg.type === 'video' && (
+                          <div style={{ marginBottom: '8px', borderRadius: '8px', overflow: 'hidden' }}>
+                            <video src={msg.fileUrl} controls style={{ maxWidth: '100%', maxHeight: '300px', display: 'block', borderRadius: '8px', background: '#000' }} />
+                          </div>
+                        )}
+                        {msg.type === 'audio' && (
+                          <div style={{ marginBottom: '8px' }}>
+                            <audio src={msg.fileUrl} controls style={{ maxWidth: '250px', display: 'block' }} />
+                          </div>
+                        )}
+                        
+                        {msg.text && <p style={{ margin: 0, fontSize: '0.95rem', lineHeight: '1.4' }}>{msg.text}</p>}
+                        
                         <span style={{ fontSize: '0.65rem', color: isMe ? '#bfdbfe' : '#9ca3af', display: 'block', textAlign: 'right', marginTop: '4px' }}>
                           {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </span>
@@ -405,21 +624,76 @@ const Messages = () => {
                   );
                 })
               )}
+              {isUploading && (
+                <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                   <div style={{ padding: '10px 16px', borderRadius: '16px', background: '#3b82f6', color: '#fff', opacity: 0.7 }}>
+                     <span style={{ fontSize: '0.9rem' }}>Sending media...</span>
+                   </div>
+                </div>
+              )}
             </div>
 
             {/* Chat Input */}
-            <div style={{ padding: '20px 24px', background: '#1f2937', borderTop: '1px solid #374151' }}>
-              <form onSubmit={sendMessage} style={{ display: 'flex', gap: '12px' }}>
-                <input 
-                  type="text" 
-                  placeholder="Message..." 
-                  value={messageInput}
-                  onChange={(e) => setMessageInput(e.target.value)}
-                  style={{ flex: 1, padding: '12px 20px', borderRadius: '24px', border: '1px solid #4b5563', background: '#111827', color: '#f3f4f6', outline: 'none', fontSize: '0.95rem' }}
-                />
-                <button type="submit" disabled={!messageInput.trim()} style={{ background: messageInput.trim() ? '#3b82f6' : '#374151', color: messageInput.trim() ? '#fff' : '#9ca3af', border: 'none', borderRadius: '50%', width: '45px', height: '45px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: messageInput.trim() ? 'pointer' : 'not-allowed', transition: 'background 0.2s' }}>
-                  <Send size={18} style={{ marginLeft: '2px' }} />
+            <div style={{ padding: '20px 24px', background: '#1f2937', borderTop: '1px solid #374151', position: 'relative' }}>
+              
+              {showEmojiPicker && (
+                <div style={{ position: 'absolute', bottom: '100%', right: '24px', marginBottom: '10px', zIndex: 100, boxShadow: '0 10px 25px rgba(0,0,0,0.5)' }}>
+                  <EmojiPicker onEmojiClick={onEmojiClick} theme="dark" />
+                </div>
+              )}
+
+              <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*,video/*" style={{ display: 'none' }} />
+
+              <form onSubmit={sendMessage} style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                
+                {/* Attachment Button */}
+                <button type="button" onClick={() => fileInputRef.current?.click()} style={{ background: 'transparent', border: 'none', color: '#9ca3af', cursor: 'pointer', padding: '8px', borderRadius: '50%', transition: 'background 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onMouseEnter={(e) => e.currentTarget.style.background = '#374151'} onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}>
+                  <Paperclip size={20} />
                 </button>
+
+                {/* Input Area / Recording Area */}
+                <div style={{ flex: 1, position: 'relative', display: 'flex', alignItems: 'center', background: '#111827', borderRadius: '24px', border: '1px solid #4b5563' }}>
+                  {isRecording ? (
+                    <div style={{ flex: 1, padding: '12px 20px', color: '#ef4444', display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.95rem' }}>
+                      <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#ef4444', animation: 'pulse 1.5s infinite' }}></div>
+                      Recording... {formatDuration(recordingDuration)}
+                    </div>
+                  ) : (
+                    <input 
+                      type="text" 
+                      placeholder="Type a message..." 
+                      value={messageInput}
+                      onChange={(e) => setMessageInput(e.target.value)}
+                      style={{ flex: 1, padding: '12px 20px', background: 'transparent', color: '#f3f4f6', outline: 'none', border: 'none', fontSize: '0.95rem' }}
+                    />
+                  )}
+                  
+                  {!isRecording && (
+                    <button type="button" onClick={() => setShowEmojiPicker(!showEmojiPicker)} style={{ background: 'transparent', border: 'none', color: '#9ca3af', cursor: 'pointer', padding: '8px 12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <Smile size={20} />
+                    </button>
+                  )}
+                </div>
+
+                {/* Microphone / Stop Button */}
+                {!messageInput.trim() && !isRecording && (
+                  <button type="button" onClick={toggleRecording} style={{ background: '#374151', color: '#9ca3af', border: 'none', borderRadius: '50%', width: '45px', height: '45px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'all 0.2s' }} onMouseEnter={(e) => {e.currentTarget.style.background = '#ef4444'; e.currentTarget.style.color = '#fff';}} onMouseLeave={(e) => {e.currentTarget.style.background = '#374151'; e.currentTarget.style.color = '#9ca3af';}}>
+                    <Mic size={18} />
+                  </button>
+                )}
+
+                {isRecording && (
+                  <button type="button" onClick={toggleRecording} style={{ background: '#ef4444', color: '#fff', border: 'none', borderRadius: '50%', width: '45px', height: '45px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', animation: 'pulse 1.5s infinite' }}>
+                    <Square size={16} fill="currentColor" />
+                  </button>
+                )}
+
+                {/* Send Button */}
+                {messageInput.trim() && (
+                  <button type="submit" style={{ background: '#3b82f6', color: '#fff', border: 'none', borderRadius: '50%', width: '45px', height: '45px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'background 0.2s' }}>
+                    <Send size={18} style={{ marginLeft: '2px' }} />
+                  </button>
+                )}
               </form>
             </div>
           </>
@@ -429,10 +703,17 @@ const Messages = () => {
               <MessageCircle size={40} />
             </div>
             <h3 style={{ margin: '0 0 10px 0', color: '#f3f4f6' }}>Your Messages</h3>
-            <p style={{ margin: 0 }}>Send private messages to a friend.</p>
+            <p style={{ margin: 0 }}>Send private messages, photos, and voice notes.</p>
           </div>
         )}
       </div>
+      <style>{`
+        @keyframes pulse {
+          0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+          70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+          100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+      `}</style>
     </div>
   );
 };

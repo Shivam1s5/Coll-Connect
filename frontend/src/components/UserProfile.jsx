@@ -156,10 +156,24 @@ const UserProfile = () => {
 
   const isSuperadmin = authUser?.role === 'superadmin';
 
+  const getBadgeStyle = (role) => {
+    switch(role) {
+      case 'superadmin': 
+        return { background: 'linear-gradient(135deg, #FFD700 0%, #FDB931 100%)', color: '#000', padding: '2px 8px', borderRadius: '12px', fontSize: '0.65rem', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.5px', boxShadow: '0 2px 4px rgba(255, 215, 0, 0.2)' };
+      case 'admin': 
+        return { background: 'linear-gradient(135deg, #C0C0C0 0%, #A9A9A9 100%)', color: '#000', padding: '2px 8px', borderRadius: '12px', fontSize: '0.65rem', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.5px', boxShadow: '0 2px 4px rgba(192, 192, 192, 0.2)' };
+      default: 
+        return { background: 'linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%)', color: '#fff', padding: '2px 8px', borderRadius: '12px', fontSize: '0.65rem', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.5px', boxShadow: '0 2px 4px rgba(139, 92, 246, 0.2)' };
+    }
+  };
+
   return (
     <div className="my-profile-container">
       <div className="profile-header" style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
-        <h1>{profileData.username}'s Profile</h1>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <h1 style={{ margin: 0 }}>{profileData.username}'s Profile</h1>
+          <span style={getBadgeStyle(profileData.role)}>{profileData.role === 'superadmin' ? 'Superadmin' : profileData.role === 'admin' ? 'Admin' : 'User'}</span>
+        </div>
         <div style={{ display: 'flex', gap: '10px' }}>
           {profileData.username !== authUser?.username && (
             profileData.isFriend ? (
@@ -255,7 +269,6 @@ const UserProfile = () => {
               )}
             </div>
             
-            <h3 className="profile-role" style={{marginBottom: '20px', marginLeft: '20px'}}>{profileData.role?.toUpperCase()}</h3>
           </div>
 
           <div className="profile-details-grid">
