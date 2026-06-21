@@ -1,20 +1,18 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
+import { useSocket } from '../../contexts/SocketContext';
 
 const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
 
 const ManageUsers = () => {
   const { user } = useAuth();
+  const { socket } = useSocket();
   const [users, setUsers] = useState([]);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [blockDurations, setBlockDurations] = useState({});
 
-  useEffect(() => {
-    fetchUsers();
-  }, []);
-
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     try {
       const token = localStorage.getItem('token');
       const res = await fetch(`${backendUrl}/api/admin/users?t=${new Date().getTime()}`, {
@@ -33,7 +31,20 @@ const ManageUsers = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchUsers();
+  }, [fetchUsers]);
+
+  useEffect(() => {
+    if (socket) {
+      socket.on('admin-update', fetchUsers);
+    }
+    return () => {
+      if (socket) socket.off('admin-update', fetchUsers);
+    };
+  }, [socket, fetchUsers]);
 
   const handleAction = async (endpoint, payload) => {
     try {

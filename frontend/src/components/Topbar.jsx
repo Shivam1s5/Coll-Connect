@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Menu, Bell } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useSocket } from '../contexts/SocketContext';
+import { Link } from 'react-router-dom';
 import ImageModal from './ImageModal';
 
 const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
@@ -109,15 +110,21 @@ const Topbar = ({ toggleSidebar }) => {
           )}
         </div>
         
-        <div className="user-profile-badge">
-          <div className="user-info-text">
-            <span className="username">{user?.username || 'User'}</span>
-            <span className={`badge badge-${user?.role || 'user'}`} style={{marginLeft: 0, marginTop: '2px', fontSize: '0.6rem'}}>{user?.role?.toUpperCase() || 'USER'}</span>
+        <Link to="/profile" style={{textDecoration: 'none', color: 'inherit'}}>
+          <div className="user-profile-badge" style={{cursor: 'pointer'}}>
+            <div className="user-info-text">
+              <span className="username">{user?.username || 'User'}</span>
+              <span className={`badge badge-${user?.role || 'user'}`} style={{marginLeft: 0, marginTop: '2px', fontSize: '0.6rem'}}>{user?.role?.toUpperCase() || 'USER'}</span>
+            </div>
+            <div className="user-avatar" style={{overflow: 'hidden'}}>
+              {user?.profilePic ? (
+                <img src={user.profilePic} alt="Profile" style={{width: '100%', height: '100%', objectFit: 'cover'}} />
+              ) : (
+                user?.username ? user.username.charAt(0).toUpperCase() : 'U'
+              )}
+            </div>
           </div>
-          <div className="user-avatar">
-            {user?.username ? user.username.charAt(0).toUpperCase() : 'U'}
-          </div>
-        </div>
+        </Link>
       </div>
       <ImageModal imageUrl={selectedImage} onClose={() => setSelectedImage(null)} />
     </div>

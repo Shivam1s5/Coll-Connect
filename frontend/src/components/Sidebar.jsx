@@ -37,8 +37,11 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
               <NavLink to="/" end className={({isActive}) => isActive ? "nav-item active" : "nav-item"}>
                 Random Chat
               </NavLink>
+              <NavLink to="/profile" className={({isActive}) => isActive ? "nav-item active" : "nav-item"}>
+                My Profile
+              </NavLink>
               <NavLink to="/messages" className={({isActive}) => isActive ? "nav-item active" : "nav-item"}>
-                Messages & Friends
+                Messages
               </NavLink>
             </nav>
           </div>
