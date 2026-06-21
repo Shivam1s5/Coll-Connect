@@ -23,8 +23,9 @@ const VideoRoom = () => {
   const [partnerRole, setPartnerRole] = useState('USER');
   const [partnerBlurred, setPartnerBlurred] = useState(true);
 
-  const [myGender, setMyGender] = useState('Any');
-  const [interestedIn, setInterestedIn] = useState('Any');
+  const location = useLocation();
+  const interestedIn = location.state?.interestedIn || 'Any';
+  const myGender = user?.gender || 'Any';
 
   const [mediaError, setMediaError] = useState(false);
   
@@ -258,6 +259,10 @@ const VideoRoom = () => {
   const handleReportClick = () => {
     if (!partnerConnected) {
       showToast("You are not connected to anyone to report.");
+      return;
+    }
+    if (partnerRole === 'superadmin') {
+      showToast("Superadmins cannot be reported.");
       return;
     }
     setShowReportModal(true);
@@ -522,35 +527,7 @@ const VideoRoom = () => {
           </div>
         </div>
 
-        {/* Matchmaking Preferences */}
-        <div className="matchmaking-preferences" style={{ display: 'flex', justifyContent: 'center', gap: '20px', marginBottom: '10px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <label style={{ color: '#9ca3af', fontSize: '0.9rem', fontWeight: 'bold', textTransform: 'uppercase' }}>I am:</label>
-            <select 
-              value={myGender} 
-              onChange={(e) => setMyGender(e.target.value)}
-              style={{ background: '#111827', color: '#f3f4f6', border: '1px solid #4b5563', padding: '6px 12px', borderRadius: '8px', outline: 'none', cursor: 'pointer' }}
-              disabled={partnerConnected}
-            >
-              <option value="Any">Any Gender</option>
-              <option value="Male">Male</option>
-              <option value="Female">Female</option>
-            </select>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <label style={{ color: '#9ca3af', fontSize: '0.9rem', fontWeight: 'bold', textTransform: 'uppercase' }}>Looking for:</label>
-            <select 
-              value={interestedIn} 
-              onChange={(e) => setInterestedIn(e.target.value)}
-              style={{ background: '#111827', color: '#f3f4f6', border: '1px solid #4b5563', padding: '6px 12px', borderRadius: '8px', outline: 'none', cursor: 'pointer' }}
-              disabled={partnerConnected}
-            >
-              <option value="Any">Any Gender</option>
-              <option value="Male">Male</option>
-              <option value="Female">Female</option>
-            </select>
-          </div>
-        </div>
+
 
         {/* Controls Row */}
         <div className="video-controls">
