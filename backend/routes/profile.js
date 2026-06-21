@@ -380,11 +380,13 @@ router.post('/request-deletion', authMiddleware, async (req, res) => {
     await user.save();
 
     if (req.io) {
-      req.io.emit('new-deletion-request', user.username);
+      req.io.emit('new-deletion-request');
+      req.io.emit('admin-update');
     }
-
-    res.json({ success: true, message: 'Deletion request sent successfully' });
+    
+    res.json({ success: true, message: 'Deletion request submitted.' });
   } catch (err) {
+    console.error('Error requesting deletion:', err);
     res.status(500).json({ error: 'Server error' });
   }
 });

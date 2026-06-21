@@ -288,7 +288,7 @@ const MyProfile = () => {
     showConfirm('Are you sure you want to permanently delete your account? This action cannot be undone and will erase all your chats and data.', async () => {
       try {
         const token = localStorage.getItem('token');
-        const res = await fetch(`${backendUrl}/api/profile/request-deletion`, {
+        const res = await fetch(`${backendUrl}/api/request-deletion`, {
           method: 'POST',
           headers: { 'Authorization': `Bearer ${token}` }
         });
