@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'supersecretjwtkeyforcollconnect';
+const JWT_SECRET = process.env.JWT_SECRET || 'super-secret-key-123';
 
 const authenticate = (req, res, next) => {
   const authHeader = req.headers.authorization;

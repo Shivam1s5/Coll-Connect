@@ -7,4 +7,4 @@ process.env.MONGO_URI = process.env.MONGO_URI || 'mongodb+srv://coll_connect_use
 process.env.CLOUDINARY_CLOUD_NAME = process.env.CLOUDINARY_CLOUD_NAME || 'dhkda169o';
 process.env.CLOUDINARY_API_KEY = process.env.CLOUDINARY_API_KEY || '744382239968817';
 process.env.CLOUDINARY_API_SECRET = process.env.CLOUDINARY_API_SECRET || 'L-sEHvzOSxh6pcOZnyt-WQMjphI';
-process.env.JWT_SECRET = process.env.JWT_SECRET || 'supersecretjwtkeyforcollconnect';
+process.env.JWT_SECRET = process.env.JWT_SECRET || 'super-secret-key-123';
