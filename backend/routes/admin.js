@@ -177,6 +177,53 @@ router.delete('/admin/users/:username/banner', isSuperAdmin, async (req, res) =>
   res.json({ success: true });
 });
 
+router.post('/admin/block/:username', isAdmin, async (req, res) => {
+  try {
+    const targetUsername = req.params.username;
+    const { duration } = req.body;
+
+    const targetUser = await User.findOne({ username: targetUsername });
+    if (!targetUser) return res.status(404).json({ error: 'User not found' });
+
+    // Role protection
+    if (targetUser.role === 'superadmin') {
+      return res.status(403).json({ error: 'Cannot block a superadmin' });
+    }
+    if (req.user.role === 'admin' && targetUser.role === 'admin') {
+      return res.status(403).json({ error: 'Admins cannot block other admins' });
+    }
+
+    let blockedUntil = null;
+    if (duration && duration !== 'none') {
+      if (duration === 'permanent') {
+        blockedUntil = 'permanent';
+      } else {
+        const minutes = parseInt(duration);
+        if (!isNaN(minutes)) {
+          blockedUntil = new Date(Date.now() + minutes * 60 * 1000).toISOString();
+        }
+      }
+    }
+
+    targetUser.blockedUntil = blockedUntil;
+    await targetUser.save();
+
+    if (req.io) {
+      req.io.emit('admin-update');
+      // Force logout the blocked user if online and newly blocked
+      if (blockedUntil && req.io.activeUsers && req.io.activeUsers.has(targetUsername)) {
+        const socketId = req.io.activeUsers.get(targetUsername);
+        req.io.to(socketId).emit('account-blocked');
+      }
+    }
+
+    res.json({ success: true, message: `User block status updated to ${duration}` });
+  } catch (err) {
+    console.error('Error blocking user:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 const cascadeDeleteUser = async (username, io) => {
   const user = await User.findOne({ username });
   if (!user) return;

@@ -36,6 +36,11 @@ export const SocketProvider = ({ children }) => {
         window.dispatchEvent(new Event('profile-refresh-required'));
       });
 
+      newSocket.on('account-blocked', () => {
+        showToast('Your account has been blocked by the moderation team. You have been logged out.');
+        if (logout) logout();
+      });
+
       setSocket(newSocket);
       return () => newSocket.close();
     }
