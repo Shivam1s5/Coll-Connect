@@ -2,14 +2,8 @@ const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
 const SupportTicket = require('../models/SupportTicket');
-const User = require('../models/User');
 const { deleteImageFromCloudinary } = require('../config/cloudinary');
-const nodemailer = require('nodemailer');
-
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: { user: process.env.ADMIN_EMAIL, pass: process.env.ADMIN_APP_PASSWORD }
-});
+const { sendEmail } = require('../utils/mailer');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'super-secret-key-123';
 
@@ -35,11 +29,8 @@ router.post('/support', authMiddleware, async (req, res) => {
   const { subject, message, imageUrl } = req.body;
   if (!subject || !message) return res.status(400).json({ error: 'Subject and message are required' });
   
-  const user = await User.findOne({ username: req.user.username });
-  if (!user) return res.status(404).json({ error: 'User not found' });
-
   const ticket = new SupportTicket({ 
-    email: user.email || '', 
+    email: req.user.email, 
     username: req.user.username,
     subject, 
     message,
@@ -48,29 +39,19 @@ router.post('/support', authMiddleware, async (req, res) => {
   await ticket.save();
   if (req.io) req.io.emit('refresh-support-tickets');
   
-  if (user.email && process.env.ADMIN_EMAIL && process.env.ADMIN_APP_PASSWORD) {
-    const mailOptions = {
-      from: `"Coll-Connect Support" <${process.env.ADMIN_EMAIL}>`,
-      to: user.email,
-      subject: `Support Ticket Received: ${subject}`,
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #1e293b; color: #f8fafc; padding: 20px; border-radius: 10px;">
-          <h2 style="color: #3b82f6; text-align: center;">Ticket Received</h2>
-          <p style="font-size: 16px;">Hello <strong>${user.username}</strong>,</p>
-          <p style="font-size: 16px;">We have successfully received your support ticket regarding <strong>"${subject}"</strong>.</p>
-          <p style="font-size: 16px;">Our team will review your request and get back to you as soon as possible.</p>
-          <br>
-          <p style="font-size: 14px; color: #94a3b8; text-align: center;">Best regards,<br>The Coll-Connect Team</p>
-        </div>
-      `
-    };
-      try {
-        await transporter.sendMail(mailOptions);
-      } catch (e) {
-        console.error("Error sending support email:", e);
-      }
-  }
-
+  // Send email asynchronously
+  const mailHtml = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #1e293b; color: #f8fafc; padding: 20px; border-radius: 10px;">
+      <h2 style="color: #3b82f6; text-align: center;">Support Ticket Submitted</h2>
+      <p style="font-size: 16px;">Hello <strong>${req.user.username}</strong>,</p>
+      <p style="font-size: 16px;">We have received your support ticket regarding <strong>${subject}</strong>.</p>
+      <p style="font-size: 16px;">Our team is reviewing it and will get back to you shortly.</p>
+      <br>
+      <p style="font-size: 14px; color: #94a3b8; text-align: center;">Best regards,<br>The Coll-Connect Support Team</p>
+    </div>
+  `;
+  sendEmail(req.user.email, '🎫 Support Ticket Received', mailHtml);
+  
   res.json({ success: true, ticket });
 });
 

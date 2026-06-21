@@ -5,12 +5,7 @@ const User = require('../models/User');
 const Message = require('../models/Message');
 const Report = require('../models/Report');
 const { cloudinary } = require('../config/cloudinary');
-const nodemailer = require('nodemailer');
-
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: { user: process.env.ADMIN_EMAIL, pass: process.env.ADMIN_APP_PASSWORD }
-});
+const { sendEmail } = require('../utils/mailer');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'super-secret-key-123';
 
@@ -391,31 +386,22 @@ router.post('/request-deletion', authMiddleware, async (req, res) => {
       req.io.emit('admin-update');
     }
     
-    if (user.email && process.env.ADMIN_EMAIL && process.env.ADMIN_APP_PASSWORD) {
-      const mailOptions = {
-        from: `"Coll-Connect Admin" <${process.env.ADMIN_EMAIL}>`,
-        to: user.email,
-        subject: '⚠️ Account Deletion Request Received',
-        html: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #1e293b; color: #f8fafc; padding: 20px; border-radius: 10px;">
-            <h2 style="color: #f59e0b; text-align: center;">Account Deletion Request</h2>
-            <p style="font-size: 16px;">Hello <strong>${user.username}</strong>,</p>
-            <p style="font-size: 16px;">We have received your request to permanently delete your Coll-Connect account.</p>
-            <p style="font-size: 16px;">An admin will review your request shortly. If approved, all your data, chats, and profile will be permanently removed from our servers.</p>
-            <p style="font-size: 16px;">If you changed your mind, please reach out to support immediately.</p>
-            <br>
-            <p style="font-size: 14px; color: #94a3b8; text-align: center;">Best regards,<br>The Coll-Connect Team</p>
-          </div>
-        `
-      };
-      try {
-        await transporter.sendMail(mailOptions);
-      } catch (e) {
-        console.error("Error sending deletion request email:", e);
-      }
-    }
-    
     res.json({ success: true, message: 'Deletion request submitted.' });
+
+    // Send email asynchronously without blocking the response
+    const mailHtml = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #1e293b; color: #f8fafc; padding: 20px; border-radius: 10px;">
+        <h2 style="color: #f59e0b; text-align: center;">Account Deletion Request</h2>
+        <p style="font-size: 16px;">Hello <strong>${user.username}</strong>,</p>
+        <p style="font-size: 16px;">We have received your request to permanently delete your Coll-Connect account.</p>
+        <p style="font-size: 16px;">An admin will review your request shortly. If approved, all your data, chats, and profile will be permanently removed from our servers.</p>
+        <p style="font-size: 16px;">If you changed your mind, please reach out to support immediately.</p>
+        <br>
+        <p style="font-size: 14px; color: #94a3b8; text-align: center;">Best regards,<br>The Coll-Connect Team</p>
+      </div>
+    `;
+    sendEmail(user.email, '⚠️ Account Deletion Request Received', mailHtml);
+
   } catch (err) {
     console.error('Error requesting deletion:', err);
     res.status(500).json({ error: 'Server error' });

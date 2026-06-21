@@ -6,7 +6,7 @@ const Message = require('../models/Message');
 const Report = require('../models/Report');
 const DeletionRequest = require('../models/DeletionRequest');
 const Analytics = require('../models/Analytics');
-const nodemailer = require('nodemailer');
+const { sendEmail } = require('../utils/mailer');
 const { cloudinary } = require('../config/cloudinary');
 
 const deleteCloudinaryImage = async (imageUrl, resourceType = 'image') => {
@@ -21,14 +21,6 @@ const deleteCloudinaryImage = async (imageUrl, resourceType = 'image') => {
     console.error('Error deleting image from Cloudinary:', err);
   }
 };
-
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.ADMIN_EMAIL,
-    pass: process.env.ADMIN_APP_PASSWORD
-  }
-});
 
 const JWT_SECRET = process.env.JWT_SECRET || 'super-secret-key-123';
 
@@ -216,34 +208,6 @@ router.post('/admin/block/:username', isAdmin, async (req, res) => {
         req.io.to(socketId).emit('account-blocked');
       }
     }
-    
-    if (targetUser.email && process.env.ADMIN_EMAIL && process.env.ADMIN_APP_PASSWORD) {
-      const isBlocked = blockedUntil !== null;
-      const statusText = isBlocked ? 'Blocked' : 'Unblocked';
-      const color = isBlocked ? '#ef4444' : '#10b981';
-      const durationText = blockedUntil === 'permanent' ? 'permanently' : isBlocked ? 'temporarily' : '';
-      
-      const mailOptions = {
-        from: `"Coll-Connect Admin" <${process.env.ADMIN_EMAIL}>`,
-        to: targetUser.email,
-        subject: `Account Status Update: ${statusText}`,
-        html: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #1e293b; color: #f8fafc; padding: 20px; border-radius: 10px;">
-            <h2 style="color: ${color}; text-align: center;">Account ${statusText}</h2>
-            <p style="font-size: 16px;">Hello <strong>${targetUser.username}</strong>,</p>
-            <p style="font-size: 16px;">This is a notice that your account has been <strong>${statusText.toLowerCase()}</strong> ${durationText} by an administrator.</p>
-            ${isBlocked ? '<p style="font-size: 16px;">If you believe this was a mistake, please contact support.</p>' : '<p style="font-size: 16px;">You can now log in and use the platform again. Please adhere to the community guidelines.</p>'}
-            <br>
-            <p style="font-size: 14px; color: #94a3b8; text-align: center;">Best regards,<br>The Coll-Connect Team</p>
-          </div>
-        `
-      };
-      try {
-        await transporter.sendMail(mailOptions);
-      } catch (e) {
-        console.error("Error sending block email:", e);
-      }
-    }
 
     res.json({ success: true, message: `User block status updated to ${duration}` });
   } catch (err) {
@@ -293,29 +257,6 @@ const cascadeDeleteUser = async (username, io) => {
     io.emit('admin-update');
     io.emit('chat-cleared', { targetUser: username });
   }
-  
-  if (user.email && process.env.ADMIN_EMAIL && process.env.ADMIN_APP_PASSWORD) {
-    const mailOptions = {
-      from: `"Coll-Connect Admin" <${process.env.ADMIN_EMAIL}>`,
-      to: user.email,
-      subject: 'Account Permanently Deleted',
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #1e293b; color: #f8fafc; padding: 20px; border-radius: 10px;">
-          <h2 style="color: #ef4444; text-align: center;">Account Deleted</h2>
-          <p style="font-size: 16px;">Hello <strong>${user.username}</strong>,</p>
-          <p style="font-size: 16px;">This is a confirmation that your Coll-Connect account and all associated data have been permanently deleted from our servers.</p>
-          <p style="font-size: 16px;">We're sorry to see you go! You are always welcome to create a new account in the future.</p>
-          <br>
-          <p style="font-size: 14px; color: #94a3b8; text-align: center;">Best regards,<br>The Coll-Connect Team</p>
-        </div>
-      `
-    };
-    try {
-      await transporter.sendMail(mailOptions);
-    } catch (e) {
-      console.error("Error sending delete email:", e);
-    }
-  }
 };
 
 router.post('/admin/approve-deletion', isSuperAdmin, async (req, res) => {
@@ -329,35 +270,6 @@ router.post('/admin/force-delete-user', isSuperAdmin, async (req, res) => {
 });
 
 router.post('/admin/reject-deletion', isSuperAdmin, async (req, res) => {
-  const user = await User.findOne({ username: req.body.username });
-  if (user) {
-    user.deletionRequested = false;
-    await user.save();
-    
-    if (user.email && process.env.ADMIN_EMAIL && process.env.ADMIN_APP_PASSWORD) {
-      const mailOptions = {
-        from: `"Coll-Connect Admin" <${process.env.ADMIN_EMAIL}>`,
-        to: user.email,
-        subject: 'Account Deletion Request Declined',
-        html: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #1e293b; color: #f8fafc; padding: 20px; border-radius: 10px;">
-            <h2 style="color: #3b82f6; text-align: center;">Deletion Request Declined</h2>
-            <p style="font-size: 16px;">Hello <strong>${user.username}</strong>,</p>
-            <p style="font-size: 16px;">Your request to delete your Coll-Connect account has been reviewed and declined by the Superadmin.</p>
-            <p style="font-size: 16px;">If you have any questions, please contact support.</p>
-            <br>
-            <p style="font-size: 14px; color: #94a3b8; text-align: center;">Best regards,<br>The Coll-Connect Team</p>
-          </div>
-        `
-      };
-      try {
-        await transporter.sendMail(mailOptions);
-      } catch (e) {
-        console.error("Error sending reject deletion email:", e);
-      }
-    }
-  }
-  
   await DeletionRequest.deleteOne({ username: req.body.username });
   if (req.io) req.io.emit('admin-update');
   res.json({ success: true });
@@ -458,16 +370,17 @@ router.post('/admin/direct-warn-user', isAdmin, async (req, res) => {
 
   await user.save();
 
-  const mailOptions = {
-    from: '"Coll-Connect" <' + process.env.ADMIN_EMAIL + '>',
-    to: user.email,
-    subject: 'Your Coll-Connect Account has been Blocked',
-    text: `Hello,\n\nYour account on Coll-Connect has been blocked ${blockEnd === 'permanent' ? 'permanently' : 'until ' + new Date(blockEnd).toLocaleString()}.\n\nReason: Admin action from dashboard.\n\nThank you.`
-  };
-  
-  if (process.env.ADMIN_EMAIL && process.env.ADMIN_APP_PASSWORD) {
-    transporter.sendMail(mailOptions, (e) => { if(e) console.error(e); });
-  }
+  const mailHtml = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #1e293b; color: #f8fafc; padding: 20px; border-radius: 10px;">
+      <h2 style="color: #ef4444; text-align: center;">Account Blocked</h2>
+      <p style="font-size: 16px;">Hello <strong>${user.username}</strong>,</p>
+      <p style="font-size: 16px;">Your account on Coll-Connect has been blocked ${blockEnd === 'permanent' ? 'permanently' : 'until ' + new Date(blockEnd).toLocaleString()}.</p>
+      <p style="font-size: 16px;"><strong>Reason:</strong> Admin action from dashboard.</p>
+      <br>
+      <p style="font-size: 14px; color: #94a3b8; text-align: center;">Best regards,<br>The Coll-Connect Admin Team</p>
+    </div>
+  `;
+  sendEmail(user.email, 'Your Coll-Connect Account has been Blocked', mailHtml);
 
   if (req.io) req.io.emit('admin-update');
   res.json({ success: true });
@@ -479,16 +392,16 @@ router.post('/admin/unblock-user', isAdmin, async (req, res) => {
   user.blockedUntil = undefined;
   await user.save();
 
-  const mailOptions = {
-    from: '"Coll-Connect" <' + process.env.ADMIN_EMAIL + '>',
-    to: user.email,
-    subject: 'Your Coll-Connect Account has been Unblocked',
-    text: `Hello,\n\nYour account on Coll-Connect has been unblocked. You can now log in and use the platform again.\n\nThank you.`
-  };
-  
-  if (process.env.ADMIN_EMAIL && process.env.ADMIN_APP_PASSWORD) {
-    transporter.sendMail(mailOptions, (e) => { if(e) console.error(e); });
-  }
+  const mailHtml = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #1e293b; color: #f8fafc; padding: 20px; border-radius: 10px;">
+      <h2 style="color: #10b981; text-align: center;">Account Unblocked</h2>
+      <p style="font-size: 16px;">Hello <strong>${user.username}</strong>,</p>
+      <p style="font-size: 16px;">Your account on Coll-Connect has been unblocked. You can now log in and use the platform again.</p>
+      <br>
+      <p style="font-size: 14px; color: #94a3b8; text-align: center;">Best regards,<br>The Coll-Connect Team</p>
+    </div>
+  `;
+  sendEmail(user.email, 'Your Coll-Connect Account has been Unblocked', mailHtml);
 
   if (req.io) req.io.emit('admin-update');
   res.json({ success: true });
@@ -504,34 +417,25 @@ router.post('/admin/promote', isSuperAdmin, async (req, res) => {
   if (!user) return res.status(404).json({ error: 'User not found' });
   
   if (user.email) {
-    const mailOptions = {
-      from: `"Coll-Connect Admin" <${process.env.ADMIN_EMAIL}>`,
-      to: user.email,
-      subject: '🎉 Congratulations! You have been promoted to Admin',
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #1e293b; color: #f8fafc; padding: 20px; border-radius: 10px;">
-          <h2 style="color: #3b82f6; text-align: center;">Welcome to the Admin Team!</h2>
-          <p style="font-size: 16px;">Hello <strong>${user.username}</strong>,</p>
-          <p style="font-size: 16px;">Congratulations! You have been officially promoted to the <strong>Admin</strong> role on Coll-Connect by the Superadmin.</p>
-          <h3 style="color: #10b981;">Your New Perks & Responsibilities:</h3>
-          <ul style="font-size: 15px; line-height: 1.6; background-color: #0f172a; padding: 15px 30px; border-radius: 8px;">
-            <li>🛡️ <strong>Global Chat Access:</strong> View and search all public chats on the platform, and chat with ANY user even if they are not your friend.</li>
-            <li>👥 <strong>Profile Access & Control:</strong> View detailed profiles of other users, and block or unblock them as necessary.</li>
-            <li>⚠️ <strong>Moderation Power:</strong> Issue official warnings to users who violate community guidelines, sending it directly to them.</li>
-            <li>🗑️ <strong>Chat Management:</strong> Unsend your own messages and clear chat histories for rule-breakers.</li>
-            <li>🛑 <strong>Enforce Rules:</strong> Help keep Coll-Connect a safe and fun place for everyone.</li>
-          </ul>
-          <p style="font-size: 16px; margin-top: 20px;">Please use your new powers responsibly. We trust you to help maintain the quality of our community!</p>
-          <br>
-          <p style="font-size: 14px; color: #94a3b8; text-align: center;">Best regards,<br>The Coll-Connect Superadmin</p>
-        </div>
-      `
-    };
-    try {
-      await transporter.sendMail(mailOptions);
-    } catch (e) {
-      console.error("Error sending promote email:", e);
-    }
+    const mailHtml = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #1e293b; color: #f8fafc; padding: 20px; border-radius: 10px;">
+        <h2 style="color: #3b82f6; text-align: center;">Welcome to the Admin Team!</h2>
+        <p style="font-size: 16px;">Hello <strong>${user.username}</strong>,</p>
+        <p style="font-size: 16px;">Congratulations! You have been officially promoted to the <strong>Admin</strong> role on Coll-Connect by the Superadmin.</p>
+        <h3 style="color: #10b981;">Your New Perks & Responsibilities:</h3>
+        <ul style="font-size: 15px; line-height: 1.6; background-color: #0f172a; padding: 15px 30px; border-radius: 8px;">
+          <li>🛡️ <strong>Global Chat Access:</strong> View and search all public chats on the platform, and chat with ANY user even if they are not your friend.</li>
+          <li>👥 <strong>Profile Access & Control:</strong> View detailed profiles of other users, and block or unblock them as necessary.</li>
+          <li>⚠️ <strong>Moderation Power:</strong> Issue official warnings to users who violate community guidelines, sending it directly to them.</li>
+          <li>🗑️ <strong>Chat Management:</strong> Unsend your own messages and clear chat histories for rule-breakers.</li>
+          <li>🛑 <strong>Enforce Rules:</strong> Help keep Coll-Connect a safe and fun place for everyone.</li>
+        </ul>
+        <p style="font-size: 16px; margin-top: 20px;">Please use your new powers responsibly. We trust you to help maintain the quality of our community!</p>
+        <br>
+        <p style="font-size: 14px; color: #94a3b8; text-align: center;">Best regards,<br>The Coll-Connect Superadmin</p>
+      </div>
+    `;
+    sendEmail(user.email, '🎉 Congratulations! You have been promoted to Admin', mailHtml);
   }
 
   if (req.io) {
@@ -547,27 +451,18 @@ router.post('/admin/dismiss', isSuperAdmin, async (req, res) => {
   if (!user) return res.status(404).json({ error: 'User not found' });
 
   if (user.email) {
-    const mailOptions = {
-      from: `"Coll-Connect Admin" <${process.env.ADMIN_EMAIL}>`,
-      to: user.email,
-      subject: '⚠️ Notice: Admin Status Revoked',
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #1e293b; color: #f8fafc; padding: 20px; border-radius: 10px;">
-          <h2 style="color: #ef4444; text-align: center;">Admin Status Update</h2>
-          <p style="font-size: 16px;">Hello <strong>${user.username}</strong>,</p>
-          <p style="font-size: 16px;">This is a notice to inform you that your <strong>Admin</strong> privileges on Coll-Connect have been revoked by the Superadmin.</p>
-          <p style="font-size: 16px;">Your account has been reverted to a standard user role. As a result, your admin powers (such as global chat access, profile viewing, and issuing warnings) are no longer active, and any non-friend chats have been permanently deleted for privacy reasons.</p>
-          <p style="font-size: 16px;">If you have any questions or believe this was done in error, please contact the Superadmin.</p>
-          <br>
-          <p style="font-size: 14px; color: #94a3b8; text-align: center;">Best regards,<br>The Coll-Connect Team</p>
-        </div>
-      `
-    };
-    try {
-      await transporter.sendMail(mailOptions);
-    } catch (e) {
-      console.error("Error sending dismiss email:", e);
-    }
+    const mailHtml = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #1e293b; color: #f8fafc; padding: 20px; border-radius: 10px;">
+        <h2 style="color: #ef4444; text-align: center;">Admin Status Update</h2>
+        <p style="font-size: 16px;">Hello <strong>${user.username}</strong>,</p>
+        <p style="font-size: 16px;">This is a notice to inform you that your <strong>Admin</strong> privileges on Coll-Connect have been revoked by the Superadmin.</p>
+        <p style="font-size: 16px;">Your account has been reverted to a standard user role. As a result, your admin powers (such as global chat access, profile viewing, and issuing warnings) are no longer active, and any non-friend chats have been permanently deleted for privacy reasons.</p>
+        <p style="font-size: 16px;">If you have any questions or believe this was done in error, please contact the Superadmin.</p>
+        <br>
+        <p style="font-size: 14px; color: #94a3b8; text-align: center;">Best regards,<br>The Coll-Connect Team</p>
+      </div>
+    `;
+    sendEmail(user.email, '⚠️ Notice: Admin Status Revoked', mailHtml);
   }
 
   const superadminUser = await User.findOne({ role: 'superadmin' });
