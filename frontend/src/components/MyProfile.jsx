@@ -30,6 +30,7 @@ const MyProfile = () => {
   // Image Cropper States
   const [cropperOpen, setCropperOpen] = useState(false);
   const [cropperSrc, setCropperSrc] = useState('');
+  const [cropperFile, setCropperFile] = useState(null);
   const [cropperAspect, setCropperAspect] = useState(1); // 1 for profile, 16/9 for banner
   const [cropperTarget, setCropperTarget] = useState(''); // 'profile' or 'banner'
   const [isUploading, setIsUploading] = useState(false);
@@ -66,6 +67,7 @@ const MyProfile = () => {
     const file = e.target.files[0];
     if (file) {
       if (file.size > 5 * 1024 * 1024) return alert('Image must be less than 5MB');
+      setCropperFile(file);
       const reader = new FileReader();
       reader.onloadend = () => {
         setCropperSrc(reader.result);
@@ -77,14 +79,14 @@ const MyProfile = () => {
     }
   };
 
-  const handleCropComplete = async (croppedFile) => {
+  const handleCropComplete = async (cropParams) => {
     setCropperOpen(false);
-    if (!croppedFile) return;
+    if (!cropParams || !cropperFile) return;
     setIsUploading(true);
     try {
       const token = localStorage.getItem('token');
       const formData = new FormData();
-      formData.append('file', croppedFile);
+      formData.append('file', cropperFile);
 
       const uploadRes = await fetch(`${backendUrl}/api/upload`, {
         method: 'POST',
@@ -94,11 +96,23 @@ const MyProfile = () => {
       
       if (!uploadRes.ok) throw new Error('Cloudinary upload failed');
       const uploadData = await uploadRes.json();
+      const originalUrl = uploadData.url;
+      
+      // Inject Cloudinary Transformation
+      const parts = originalUrl.split('/upload/');
+      let finalUrl = originalUrl;
+      if (parts.length === 2) {
+        const w = Math.round(cropParams.width);
+        const h = Math.round(cropParams.height);
+        const x = Math.round(cropParams.x);
+        const y = Math.round(cropParams.y);
+        finalUrl = `${parts[0]}/upload/c_crop,w_${w},h_${h},x_${x},y_${y}/${parts[1]}`;
+      }
       
       const endpoint = cropperTarget === 'profile' ? '/api/profile-pic' : '/api/profile-banner';
       const payload = cropperTarget === 'profile' 
-        ? { profilePic: uploadData.url } 
-        : { bannerImage: uploadData.url };
+        ? { profilePic: finalUrl } 
+        : { bannerImage: finalUrl };
 
       const saveRes = await fetch(`${backendUrl}${endpoint}`, {
         method: 'POST',
@@ -139,12 +153,25 @@ const MyProfile = () => {
       if (res.ok) {
         const data = await res.json();
         setProfileData(prev => ({ ...prev, ...data }));
+        alert(`${target === 'profile' ? 'Profile picture' : 'Background banner'} removed successfully.`);
       }
     } catch (err) {
       console.error('Failed to remove image', err);
+      alert('Failed to remove image.');
     } finally {
       setIsUploading(false);
     }
+  };
+
+  const getOriginalImageUrl = (url) => {
+    if (!url || !url.includes('cloudinary.com')) return url;
+    const uploadIndex = url.indexOf('/upload/');
+    if (uploadIndex === -1) return url;
+    const afterUpload = url.substring(uploadIndex + 8);
+    if (afterUpload.startsWith('v')) return url; // No transformations
+    
+    const nextSlash = afterUpload.indexOf('/');
+    return url.substring(0, uploadIndex + 8) + afterUpload.substring(nextSlash + 1);
   };
 
   const handleSaveUsername = async () => {
@@ -255,7 +282,7 @@ const MyProfile = () => {
               {popupMenu === 'banner' && (
                 <div className="image-popup-menu" style={{position: 'absolute', top: '40px', right: '10px', background: '#1f2937', border: '1px solid #374151', borderRadius: '8px', padding: '5px', zIndex: 20, boxShadow: '0 4px 6px rgba(0,0,0,0.3)', display: 'flex', flexDirection: 'column', minWidth: '140px'}}>
                   {profileData.bannerImage && (
-                    <button onClick={(e) => { e.stopPropagation(); setImageModalSrc(profileData.bannerImage); setPopupMenu(null); }} className="popup-menu-btn"><Eye size={16}/> View Banner</button>
+                    <button onClick={(e) => { e.stopPropagation(); setImageModalSrc(getOriginalImageUrl(profileData.bannerImage)); setPopupMenu(null); }} className="popup-menu-btn"><Eye size={16}/> View Banner</button>
                   )}
                   <label className="popup-menu-btn" onClick={(e) => e.stopPropagation()} style={{cursor: 'pointer', margin: 0}}>
                     <Upload size={16}/> Update Banner
@@ -277,7 +304,7 @@ const MyProfile = () => {
               {popupMenu === 'profile' && (
                 <div className="image-popup-menu" style={{position: 'absolute', top: '50px', left: '50%', transform: 'translateX(-50%)', background: '#1f2937', border: '1px solid #374151', borderRadius: '8px', padding: '5px', zIndex: 20, boxShadow: '0 4px 6px rgba(0,0,0,0.3)', display: 'flex', flexDirection: 'column', minWidth: '150px'}}>
                   {profileData.profilePic && (
-                    <button onClick={(e) => { e.stopPropagation(); setImageModalSrc(profileData.profilePic); setPopupMenu(null); }} className="popup-menu-btn"><Eye size={16}/> View Picture</button>
+                    <button onClick={(e) => { e.stopPropagation(); setImageModalSrc(getOriginalImageUrl(profileData.profilePic)); setPopupMenu(null); }} className="popup-menu-btn"><Eye size={16}/> View Picture</button>
                   )}
                   <label className="popup-menu-btn" onClick={(e) => e.stopPropagation()} style={{cursor: 'pointer', margin: 0}}>
                     <Upload size={16}/> Update Picture

@@ -42,44 +42,20 @@ const ImageCropperModal = ({ isOpen, onClose, imageSrc, aspect, onCropComplete }
   const handleSave = async () => {
     if (completedCrop && imgRef.current) {
       const image = imgRef.current;
-      const canvas = document.createElement('canvas');
       const scaleX = image.naturalWidth / image.width;
       const scaleY = image.naturalHeight / image.height;
-      const ctx = canvas.getContext('2d');
-
-      const pixelRatio = window.devicePixelRatio;
-      canvas.width = Math.floor(completedCrop.width * scaleX * pixelRatio);
-      canvas.height = Math.floor(completedCrop.height * scaleY * pixelRatio);
-
-      ctx.scale(pixelRatio, pixelRatio);
-      ctx.imageSmoothingQuality = 'high';
 
       const cropX = completedCrop.x * scaleX;
       const cropY = completedCrop.y * scaleY;
       const cropWidth = completedCrop.width * scaleX;
       const cropHeight = completedCrop.height * scaleY;
 
-      ctx.drawImage(
-        image,
-        cropX,
-        cropY,
-        cropWidth,
-        cropHeight,
-        0,
-        0,
-        cropWidth,
-        cropHeight
-      );
-
-      canvas.toBlob((blob) => {
-        if (!blob) {
-          console.error('Canvas is empty');
-          return;
-        }
-        // Convert blob to file
-        const file = new File([blob], 'cropped_image.jpeg', { type: 'image/jpeg' });
-        onCropComplete(file);
-      }, 'image/jpeg', 0.95);
+      onCropComplete({
+        x: cropX,
+        y: cropY,
+        width: cropWidth,
+        height: cropHeight
+      });
     }
   };
 
