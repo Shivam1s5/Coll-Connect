@@ -122,25 +122,14 @@ const ManageUsers = () => {
     });
   };
 
-  const viewReports = async (username) => {
-    setSelectedUsername(username);
-    try {
-      const token = localStorage.getItem('token');
-      const res = await fetch(`${backendUrl}/api/reports/${username}`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setSelectedUserReports(data);
-        setShowReportsModal(true);
-      }
-    } catch(err) {
-      console.error(err);
-    }
+  const viewWarnings = (userObj) => {
+    setSelectedUsername(userObj.username);
+    setSelectedUserReports(userObj.warningHistory || []);
+    setShowReportsModal(true);
   };
 
   const messageUser = (username) => {
-    navigate('/messages');
+    navigate('/messages', { state: { openChatWith: username } });
   };
 
   const isBlocked = (blockedUntil) => {
@@ -239,8 +228,8 @@ const ManageUsers = () => {
                   <div className="user-actions row-actions mt-2" style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                     <button className="btn-action" style={{backgroundColor: '#3b82f6', color: 'white'}} onClick={() => navigate(`/user/${u.username}`)}>VISIT PROFILE</button>
                     <button className="btn-action" style={{backgroundColor: '#10b981', color: 'white'}} onClick={() => messageUser(u.username)}>MESSAGE</button>
-                    <button className="btn-action btn-red" onClick={() => viewReports(u.username)}>
-                      REPORTS {u.warningHistory?.length > 0 && `(${u.warningHistory.length})`}
+                    <button className="btn-action btn-red" onClick={() => viewWarnings(u)}>
+                      WARNINGS {u.warningHistory?.length > 0 && `(${u.warningHistory.length})`}
                     </button>
                     {isSuperadmin && (
                       <>
@@ -283,21 +272,23 @@ const ManageUsers = () => {
       {showReportsModal && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setShowReportsModal(false)}>
           <div style={{ background: '#1f2937', padding: '24px', borderRadius: '12px', width: '600px', maxHeight: '80vh', overflowY: 'auto', border: '1px solid #374151' }} onClick={e => e.stopPropagation()}>
-            <h3 style={{ margin: '0 0 16px 0', color: '#ef4444' }}>Reports for {selectedUsername}</h3>
+            <h3 style={{ margin: '0 0 16px 0', color: '#ef4444' }}>Warning History for {selectedUsername}</h3>
             {selectedUserReports.length === 0 ? (
-              <p style={{ color: '#9ca3af' }}>No reports found.</p>
+              <p style={{ color: '#9ca3af' }}>No warnings found.</p>
             ) : (
-              selectedUserReports.map(report => (
-                <div key={report._id} style={{ background: '#111827', padding: '16px', borderRadius: '8px', marginBottom: '16px', border: '1px solid #4b5563' }}>
+              selectedUserReports.map((warning, index) => (
+                <div key={index} style={{ background: '#111827', padding: '16px', borderRadius: '8px', marginBottom: '16px', border: '1px solid #4b5563' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                    <span style={{ color: '#60a5fa', fontWeight: 'bold' }}>Reported By: {report.reporter}</span>
-                    <span style={{ color: '#9ca3af', fontSize: '0.85rem' }}>{new Date(report.createdAt).toLocaleString()}</span>
+                    <span style={{ color: '#60a5fa', fontWeight: 'bold' }}>Warned By: {warning.byAdmin || 'System'}</span>
+                    <span style={{ color: '#9ca3af', fontSize: '0.85rem' }}>{new Date(warning.date).toLocaleString()}</span>
                   </div>
-                  <p style={{ color: '#f3f4f6', margin: '0 0 12px 0' }}>Reason: {report.reason}</p>
-                  {report.screenshot && (
+                  <p style={{ color: '#f3f4f6', margin: '0 0 12px 0' }}>Warning Message: {warning.message}</p>
+                  <p style={{ color: '#9ca3af', margin: '0 0 12px 0', fontSize: '0.85rem' }}>Reported By: {warning.reporter || 'N/A'}</p>
+                  <p style={{ color: '#9ca3af', margin: '0 0 12px 0', fontSize: '0.85rem' }}>Reason: {warning.reason || 'N/A'}</p>
+                  {warning.screenshot && (
                     <div style={{ marginTop: '10px' }}>
                       <p style={{ color: '#9ca3af', fontSize: '0.85rem', marginBottom: '4px' }}>Screenshot Evidence:</p>
-                      <img src={report.screenshot} alt="evidence" style={{ width: '100%', borderRadius: '8px', border: '1px solid #374151' }} />
+                      <img src={warning.screenshot} alt="evidence" style={{ width: '100%', borderRadius: '8px', border: '1px solid #374151' }} />
                     </div>
                   )}
                 </div>

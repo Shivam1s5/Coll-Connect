@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useSocket } from '../contexts/SocketContext';
 import { useToast } from '../contexts/ToastContext';
@@ -28,6 +28,7 @@ const useClickOutside = (ref, handler) => {
 
 const Messages = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user: authUser } = useAuth();
   const { socket } = useSocket();
   const { showToast, showConfirm } = useToast();
@@ -78,6 +79,14 @@ const Messages = () => {
   useEffect(() => {
     fetchProfileData();
   }, []);
+
+  useEffect(() => {
+    if (location.state?.openChatWith) {
+      openChat({ username: location.state.openChatWith });
+      // clear state to prevent reopening on reload
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
 
   const fetchProfileData = async () => {
     try {
@@ -455,6 +464,9 @@ const Messages = () => {
                 searchResults.length === 0 ? <p style={{color: '#6b7280', textAlign: 'center', padding: '20px'}}>No users found</p> :
                 searchResults.map(u => {
                   const isFriend = friends.some(f => f.username === u.username);
+                  const isSystemAdmin = authUser?.username?.toLowerCase() === 'admin';
+                  const canMessageDirectly = isFriend || authUser?.role === 'admin' || authUser?.role === 'superadmin' || isSystemAdmin;
+                  
                   return (
                     <div key={u.username} style={{ display: 'flex', alignItems: 'center', padding: '12px', borderRadius: '8px', background: '#111827', marginBottom: '8px', gap: '12px' }}>
                       <div onClick={() => navigate(`/user/${u.username}`)} style={{ cursor: 'pointer', width: '40px', height: '40px', borderRadius: '50%', background: '#374151', overflow: 'hidden', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -467,7 +479,7 @@ const Messages = () => {
                         </div>
                       </div>
                       <div style={{ flexShrink: 0 }}>
-                        {isFriend ? (
+                        {canMessageDirectly ? (
                           <button onClick={() => openChat(u)} style={{ background: '#10b981', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '4px' }}><MessageCircle size={14}/> Message</button>
                         ) : u.hasSentRequest ? (
                           <button disabled style={{ background: '#374151', color: '#9ca3af', border: 'none', padding: '6px 12px', borderRadius: '6px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '4px' }}><Clock size={14}/> Pending</button>
