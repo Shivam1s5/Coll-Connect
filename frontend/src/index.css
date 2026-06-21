@@ -254,6 +254,8 @@ body {
   height: 100vh;
   display: flex;
   flex-direction: column;
+  position: relative;
+  z-index: 1000;
   transition: margin-left 0.3s ease;
   margin-left: -250px;
   border-right: 1px solid #1f2945;
@@ -628,14 +630,6 @@ body {
   .close-btn {
     display: block;
   }
-}
-
-.sidebar-backdrop {
-  display: block;
-  position: absolute;
-  inset: 0;
-  background-color: rgba(0,0,0,0.5);
-  z-index: 900;
 }
 
 /* Video Room */
