@@ -40,6 +40,12 @@ const MyProfile = () => {
   // Popup & View States
   const [popupMenu, setPopupMenu] = useState(null); // 'profile' or 'banner'
   const [imageModalSrc, setImageModalSrc] = useState(null);
+  const [toastMessage, setToastMessage] = useState('');
+
+  const showToast = (msg) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(''), 3000);
+  };
 
   useEffect(() => {
     fetchProfile();
@@ -68,7 +74,7 @@ const MyProfile = () => {
   const handleImageChange = (e, target) => {
     const file = e.target.files[0];
     if (file) {
-      if (file.size > 5 * 1024 * 1024) return alert('Image must be less than 5MB');
+      if (file.size > 5 * 1024 * 1024) return showToast('Image must be less than 5MB');
       setCropperFile(file);
       const reader = new FileReader();
       reader.onloadend = () => {
@@ -129,11 +135,11 @@ const MyProfile = () => {
         const data = await saveRes.json();
         setProfileData(prev => ({ ...prev, ...data }));
         if (updateGlobalProfile) updateGlobalProfile(data);
-        alert(`${cropperTarget === 'profile' ? 'Profile picture' : 'Background banner'} updated successfully!`);
+        showToast(`${cropperTarget === 'profile' ? 'Profile picture' : 'Background banner'} updated successfully!`);
       }
     } catch (err) {
       console.error(err);
-      alert('Failed to update image.');
+      showToast('Failed to update image.');
     } finally {
       setIsUploading(false);
       setPopupMenu(null);
@@ -157,11 +163,11 @@ const MyProfile = () => {
         const data = await res.json();
         setProfileData(prev => ({ ...prev, ...data }));
         if (updateGlobalProfile) updateGlobalProfile(data);
-        alert(`${target === 'profile' ? 'Profile picture' : 'Background banner'} removed successfully.`);
+        showToast(`${target === 'profile' ? 'Profile picture' : 'Background banner'} removed successfully.`);
       }
     } catch (err) {
       console.error('Failed to remove image', err);
-      alert('Failed to remove image.');
+      showToast('Failed to remove image.');
     } finally {
       setIsUploading(false);
     }
@@ -195,15 +201,17 @@ const MyProfile = () => {
       });
       const data = await res.json();
       if (res.ok) {
-        alert('Username changed successfully! Please log in again.');
-        login(data.token);
-        window.location.reload();
+        showToast('Username changed successfully!');
+        setTimeout(() => {
+          login(data.token);
+          window.location.reload();
+        }, 1500);
       } else {
-        alert(data.error || 'Failed to change username');
+        showToast(data.error || 'Failed to change username');
       }
     } catch (err) {
       console.error(err);
-      alert('An error occurred');
+      showToast('An error occurred');
     }
   };
 
@@ -513,6 +521,30 @@ const MyProfile = () => {
         onClose={() => setImageModalSrc(null)}
         imageUrl={imageModalSrc}
       />
+
+      {toastMessage && (
+        <div style={{
+          position: 'fixed', 
+          bottom: '24px', 
+          left: '50%', 
+          transform: 'translateX(-50%)', 
+          backgroundColor: 'rgba(31, 41, 55, 0.95)', 
+          backdropFilter: 'blur(8px)',
+          color: '#f3f4f6', 
+          padding: '12px 24px', 
+          borderRadius: '12px', 
+          boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.5)', 
+          zIndex: 1000, 
+          border: '1px solid #4b5563', 
+          display: 'flex', 
+          alignItems: 'center', 
+          gap: '12px',
+          animation: 'slideUpFade 0.3s ease-out forwards'
+        }}>
+          <div style={{width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#10b981', boxShadow: '0 0 8px #10b981'}}></div>
+          <span style={{fontWeight: 500, fontSize: '0.95rem'}}>{toastMessage}</span>
+        </div>
+      )}
     </div>
   );
 };

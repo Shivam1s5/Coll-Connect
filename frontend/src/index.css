@@ -1976,3 +1976,5 @@ body {
 .profile-dropdown-item.text-red:hover {
   background-color: rgba(239, 68, 68, 0.1);
 }
+  
+@keyframes slideUpFade { from { opacity: 0; transform: translate(-50%, 20px); } to { opacity: 1; transform: translate(-50%, 0); } } 
