@@ -140,6 +140,16 @@ const Messages = () => {
     const handleMessageSentAck = (data) => {
       setChatHistory(prev => prev.map(msg => msg.id === data.tempId ? { ...msg, id: data.realId, _id: data.realId } : msg));
     };
+    const handleChatCleared = (data) => {
+      fetchProfileData();
+      if (activeChatUser && (activeChatUser.username === data.targetUser || authUser?.username === data.targetUser)) {
+        setActiveChatUser(null);
+        setChatHistory([]);
+      }
+    };
+    const handleRoleChanged = () => {
+      fetchProfileData();
+    };
 
     socket.on('private-message', handleNewMessage);
     socket.on('friend-request-received', handleRequestReceived);
@@ -148,6 +158,9 @@ const Messages = () => {
     socket.on('profile-updated', handleProfileUpdated);
     socket.on('message-deleted', handleMessageDeleted);
     socket.on('message-sent-ack', handleMessageSentAck);
+    socket.on('chat-cleared', handleChatCleared);
+    socket.on('user-role-changed', handleRoleChanged);
+    socket.on('admin-update', handleRoleChanged);
 
     return () => {
       socket.off('private-message', handleNewMessage);
@@ -157,6 +170,9 @@ const Messages = () => {
       socket.off('profile-updated', handleProfileUpdated);
       socket.off('message-deleted', handleMessageDeleted);
       socket.off('message-sent-ack', handleMessageSentAck);
+      socket.off('chat-cleared', handleChatCleared);
+      socket.off('user-role-changed', handleRoleChanged);
+      socket.off('admin-update', handleRoleChanged);
     };
   }, [socket, activeChatUser]);
 
