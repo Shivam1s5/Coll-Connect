@@ -1,19 +1,22 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Menu, Bell } from 'lucide-react';
+import { Menu, Bell, ChevronDown, User as UserIcon, LogOut } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useSocket } from '../contexts/SocketContext';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import ImageModal from './ImageModal';
 
 const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
 
 const Topbar = ({ toggleSidebar }) => {
-  const { user, globalProfileData } = useAuth();
+  const navigate = useNavigate();
+  const { user, globalProfileData, logout } = useAuth();
   const { socket } = useSocket();
   const [showNotifications, setShowNotifications] = useState(false);
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [announcements, setAnnouncements] = useState([]);
   const [selectedImage, setSelectedImage] = useState(null);
   const dropdownRef = useRef(null);
+  const profileDropdownRef = useRef(null);
 
   useEffect(() => {
     fetchAnnouncements();
@@ -21,6 +24,9 @@ const Topbar = ({ toggleSidebar }) => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setShowNotifications(false);
+      }
+      if (profileDropdownRef.current && !profileDropdownRef.current.contains(event.target)) {
+        setShowProfileMenu(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
@@ -112,21 +118,53 @@ const Topbar = ({ toggleSidebar }) => {
           )}
         </div>
         
-        <Link to="/profile" style={{textDecoration: 'none'}}>
-          <div className={`topbar-profile-badge ${displayUser?.bannerImage ? 'has-banner' : ''}`} style={displayUser?.bannerImage ? { '--banner-url': `url(${displayUser.bannerImage})` } : {}}>
-            <div className="topbar-profile-avatar">
+        <div style={{ position: 'relative' }} ref={profileDropdownRef}>
+          <div className="topbar-profile-trigger" onClick={() => setShowProfileMenu(!showProfileMenu)}>
+            <div className="topbar-profile-avatar-small">
               {displayUser?.profilePic ? (
-                <img src={displayUser.profilePic} alt="Profile" style={{width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%'}} />
+                <img src={displayUser.profilePic} alt="Profile" />
               ) : (
                 displayUser?.username ? displayUser.username.charAt(0).toUpperCase() : 'U'
               )}
             </div>
-            <div className="topbar-profile-info">
-              <span className="topbar-profile-username">{displayUser?.username || 'User'}</span>
-              <span className="topbar-profile-role">{displayUser?.role || 'user'}</span>
+            <div className="topbar-profile-info-small">
+              <span className="topbar-username-small">{displayUser?.username || 'User'}</span>
             </div>
+            <ChevronDown size={16} color="#9ca3af" style={{marginLeft: '4px'}} />
           </div>
-        </Link>
+
+          {showProfileMenu && (
+            <div className="profile-dropdown-panel">
+              <div className="profile-dropdown-header" style={displayUser?.bannerImage ? { backgroundImage: `url(${displayUser.bannerImage})` } : {}}>
+                <div className="profile-dropdown-overlay"></div>
+              </div>
+              <div className="profile-dropdown-body">
+                <div className="profile-dropdown-avatar">
+                  {displayUser?.profilePic ? (
+                    <img src={displayUser.profilePic} alt="Profile" />
+                  ) : (
+                    displayUser?.username ? displayUser.username.charAt(0).toUpperCase() : 'U'
+                  )}
+                </div>
+                <h4 className="profile-dropdown-name">{displayUser?.username || 'User'}</h4>
+                <span className={`profile-dropdown-role role-${displayUser?.role || 'user'}`}>
+                  {displayUser?.role?.toUpperCase() || 'USER'}
+                </span>
+                
+                <div className="profile-dropdown-divider"></div>
+                
+                <button className="profile-dropdown-item" onClick={() => { setShowProfileMenu(false); navigate('/profile'); }}>
+                  <UserIcon size={18} />
+                  My Profile
+                </button>
+                <button className="profile-dropdown-item text-red" onClick={() => { setShowProfileMenu(false); logout(); navigate('/auth'); }}>
+                  <LogOut size={18} />
+                  Logout
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
       <ImageModal imageUrl={selectedImage} onClose={() => setSelectedImage(null)} />
     </div>
