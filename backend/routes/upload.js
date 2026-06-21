@@ -20,4 +20,30 @@ router.post('/upload', upload.single('file'), (req, res) => {
   uploadStream.end(req.file.buffer);
 });
 
+router.delete('/delete-image', async (req, res) => {
+  const { imageUrl } = req.body;
+  if (!imageUrl) {
+    return res.status(400).json({ error: 'Image URL is required' });
+  }
+
+  try {
+    // Extract public_id from Cloudinary URL
+    // Example URL: https://res.cloudinary.com/demo/image/upload/v1234567890/folder/filename.jpg
+    const parts = imageUrl.split('/');
+    const filename = parts.pop().split('.')[0];
+    const folder = parts.pop();
+    const publicId = `${folder}/${filename}`;
+
+    const result = await cloudinary.uploader.destroy(publicId);
+    if (result.result !== 'ok' && result.result !== 'not found') {
+      console.error('Cloudinary deletion failed:', result);
+    }
+    
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Error deleting image:', err);
+    res.status(500).json({ error: 'Failed to delete image' });
+  }
+});
+
 module.exports = router;

@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useSocket } from '../contexts/SocketContext';
-import { Camera, Edit2, Save, X, User as UserIcon, Link as LinkIcon, Image as ImageIcon } from 'lucide-react';
+import { Camera, Edit2, Save, X, User as UserIcon, Link as LinkIcon, Image as ImageIcon, Eye, Trash2, Upload } from 'lucide-react';
 import { FaInstagram as Instagram, FaFacebook as Facebook, FaLinkedin as Linkedin, FaSnapchat as Snapchat } from 'react-icons/fa';
 import ImageCropperModal from './ImageCropperModal';
+import ImageModal from './ImageModal';
 import '../index.css';
 
 const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
@@ -32,6 +33,10 @@ const MyProfile = () => {
   const [cropperAspect, setCropperAspect] = useState(1); // 1 for profile, 16/9 for banner
   const [cropperTarget, setCropperTarget] = useState(''); // 'profile' or 'banner'
   const [isUploading, setIsUploading] = useState(false);
+
+  // Popup & View States
+  const [popupMenu, setPopupMenu] = useState(null); // 'profile' or 'banner'
+  const [imageModalSrc, setImageModalSrc] = useState(null);
 
   useEffect(() => {
     fetchProfile();
@@ -111,7 +116,32 @@ const MyProfile = () => {
       }
     } catch (err) {
       console.error(err);
-      alert('Failed to upload image.');
+      alert('Failed to update image.');
+    } finally {
+      setIsUploading(false);
+      setPopupMenu(null);
+    }
+  };
+
+  const handleRemoveImage = async (target) => {
+    if (!window.confirm(`Are you sure you want to remove your ${target === 'profile' ? 'profile picture' : 'background banner'}?`)) return;
+    setIsUploading(true);
+    setPopupMenu(null);
+    try {
+      const token = localStorage.getItem('token');
+      const endpoint = target === 'profile' ? '/api/profile-pic' : '/api/profile-banner';
+      const res = await fetch(`${backendUrl}${endpoint}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setProfileData(prev => ({ ...prev, ...data }));
+      }
+    } catch (err) {
+      console.error('Failed to remove image', err);
     } finally {
       setIsUploading(false);
     }
@@ -201,11 +231,13 @@ const MyProfile = () => {
       </div>
 
       {activeTab === 'profile' ? (
-        <div className="profile-content grid-layout">
+        <div className="profile-content grid-layout" onClick={() => setPopupMenu(null)}>
           {/* Avatar Section */}
           <div className="profile-card avatar-card" style={{padding: 0}}>
             {/* Banner Area */}
-            <div className="banner-area" style={{ 
+            <div className="banner-area" 
+              onClick={(e) => { e.stopPropagation(); setPopupMenu('banner'); }}
+              style={{ 
                 height: '120px', 
                 width: '100%', 
                 backgroundColor: '#374151',
@@ -214,20 +246,48 @@ const MyProfile = () => {
                 backgroundPosition: 'center',
                 position: 'relative',
                 borderTopLeftRadius: '12px',
-                borderTopRightRadius: '12px'
+                borderTopRightRadius: '12px',
+                cursor: 'pointer'
               }}>
-              <label htmlFor="banner-upload" className="banner-edit-btn" style={{position: 'absolute', top: '10px', right: '10px', background: 'rgba(0,0,0,0.5)', padding: '5px 10px', borderRadius: '5px', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.8rem'}}>
-                <ImageIcon size={14} /> Edit Banner
-              </label>
-              <input type="file" id="banner-upload" accept="image/*" style={{display: 'none'}} onChange={(e) => handleImageChange(e, 'banner')} />
+              <div className="banner-edit-btn" style={{position: 'absolute', top: '10px', right: '10px', background: 'rgba(0,0,0,0.5)', padding: '5px 10px', borderRadius: '5px', color: '#fff', display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.8rem', zIndex: 10}}>
+                <ImageIcon size={14} /> Options
+              </div>
+              {popupMenu === 'banner' && (
+                <div className="image-popup-menu" style={{position: 'absolute', top: '40px', right: '10px', background: '#1f2937', border: '1px solid #374151', borderRadius: '8px', padding: '5px', zIndex: 20, boxShadow: '0 4px 6px rgba(0,0,0,0.3)', display: 'flex', flexDirection: 'column', minWidth: '140px'}}>
+                  {profileData.bannerImage && (
+                    <button onClick={(e) => { e.stopPropagation(); setImageModalSrc(profileData.bannerImage); setPopupMenu(null); }} className="popup-menu-btn"><Eye size={16}/> View Banner</button>
+                  )}
+                  <label className="popup-menu-btn" onClick={(e) => e.stopPropagation()} style={{cursor: 'pointer', margin: 0}}>
+                    <Upload size={16}/> Update Banner
+                    <input type="file" accept="image/*" style={{display: 'none'}} onChange={(e) => { e.stopPropagation(); handleImageChange(e, 'banner'); }} />
+                  </label>
+                  {profileData.bannerImage && (
+                    <button onClick={(e) => { e.stopPropagation(); handleRemoveImage('banner'); }} className="popup-menu-btn text-red"><Trash2 size={16}/> Remove Banner</button>
+                  )}
+                </div>
+              )}
             </div>
 
-            <div className="avatar-wrapper" style={{ marginTop: '-60px' }}>
-              <img src={profileData.profilePic || 'https://via.placeholder.com/150'} alt="Profile" className="profile-large-avatar" style={{backgroundColor: '#1f2937'}} />
-              <label htmlFor="profile-upload" className="avatar-edit-btn">
+            <div className="avatar-wrapper" style={{ marginTop: '-60px', position: 'relative' }} onClick={(e) => { e.stopPropagation(); setPopupMenu('profile'); }}>
+              <img src={profileData.profilePic || 'https://via.placeholder.com/150'} alt="Profile" className="profile-large-avatar" style={{backgroundColor: '#1f2937', cursor: 'pointer'}} />
+              <div className="avatar-edit-btn" style={{cursor: 'pointer', zIndex: 10}}>
                 <Camera size={18} />
-              </label>
-              <input type="file" id="profile-upload" accept="image/*" style={{display: 'none'}} onChange={(e) => handleImageChange(e, 'profile')} />
+              </div>
+              
+              {popupMenu === 'profile' && (
+                <div className="image-popup-menu" style={{position: 'absolute', top: '50px', left: '50%', transform: 'translateX(-50%)', background: '#1f2937', border: '1px solid #374151', borderRadius: '8px', padding: '5px', zIndex: 20, boxShadow: '0 4px 6px rgba(0,0,0,0.3)', display: 'flex', flexDirection: 'column', minWidth: '150px'}}>
+                  {profileData.profilePic && (
+                    <button onClick={(e) => { e.stopPropagation(); setImageModalSrc(profileData.profilePic); setPopupMenu(null); }} className="popup-menu-btn"><Eye size={16}/> View Picture</button>
+                  )}
+                  <label className="popup-menu-btn" onClick={(e) => e.stopPropagation()} style={{cursor: 'pointer', margin: 0}}>
+                    <Upload size={16}/> Update Picture
+                    <input type="file" accept="image/*" style={{display: 'none'}} onChange={(e) => { e.stopPropagation(); handleImageChange(e, 'profile'); }} />
+                  </label>
+                  {profileData.profilePic && (
+                    <button onClick={(e) => { e.stopPropagation(); handleRemoveImage('profile'); }} className="popup-menu-btn text-red"><Trash2 size={16}/> Remove Picture</button>
+                  )}
+                </div>
+              )}
             </div>
             
             <h3 className="profile-role" style={{marginBottom: '20px'}}>{profileData.role.toUpperCase()}</h3>
@@ -358,6 +418,12 @@ const MyProfile = () => {
         imageSrc={cropperSrc}
         aspect={cropperAspect}
         onCropComplete={handleCropComplete}
+      />
+
+      <ImageModal 
+        isOpen={!!imageModalSrc}
+        onClose={() => setImageModalSrc(null)}
+        imageUrl={imageModalSrc}
       />
     </div>
   );

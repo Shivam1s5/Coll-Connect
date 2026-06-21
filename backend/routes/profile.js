@@ -3,6 +3,7 @@ const router = express.Router();
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const Message = require('../models/Message');
+const { cloudinary } = require('../config/cloudinary');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'super-secret-key-123';
 
@@ -93,18 +94,75 @@ router.get('/me', authMiddleware, async (req, res) => {
   });
 });
 
+const deleteCloudinaryImage = async (imageUrl) => {
+  if (!imageUrl || !imageUrl.includes('cloudinary.com')) return;
+  try {
+    const parts = imageUrl.split('/');
+    const filename = parts.pop().split('.')[0];
+    const folder = parts.pop();
+    const publicId = `${folder}/${filename}`;
+    await cloudinary.uploader.destroy(publicId);
+  } catch (err) {
+    console.error('Failed to delete old image from Cloudinary:', err);
+  }
+};
+
 router.post('/profile-pic', authMiddleware, async (req, res) => {
-  const user = await User.findOneAndUpdate({ username: req.user.username }, { profilePic: req.body.profilePic || '' }, { new: true });
-  if (!user) return res.status(404).json({ error: 'Not found' });
+  const oldUser = await User.findOne({ username: req.user.username });
+  if (!oldUser) return res.status(404).json({ error: 'Not found' });
+  
+  if (oldUser.profilePic && req.body.profilePic) {
+    await deleteCloudinaryImage(oldUser.profilePic);
+  }
+
+  oldUser.profilePic = req.body.profilePic || '';
+  await oldUser.save();
+
   if (req.io) req.io.emit('admin-update');
-  res.json({ success: true, profilePic: user.profilePic });
+  res.json({ success: true, profilePic: oldUser.profilePic });
+});
+
+router.delete('/profile-pic', authMiddleware, async (req, res) => {
+  const user = await User.findOne({ username: req.user.username });
+  if (!user) return res.status(404).json({ error: 'Not found' });
+
+  if (user.profilePic) {
+    await deleteCloudinaryImage(user.profilePic);
+  }
+  user.profilePic = '';
+  await user.save();
+
+  if (req.io) req.io.emit('admin-update');
+  res.json({ success: true, profilePic: '' });
 });
 
 router.post('/profile-banner', authMiddleware, async (req, res) => {
-  const user = await User.findOneAndUpdate({ username: req.user.username }, { bannerImage: req.body.bannerImage || '' }, { new: true });
-  if (!user) return res.status(404).json({ error: 'Not found' });
+  const oldUser = await User.findOne({ username: req.user.username });
+  if (!oldUser) return res.status(404).json({ error: 'Not found' });
+  
+  if (oldUser.bannerImage && req.body.bannerImage) {
+    await deleteCloudinaryImage(oldUser.bannerImage);
+  }
+
+  oldUser.bannerImage = req.body.bannerImage || '';
+  await oldUser.save();
+
   if (req.io) req.io.emit('admin-update');
-  res.json({ success: true, bannerImage: user.bannerImage });
+  res.json({ success: true, bannerImage: oldUser.bannerImage });
+});
+
+router.delete('/profile-banner', authMiddleware, async (req, res) => {
+  const user = await User.findOne({ username: req.user.username });
+  if (!user) return res.status(404).json({ error: 'Not found' });
+
+  if (user.bannerImage) {
+    await deleteCloudinaryImage(user.bannerImage);
+  }
+  user.bannerImage = '';
+  await user.save();
+
+  if (req.io) req.io.emit('admin-update');
+  res.json({ success: true, bannerImage: '' });
 });
 
 router.post('/profile/socials', authMiddleware, async (req, res) => {
