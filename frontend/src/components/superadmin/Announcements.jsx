@@ -186,11 +186,11 @@ const Announcements = () => {
             </div>
             {ann.imageUrl && (
               <div className="announcement-image-wrapper" onClick={() => setSelectedImage(ann.imageUrl)} style={{cursor: 'pointer'}}>
-                <img src={ann.imageUrl} alt="Announcement" className="announcement-image" />
+                <img src={ann.imageUrl} alt="Announcement" className="announcement-image" style={{maxHeight: '200px', objectFit: 'cover', width: '100%', borderRadius: '8px'}} />
                 <div style={{textAlign: 'center', fontSize: '0.8rem', color: '#9ca3af', marginTop: '4px'}}>Tap to view full image</div>
               </div>
             )}
-            <p className="custom-scrollbar" style={{margin: 0, color: '#e5e7eb', fontSize: '0.9rem', whiteSpace: 'pre-wrap', lineHeight: '1.4', wordBreak: 'break-all', overflowWrap: 'break-word', maxHeight: '150px', overflowY: 'auto', paddingRight: '5px', display: 'block'}}>{ann.content}</p>
+            <p className="custom-scrollbar" style={{margin: 0, color: '#e5e7eb', fontSize: '0.9rem', whiteSpace: 'pre-wrap', lineHeight: '1.4', wordBreak: 'break-all', overflowWrap: 'break-word', maxHeight: '150px', overflowY: 'auto', paddingRight: '5px', display: 'block', flexShrink: 0}}>{ann.content}</p>
             <span style={{fontSize: '0.75rem', color: '#6b7280', marginTop: '10px'}}>{new Date(ann.timestamp).toLocaleString()}</span>
           </div>
         ))}
