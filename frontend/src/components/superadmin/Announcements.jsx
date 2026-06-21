@@ -190,7 +190,7 @@ const Announcements = () => {
                 <div style={{textAlign: 'center', fontSize: '0.8rem', color: '#9ca3af', marginTop: '4px'}}>Tap to view full image</div>
               </div>
             )}
-            <p className="custom-scrollbar" style={{margin: 0, color: '#e5e7eb', fontSize: '0.9rem', whiteSpace: 'pre-wrap', lineHeight: '1.4', wordBreak: 'break-word', overflowWrap: 'anywhere', maxHeight: '150px', overflowY: 'auto', overflowX: 'hidden', width: '100%', paddingRight: '5px', display: 'block', flexShrink: 0}}>{ann.content}</p>
+            <p className="custom-scrollbar" style={{margin: 0, color: '#e5e7eb', fontSize: '0.9rem', whiteSpace: 'pre-wrap', lineHeight: '1.4', wordBreak: 'break-all', overflowWrap: 'break-word', maxHeight: '150px', overflowY: 'auto', overflowX: 'hidden', width: '100%', maxWidth: '100%', minWidth: 0, paddingRight: '5px', display: 'block', flexShrink: 0}}>{ann.content}</p>
             <span style={{fontSize: '0.75rem', color: '#6b7280', marginTop: '10px'}}>{new Date(ann.timestamp).toLocaleString()}</span>
           </div>
         ))}
