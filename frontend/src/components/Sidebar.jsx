@@ -65,6 +65,20 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
               </nav>
             </div>
           )}
+
+          {user?.role === 'admin' && (
+            <div className="sidebar-section">
+              <div className="section-title">ADMIN PANEL</div>
+              <nav className="sidebar-nav">
+                <NavLink to="/admin" end className={({isActive}) => isActive ? "nav-item active" : "nav-item"}>
+                  Dashboard
+                </NavLink>
+                <NavLink to="/admin/users" className={({isActive}) => isActive ? "nav-item active" : "nav-item"}>
+                  Manage Users
+                </NavLink>
+              </nav>
+            </div>
+          )}
         </div>
 
         <div className="sidebar-footer">

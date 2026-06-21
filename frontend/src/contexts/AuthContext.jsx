@@ -35,7 +35,15 @@ export const AuthProvider = ({ children }) => {
             headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
           });
           if (res.ok) {
-            setGlobalProfileData(await res.json());
+            const data = await res.json();
+            setGlobalProfileData(data);
+            
+            // Sync local storage user if role differs (e.g. promoted/demoted while offline)
+            if (data.role && data.role !== user.role) {
+              const updatedUser = { ...user, role: data.role };
+              localStorage.setItem('user', JSON.stringify(updatedUser));
+              setUser(updatedUser);
+            }
           }
         } catch (err) {
           console.error('Failed to fetch global profile data', err);

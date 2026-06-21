@@ -154,7 +154,10 @@ const Topbar = ({ toggleSidebar }) => {
                 <div className="profile-dropdown-divider"></div>
                 
                 {(displayUser?.role === 'superadmin' || displayUser?.role === 'admin') && (
-                  <button className="profile-dropdown-item" onClick={() => { setShowProfileMenu(false); navigate('/superadmin'); }}>
+                  <button className="profile-dropdown-item" onClick={() => { 
+                    setShowProfileMenu(false); 
+                    navigate(displayUser.role === 'superadmin' ? '/superadmin' : '/admin'); 
+                  }}>
                     <Shield size={18} className="text-lightblue" />
                     Admin Dashboard
                   </button>
