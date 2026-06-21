@@ -597,7 +597,7 @@ const Messages = () => {
                 </button>
                 {showChatMenu && (
                   <div style={{ position: 'absolute', top: '40px', right: '0', background: '#1f2937', border: '1px solid #374151', borderRadius: '8px', boxShadow: '0 4px 15px rgba(0, 0, 0, 0.5)', zIndex: 50, width: '160px', overflow: 'hidden' }}>
-                    {authUser?.role !== 'superadmin' && activeChatUser?.role !== 'superadmin' && friends.some(f => f.username === activeChatUser?.username) && (
+                    {authUser?.role !== 'superadmin' && activeChatUser?.role !== 'superadmin' && friends.some(f => f.username === activeChatUser?.username && f.isFriend) && (
                       <button onClick={handleUnfriend} style={{ width: '100%', textAlign: 'left', padding: '12px 16px', background: 'transparent', border: 'none', borderBottom: '1px solid #374151', color: '#ef4444', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem' }} onMouseEnter={(e) => e.currentTarget.style.background = '#374151'} onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}>
                         <UserMinus size={16} /> Unfriend
                       </button>
