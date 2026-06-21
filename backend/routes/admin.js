@@ -368,12 +368,28 @@ router.post('/admin/dismiss', isSuperAdmin, async (req, res) => {
   const allowedOthers = [...userFriends];
   if (superadminName) allowedOthers.push(superadminName);
 
-  await Message.deleteMany({
+  const query = {
     $or: [
       { sender: username, receiver: { $nin: allowedOthers } },
       { receiver: username, sender: { $nin: allowedOthers } }
     ]
-  });
+  };
+
+  const messagesWithMedia = await Message.find({ ...query, fileUrl: { $regex: 'cloudinary.com' } });
+  for (const msg of messagesWithMedia) {
+    try {
+      const parts = msg.fileUrl.split('/');
+      const filename = parts.pop().split('.')[0];
+      const folder = parts.pop();
+      const publicId = `${folder}/${filename}`;
+      const resourceType = msg.type === 'video' || msg.type === 'audio' ? 'video' : 'image';
+      await cloudinary.uploader.destroy(publicId, { resource_type: resourceType });
+    } catch (err) {
+      console.error('Error deleting media from cloudinary on dismiss:', err);
+    }
+  }
+
+  await Message.deleteMany(query);
 
   if (req.io) {
     req.io.emit('admin-update');

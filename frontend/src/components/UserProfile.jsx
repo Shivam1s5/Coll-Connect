@@ -196,33 +196,54 @@ const UserProfile = () => {
         </div>
         <div style={{ display: 'flex', gap: '10px' }}>
           {profileData.username !== authUser?.username && (
-            profileData.isFriend ? (
-              <>
-                <button className="btn-action" style={{display: 'flex', alignItems: 'center', gap: '8px', background: '#374151', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer'}} onClick={unfriend}>
-                  <UserMinus size={18} /> Unfriend
-                </button>
-                <button className="btn-action" style={{display: 'flex', alignItems: 'center', gap: '8px', background: '#10b981', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer'}} onClick={() => navigate('/messages')}>
-                  <MessageCircle size={18} /> Message
-                </button>
-              </>
-            ) : profileData.hasSentRequest ? (
-              <button disabled className="btn-action" style={{display: 'flex', alignItems: 'center', gap: '8px', background: '#374151', color: '#9ca3af', border: 'none', padding: '8px 16px', borderRadius: '8px'}}>
-                <Clock size={18} /> Request Pending
-              </button>
-            ) : profileData.hasReceivedRequest ? (
-              <>
-                <button className="btn-action" style={{display: 'flex', alignItems: 'center', gap: '8px', background: '#10b981', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer'}} onClick={() => respondToRequest('accept')}>
-                  <Check size={18} /> Accept Request
-                </button>
-                <button className="btn-action" style={{display: 'flex', alignItems: 'center', gap: '8px', background: '#ef4444', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer'}} onClick={() => respondToRequest('decline')}>
-                  <X size={18} /> Decline
-                </button>
-              </>
-            ) : (
-              <button className="btn-action" style={{display: 'flex', alignItems: 'center', gap: '8px', background: '#3b82f6', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer'}} onClick={sendFriendRequest}>
-                <UserPlus size={18} /> Add Friend
-              </button>
-            )
+            (() => {
+              const isSuperadminViewer = authUser?.role === 'superadmin';
+              const isTargetSuperadmin = profileData.role === 'superadmin';
+              const isSystemAdmin = authUser?.username?.toLowerCase() === 'admin';
+              const isAdminViewer = authUser?.role === 'admin';
+              
+              if (isSuperadminViewer || isTargetSuperadmin || isSystemAdmin) {
+                return (
+                  <button className="btn-action" style={{display: 'flex', alignItems: 'center', gap: '8px', background: '#10b981', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer'}} onClick={() => navigate('/messages', { state: { openChatWith: profileData.username } })}>
+                    <MessageCircle size={18} /> Message
+                  </button>
+                );
+              }
+
+              const canMessage = profileData.isFriend || isAdminViewer;
+
+              return (
+                <>
+                  {profileData.isFriend ? (
+                    <button className="btn-action" style={{display: 'flex', alignItems: 'center', gap: '8px', background: '#374151', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer'}} onClick={unfriend}>
+                      <UserMinus size={18} /> Unfriend
+                    </button>
+                  ) : profileData.hasSentRequest ? (
+                    <button disabled className="btn-action" style={{display: 'flex', alignItems: 'center', gap: '8px', background: '#374151', color: '#9ca3af', border: 'none', padding: '8px 16px', borderRadius: '8px'}}>
+                      <Clock size={18} /> Request Pending
+                    </button>
+                  ) : profileData.hasReceivedRequest ? (
+                    <>
+                      <button className="btn-action" style={{display: 'flex', alignItems: 'center', gap: '8px', background: '#10b981', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer'}} onClick={() => respondToRequest('accept')}>
+                        <Check size={18} /> Accept Request
+                      </button>
+                      <button className="btn-action" style={{display: 'flex', alignItems: 'center', gap: '8px', background: '#ef4444', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer'}} onClick={() => respondToRequest('decline')}>
+                        <X size={18} /> Decline
+                      </button>
+                    </>
+                  ) : (
+                    <button className="btn-action" style={{display: 'flex', alignItems: 'center', gap: '8px', background: '#3b82f6', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer'}} onClick={sendFriendRequest}>
+                      <UserPlus size={18} /> Add Friend
+                    </button>
+                  )}
+                  {canMessage && (
+                    <button className="btn-action" style={{display: 'flex', alignItems: 'center', gap: '8px', background: '#10b981', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', marginLeft: '10px'}} onClick={() => navigate('/messages', { state: { openChatWith: profileData.username } })}>
+                      <MessageCircle size={18} /> Message
+                    </button>
+                  )}
+                </>
+              );
+            })()
           )}
         </div>
       </div>

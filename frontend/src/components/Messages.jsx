@@ -478,13 +478,16 @@ const Messages = () => {
                           <span style={getBadgeStyle(u.role)}>{u.role}</span>
                         </div>
                       </div>
-                      <div style={{ flexShrink: 0 }}>
-                        {canMessageDirectly ? (
+                      <div style={{ flexShrink: 0, display: 'flex', gap: '8px' }}>
+                        {canMessageDirectly && (
                           <button onClick={() => openChat(u)} style={{ background: '#10b981', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '4px' }}><MessageCircle size={14}/> Message</button>
-                        ) : u.hasSentRequest ? (
-                          <button disabled style={{ background: '#374151', color: '#9ca3af', border: 'none', padding: '6px 12px', borderRadius: '6px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '4px' }}><Clock size={14}/> Pending</button>
-                        ) : (
-                          <button onClick={() => sendFriendRequest(u.username)} style={{ background: '#3b82f6', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '0.85rem' }}>Add Friend</button>
+                        )}
+                        {(!isFriend && !isSystemAdmin && authUser?.role !== 'superadmin' && u.role !== 'superadmin') && (
+                          u.hasSentRequest ? (
+                            <button disabled style={{ background: '#374151', color: '#9ca3af', border: 'none', padding: '6px 12px', borderRadius: '6px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '4px' }}><Clock size={14}/> Pending</button>
+                          ) : (
+                            <button onClick={() => sendFriendRequest(u.username)} style={{ background: '#3b82f6', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '0.85rem' }}>Add Friend</button>
+                          )
                         )}
                       </div>
                     </div>
