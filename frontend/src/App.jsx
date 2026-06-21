@@ -7,6 +7,7 @@ import ManageUsers from './components/superadmin/ManageUsers';
 import AdminDashboard from './components/admin/AdminDashboard';
 import SupportTickets from './components/superadmin/SupportTickets';
 import Announcements from './components/superadmin/Announcements';
+import DeletionRequests from './components/superadmin/DeletionRequests';
 import Layout from './components/Layout';
 import Dashboard from './components/Dashboard';
 import MyProfile from './components/MyProfile';
@@ -42,6 +43,7 @@ function App() {
                 <Route path="superadmin/users" element={<AuthGuard requiredRoles={['superadmin']}><ManageUsers /></AuthGuard>} />
                 <Route path="superadmin/tickets" element={<AuthGuard requiredRoles={['superadmin']}><SupportTickets /></AuthGuard>} />
                 <Route path="superadmin/announcements" element={<AuthGuard requiredRoles={['superadmin']}><Announcements /></AuthGuard>} />
+                <Route path="superadmin/deletion-requests" element={<AuthGuard requiredRoles={['superadmin']}><DeletionRequests /></AuthGuard>} />
                 
                 {/* Admin Routes */}
                 <Route path="admin" element={<AuthGuard requiredRoles={['admin']}><AdminDashboard /></AuthGuard>} />

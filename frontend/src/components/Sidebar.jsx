@@ -62,6 +62,9 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
                 <NavLink to="/superadmin/announcements" className={({isActive}) => isActive ? "nav-item active" : "nav-item"}>
                   Announcements
                 </NavLink>
+                <NavLink to="/superadmin/deletion-requests" className={({isActive}) => isActive ? "nav-item active" : "nav-item"}>
+                  Deletion Requests
+                </NavLink>
               </nav>
             </div>
           )}

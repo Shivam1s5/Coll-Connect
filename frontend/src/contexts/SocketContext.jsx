@@ -9,7 +9,7 @@ export const useSocket = () => useContext(SocketContext);
 
 export const SocketProvider = ({ children }) => {
   const [socket, setSocket] = useState(null);
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
 
   useEffect(() => {
     if (user && user.username) {
@@ -19,10 +19,21 @@ export const SocketProvider = ({ children }) => {
         newSocket.emit('register-active', user.username);
       });
 
+      newSocket.on('account-deleted', () => {
+        alert('Your account has been permanently deleted by the Superadmin.');
+        if (logout) logout();
+        window.location.href = '/';
+      });
+
+      newSocket.on('deletion-request-dismissed', () => {
+        alert('Your account deletion request was dismissed by the Superadmin.');
+        window.location.reload();
+      });
+
       setSocket(newSocket);
       return () => newSocket.close();
     }
-  }, [user]);
+  }, [user, logout]);
 
   return (
     <SocketContext.Provider value={{ socket }}>

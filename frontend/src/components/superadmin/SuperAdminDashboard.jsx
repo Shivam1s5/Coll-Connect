@@ -1,16 +1,33 @@
 import React, { useState, useEffect } from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { useSocket } from '../../contexts/SocketContext';
 
 const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
 
 const SuperAdminDashboard = () => {
-  const [stats, setStats] = useState({ totalUsers: 0, admins: 0, pendingReports: 0 });
+  const [stats, setStats] = useState({ totalUsers: 0, admins: 0, pendingReports: 0, deletionRequests: 0 });
   const [analyticsData, setAnalyticsData] = useState([]);
+  const { socket } = useSocket();
 
   useEffect(() => {
     fetchStats();
     fetchAnalytics();
   }, []);
+
+  useEffect(() => {
+    if (socket) {
+      socket.on('admin-update', fetchStats);
+      socket.on('new-deletion-request', fetchStats);
+      socket.on('deletion-request-resolved', fetchStats);
+    }
+    return () => {
+      if (socket) {
+        socket.off('admin-update', fetchStats);
+        socket.off('new-deletion-request', fetchStats);
+        socket.off('deletion-request-resolved', fetchStats);
+      }
+    };
+  }, [socket]);
 
   const fetchStats = async () => {
     try {
@@ -24,7 +41,8 @@ const SuperAdminDashboard = () => {
         setStats({
           totalUsers: users.length,
           admins: users.filter(u => u.role === 'admin' || u.role === 'superadmin').length,
-          pendingReports: data.reports ? data.reports.filter(r => r.status === 'pending').length : 0
+          pendingReports: data.reports ? data.reports.filter(r => r.status === 'pending').length : 0,
+          deletionRequests: users.filter(u => u.deletionRequested).length
         });
       }
     } catch (err) {
@@ -88,6 +106,10 @@ const SuperAdminDashboard = () => {
         <div className="stat-card" style={{background: '#1a2035', padding: '20px', borderRadius: '12px', flex: 1, minWidth: '200px', border: '1px solid #2a314d'}}>
           <h3 style={{color: '#9ca3af', fontSize: '0.9rem'}}>Pending Reports</h3>
           <div style={{fontSize: '2.5rem', fontWeight: 'bold', color: '#ef4444', marginTop: '10px'}}>{stats.pendingReports}</div>
+        </div>
+        <div className="stat-card" style={{background: '#1a2035', padding: '20px', borderRadius: '12px', flex: 1, minWidth: '200px', border: '1px solid #2a314d'}}>
+          <h3 style={{color: '#9ca3af', fontSize: '0.9rem'}}>Deletion Requests</h3>
+          <div style={{fontSize: '2.5rem', fontWeight: 'bold', color: '#f59e0b', marginTop: '10px'}}>{stats.deletionRequests}</div>
         </div>
       </div>
 

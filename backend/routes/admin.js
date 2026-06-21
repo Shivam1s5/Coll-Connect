@@ -9,6 +9,19 @@ const Analytics = require('../models/Analytics');
 const nodemailer = require('nodemailer');
 const { cloudinary } = require('../config/cloudinary');
 
+const deleteCloudinaryImage = async (imageUrl, resourceType = 'image') => {
+  if (!imageUrl || !imageUrl.includes('cloudinary.com')) return;
+  try {
+    const parts = imageUrl.split('/');
+    const filename = parts.pop().split('.')[0];
+    const folder = parts.pop();
+    const publicId = `${folder}/${filename}`;
+    await cloudinary.uploader.destroy(publicId, { resource_type: resourceType });
+  } catch (err) {
+    console.error('Error deleting image from Cloudinary:', err);
+  }
+};
+
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
@@ -44,19 +57,95 @@ const isSuperAdmin = async (req, res, next) => {
   });
 };
 
-router.post('/account/request-deletion', authMiddleware, async (req, res) => {
-  if (await DeletionRequest.findOne({ username: req.user.username })) {
-    return res.status(400).json({ error: 'Deletion request already pending.' });
-  }
-  const newReq = new DeletionRequest({ email: req.user.email, username: req.user.username });
-  await newReq.save();
-  if (req.io) req.io.emit('admin-update');
-  res.json({ success: true });
+router.get('/admin/deletion-requests', isSuperAdmin, async (req, res) => {
+  const users = await User.find({ deletionRequested: true });
+  
+  // We also need to get their report count/warnings to match the UI requirements
+  const requests = users.map(u => ({
+    username: u.username,
+    email: u.email,
+    profilePic: u.profilePic,
+    joinedAt: u.joinedAt,
+    warningHistory: u.warningHistory || []
+  }));
+  res.json(requests);
 });
 
-router.get('/admin/deletion-requests', isSuperAdmin, async (req, res) => {
-  const requests = await DeletionRequest.find().sort({ timestamp: -1 });
-  res.json(requests);
+router.post('/admin/deletion-requests/:username/accept', isSuperAdmin, async (req, res) => {
+  const targetUsername = req.params.username;
+  const user = await User.findOne({ username: targetUsername });
+  if (!user) return res.status(404).json({ error: 'User not found' });
+  
+  try {
+    // 1. Delete all messages involving this user
+    const messages = await Message.find({ $or: [{ sender: targetUsername }, { receiver: targetUsername }] });
+    for (const msg of messages) {
+      if (msg.fileUrl && msg.fileUrl.includes('cloudinary.com')) {
+        await deleteCloudinaryImage(msg.fileUrl, msg.type === 'video' || msg.type === 'audio' ? 'video' : 'image');
+      }
+    }
+    await Message.deleteMany({ $or: [{ sender: targetUsername }, { receiver: targetUsername }] });
+    
+    // 2. Delete user's profile and banner images
+    if (user.profilePic) await deleteCloudinaryImage(user.profilePic, 'image');
+    if (user.bannerImage) await deleteCloudinaryImage(user.bannerImage, 'image');
+    
+    // 3. Remove user from all friends lists and friendRequests
+    await User.updateMany(
+      { friends: targetUsername },
+      { $pull: { friends: targetUsername } }
+    );
+    await User.updateMany(
+      { "friendRequests.username": targetUsername },
+      { $pull: { friendRequests: { username: targetUsername } } }
+    );
+    
+    // 4. Delete the user document
+    await User.findByIdAndDelete(user._id);
+    
+    // 5. Notify clients
+    if (req.io) {
+      const activeUsers = req.io.activeUsers;
+      if (activeUsers) {
+        const targetSocketId = activeUsers.get(targetUsername);
+        if (targetSocketId) {
+          req.io.to(targetSocketId).emit('account-deleted');
+          activeUsers.delete(targetUsername);
+        }
+      }
+      req.io.emit('admin-update');
+      req.io.emit('chat-cleared', { targetUser: targetUsername });
+      req.io.emit('deletion-request-resolved');
+    }
+    
+    res.json({ success: true, message: 'Account permanently deleted' });
+  } catch (err) {
+    console.error('Error accepting deletion:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+router.post('/admin/deletion-requests/:username/dismiss', isSuperAdmin, async (req, res) => {
+  const targetUsername = req.params.username;
+  const user = await User.findOne({ username: targetUsername });
+  if (!user) return res.status(404).json({ error: 'User not found' });
+  
+  user.deletionRequested = false;
+  await user.save();
+  
+  if (req.io) {
+    const activeUsers = req.io.activeUsers;
+    if (activeUsers) {
+      const targetSocketId = activeUsers.get(targetUsername);
+      if (targetSocketId) {
+        req.io.to(targetSocketId).emit('deletion-request-dismissed');
+      }
+    }
+    req.io.emit('admin-update');
+    req.io.emit('deletion-request-resolved');
+  }
+  
+  res.json({ success: true });
 });
 
 router.get('/admin/users', isAdmin, async (req, res) => {

@@ -151,6 +151,7 @@ router.get('/me', authMiddleware, async (req, res) => {
     profileVisitors: populatedVisitors,
     role: user.role,
     isPrivate: user.isPrivate || false,
+    deletionRequested: user.deletionRequested || false,
     unreadCounts
   });
 });
@@ -367,6 +368,25 @@ router.post('/profile/change-username', authMiddleware, async (req, res) => {
   if (req.io) req.io.emit('admin-update');
   
   res.json({ success: true, token, newUsername });
+});
+
+router.post('/request-deletion', authMiddleware, async (req, res) => {
+  try {
+    const user = await User.findOne({ username: req.user.username });
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    if (user.role === 'superadmin') return res.status(403).json({ error: 'Superadmin cannot be deleted' });
+
+    user.deletionRequested = true;
+    await user.save();
+
+    if (req.io) {
+      req.io.emit('new-deletion-request', user.username);
+    }
+
+    res.json({ success: true, message: 'Deletion request sent successfully' });
+  } catch (err) {
+    res.status(500).json({ error: 'Server error' });
+  }
 });
 
 module.exports = router;

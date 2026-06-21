@@ -280,6 +280,30 @@ const MyProfile = () => {
     }
   };
 
+  const handleRequestDeletion = () => {
+    if (profileData.deletionRequested) {
+      showToast('Your account deletion request is already under review. Please wait.');
+      return;
+    }
+    showConfirm('Are you sure you want to permanently delete your account? This action cannot be undone and will erase all your chats and data.', async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const res = await fetch(`${backendUrl}/api/profile/request-deletion`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (res.ok) {
+          setProfileData(prev => ({ ...prev, deletionRequested: true }));
+          showToast('Account deletion request submitted. Your request is under review. Please wait.');
+        } else {
+          showToast('Failed to submit deletion request.');
+        }
+      } catch (err) {
+        showToast('Server error during deletion request.');
+      }
+    });
+  };
+
   if (loading || !profileData) {
     return <div className="loading-container">Loading Profile...</div>;
   }
@@ -493,6 +517,39 @@ const MyProfile = () => {
               )}
             </div>
           </div>
+          
+          {authUser?.role !== 'superadmin' && (
+            <div style={{ marginTop: '20px', padding: '20px', backgroundColor: '#1f2937', borderRadius: '12px', border: '1px solid #ef4444', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div>
+                <h4 style={{ margin: '0 0 4px 0', color: '#ef4444', fontSize: '1.1rem' }}>Danger Zone</h4>
+                <span style={{ fontSize: '0.85rem', color: '#9ca3af' }}>
+                  {profileData.deletionRequested 
+                    ? 'Your account deletion request is currently under review by Superadmin. Please wait.' 
+                    : 'Permanently delete your account and all associated data.'}
+                </span>
+              </div>
+              <button 
+                onClick={handleRequestDeletion}
+                disabled={profileData.deletionRequested}
+                style={{
+                  padding: '10px 20px', 
+                  borderRadius: '8px', 
+                  fontWeight: 'bold',
+                  cursor: profileData.deletionRequested ? 'not-allowed' : 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  background: profileData.deletionRequested ? '#374151' : 'transparent',
+                  color: profileData.deletionRequested ? '#9ca3af' : '#ef4444',
+                  border: `1px solid ${profileData.deletionRequested ? '#374151' : '#ef4444'}`,
+                  transition: 'all 0.2s ease'
+                }}
+              >
+                <Trash2 size={16} /> 
+                {profileData.deletionRequested ? 'Request Pending' : 'Request Account Deletion'}
+              </button>
+            </div>
+          )}
         </div>
       ) : activeTab === 'friends' ? (
         <div className="friends-section" style={{marginTop: '20px'}}>
