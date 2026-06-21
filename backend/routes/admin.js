@@ -77,47 +77,7 @@ router.post('/admin/deletion-requests/:username/accept', isSuperAdmin, async (re
   if (!user) return res.status(404).json({ error: 'User not found' });
   
   try {
-    // 1. Delete all messages involving this user
-    const messages = await Message.find({ $or: [{ sender: targetUsername }, { receiver: targetUsername }] });
-    for (const msg of messages) {
-      if (msg.fileUrl && msg.fileUrl.includes('cloudinary.com')) {
-        await deleteCloudinaryImage(msg.fileUrl, msg.type === 'video' || msg.type === 'audio' ? 'video' : 'image');
-      }
-    }
-    await Message.deleteMany({ $or: [{ sender: targetUsername }, { receiver: targetUsername }] });
-    
-    // 2. Delete user's profile and banner images
-    if (user.profilePic) await deleteCloudinaryImage(user.profilePic, 'image');
-    if (user.bannerImage) await deleteCloudinaryImage(user.bannerImage, 'image');
-    
-    // 3. Remove user from all friends lists and friendRequests
-    await User.updateMany(
-      { friends: targetUsername },
-      { $pull: { friends: targetUsername } }
-    );
-    await User.updateMany(
-      { "friendRequests.username": targetUsername },
-      { $pull: { friendRequests: { username: targetUsername } } }
-    );
-    
-    // 4. Delete the user document
-    await User.findByIdAndDelete(user._id);
-    
-    // 5. Notify clients
-    if (req.io) {
-      const activeUsers = req.io.activeUsers;
-      if (activeUsers) {
-        const targetSocketId = activeUsers.get(targetUsername);
-        if (targetSocketId) {
-          req.io.to(targetSocketId).emit('account-deleted');
-          activeUsers.delete(targetUsername);
-        }
-      }
-      req.io.emit('admin-update');
-      req.io.emit('chat-cleared', { targetUser: targetUsername });
-      req.io.emit('deletion-request-resolved');
-    }
-    
+    await cascadeDeleteUser(targetUsername, req.io);
     res.json({ success: true, message: 'Account permanently deleted' });
   } catch (err) {
     console.error('Error accepting deletion:', err);
@@ -220,16 +180,44 @@ router.delete('/admin/users/:username/banner', isSuperAdmin, async (req, res) =>
 const cascadeDeleteUser = async (username, io) => {
   const user = await User.findOne({ username });
   if (!user) return;
-  await User.deleteOne({ username });
+  
+  // 1. Delete all messages involving this user & clean up Cloudinary
+  const messages = await Message.find({ $or: [{ sender: username }, { receiver: username }] });
+  for (const msg of messages) {
+    if (msg.fileUrl && msg.fileUrl.includes('cloudinary.com')) {
+      await deleteCloudinaryImage(msg.fileUrl, msg.type === 'video' || msg.type === 'audio' ? 'video' : 'image');
+    }
+  }
+  await Message.deleteMany({ $or: [{ sender: username }, { receiver: username }] });
+  
+  // 2. Delete user's profile and banner images from Cloudinary
+  if (user.profilePic) await deleteCloudinaryImage(user.profilePic, 'image');
+  if (user.bannerImage) await deleteCloudinaryImage(user.bannerImage, 'image');
 
+  // 3. Remove user from all friends lists, friend requests, and warning history
   await User.updateMany({ friends: username }, { $pull: { friends: username } });
   await User.updateMany({ "friendRequests.username": username }, { $pull: { friendRequests: { username } } });
   
-  await Message.deleteMany({ $or: [{ sender: username }, { receiver: username }] });
+  // 4. Delete Reports & DeletionRequests
   await Report.deleteMany({ $or: [{ reporter: username }, { reportedUser: username }] });
   await DeletionRequest.deleteMany({ username });
 
-  if (io) io.emit('user-deleted', { username });
+  // 5. Delete the user document
+  await User.deleteOne({ username });
+
+  // 6. Real-time updates & force logout
+  if (io) {
+    const activeUsers = io.activeUsers;
+    if (activeUsers) {
+      const targetSocketId = activeUsers.get(username);
+      if (targetSocketId) {
+        io.to(targetSocketId).emit('account-deleted');
+        activeUsers.delete(username);
+      }
+    }
+    io.emit('admin-update');
+    io.emit('chat-cleared', { targetUser: username });
+  }
 };
 
 router.post('/admin/approve-deletion', isSuperAdmin, async (req, res) => {
