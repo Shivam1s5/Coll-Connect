@@ -268,7 +268,7 @@ const MyProfile = () => {
                 height: '120px', 
                 width: '100%', 
                 backgroundColor: '#374151',
-                backgroundImage: profileData.bannerImage ? `url(${profileData.bannerImage})` : 'none',
+                backgroundImage: profileData.bannerImage ? `url(${profileData.bannerImage})` : 'linear-gradient(135deg, #374151 0%, #1f2937 100%)',
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
                 position: 'relative',
@@ -296,7 +296,13 @@ const MyProfile = () => {
             </div>
 
             <div className="avatar-wrapper" style={{ marginTop: '-60px', position: 'relative' }} onClick={(e) => { e.stopPropagation(); setPopupMenu('profile'); }}>
-              <img src={profileData.profilePic || 'https://via.placeholder.com/150'} alt="Profile" className="profile-large-avatar" style={{backgroundColor: '#1f2937', cursor: 'pointer'}} />
+              {profileData.profilePic ? (
+                <img src={profileData.profilePic} alt="Profile" className="profile-large-avatar" style={{backgroundColor: '#1f2937', cursor: 'pointer'}} />
+              ) : (
+                <div className="profile-large-avatar" style={{backgroundColor: '#1f2937', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+                  <UserIcon size={80} color="#9ca3af" />
+                </div>
+              )}
               <div className="avatar-edit-btn" style={{cursor: 'pointer', zIndex: 10}}>
                 <Camera size={18} />
               </div>
