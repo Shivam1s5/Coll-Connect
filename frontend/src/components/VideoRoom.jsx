@@ -23,6 +23,9 @@ const VideoRoom = () => {
   const [partnerRole, setPartnerRole] = useState('USER');
   const [partnerBlurred, setPartnerBlurred] = useState(true);
 
+  const [myGender, setMyGender] = useState('Any');
+  const [interestedIn, setInterestedIn] = useState('Any');
+
   const [mediaError, setMediaError] = useState(false);
   
   // Local controls state
@@ -239,7 +242,7 @@ const VideoRoom = () => {
     if (socket && user) {
       handlePartnerDisconnect();
       setMessages([{ text: 'Looking for a stranger...', system: true }]);
-      socket.emit('find-partner', { myGender: 'Any', interestedIn: 'Any', username: user.username });
+      socket.emit('find-partner', { myGender, interestedIn, username: user.username });
     }
   };
 
@@ -328,14 +331,14 @@ const VideoRoom = () => {
   // Keyboard shortcut for Next (Spacebar)
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if (e.code === 'Space' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+      if (e.code === 'Space' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA' && e.target.tagName !== 'SELECT') {
         e.preventDefault();
         handleNext();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [socket, user]); // Dependencies for handleNext
+  }, [socket, user, myGender, interestedIn, partnerConnected]); // Dependencies for handleNext
 
   const toggleMic = () => {
     if (localStreamRef.current) {
@@ -462,9 +465,13 @@ const VideoRoom = () => {
           {/* Local Video Box (Left) */}
           <div className="video-box local-video">
             <div className="user-badge">
-              <span className="username">{user?.username}</span>
-              <span className={`role-badge ${user?.role === 'superadmin' ? 'superadmin' : user?.role === 'admin' ? 'admin' : ''}`}>
-                {user?.role?.toUpperCase()}
+              <span style={{ fontSize: '0.85rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                {user?.username}
+                {user?.role && (
+                  <span className={`badge badge-${user.role.toLowerCase()}`}>
+                    {user.role.toUpperCase()}
+                  </span>
+                )}
               </span>
             </div>
             {mediaError ? (
@@ -512,6 +519,36 @@ const VideoRoom = () => {
                 />
               </>
             )}
+          </div>
+        </div>
+
+        {/* Matchmaking Preferences */}
+        <div className="matchmaking-preferences" style={{ display: 'flex', justifyContent: 'center', gap: '20px', marginBottom: '10px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <label style={{ color: '#9ca3af', fontSize: '0.9rem', fontWeight: 'bold', textTransform: 'uppercase' }}>I am:</label>
+            <select 
+              value={myGender} 
+              onChange={(e) => setMyGender(e.target.value)}
+              style={{ background: '#111827', color: '#f3f4f6', border: '1px solid #4b5563', padding: '6px 12px', borderRadius: '8px', outline: 'none', cursor: 'pointer' }}
+              disabled={partnerConnected}
+            >
+              <option value="Any">Any Gender</option>
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+            </select>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <label style={{ color: '#9ca3af', fontSize: '0.9rem', fontWeight: 'bold', textTransform: 'uppercase' }}>Looking for:</label>
+            <select 
+              value={interestedIn} 
+              onChange={(e) => setInterestedIn(e.target.value)}
+              style={{ background: '#111827', color: '#f3f4f6', border: '1px solid #4b5563', padding: '6px 12px', borderRadius: '8px', outline: 'none', cursor: 'pointer' }}
+              disabled={partnerConnected}
+            >
+              <option value="Any">Any Gender</option>
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+            </select>
           </div>
         </div>
 

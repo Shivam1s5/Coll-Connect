@@ -147,8 +147,8 @@ const Topbar = ({ toggleSidebar }) => {
                   )}
                 </div>
                 <h4 className="profile-dropdown-name">{displayUser?.username || 'User'}</h4>
-                <span className={`profile-dropdown-role role-${displayUser?.role || 'user'}`}>
-                  {displayUser?.role?.toUpperCase() || 'USER'}
+                <span className={`badge badge-${displayUser?.role || 'user'}`} style={{ marginTop: '5px' }}>
+                  {(displayUser?.role || 'USER').toUpperCase()}
                 </span>
                 
                 <div className="profile-dropdown-divider"></div>

@@ -200,8 +200,8 @@ module.exports = (io) => {
         const iWant = socket.preferences.interestedIn;
         const partnerIs = u.preferences.myGender;
         
-        const partnerLikesMe = partnerWants === 'Any' || partnerWants === iAm || iAm === 'Any';
-        const iLikePartner = iWant === 'Any' || iWant === partnerIs || partnerIs === 'Any';
+        const partnerLikesMe = partnerWants === 'Any' || partnerWants === iAm;
+        const iLikePartner = iWant === 'Any' || iWant === partnerIs;
         
         return partnerLikesMe && iLikePartner;
       });
