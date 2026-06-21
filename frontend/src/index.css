@@ -1301,6 +1301,9 @@ body {
 .avatar-wrapper {
   position: relative;
   margin-bottom: 15px;
+  width: max-content;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .profile-large-avatar {

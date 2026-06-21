@@ -276,8 +276,8 @@ const MyProfile = () => {
                 borderTopRightRadius: '12px',
                 cursor: 'pointer'
               }}>
-              <div className="banner-edit-btn" style={{position: 'absolute', top: '10px', right: '10px', background: 'rgba(0,0,0,0.5)', padding: '5px 10px', borderRadius: '5px', color: '#fff', display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.8rem', zIndex: 10}}>
-                <ImageIcon size={14} /> Options
+              <div className="banner-edit-btn" style={{position: 'absolute', top: '15px', right: '15px', backgroundColor: '#3b82f6', color: 'white', width: '36px', height: '36px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 10, boxShadow: '0 2px 4px rgba(0,0,0,0.2)'}}>
+                <Camera size={18} />
               </div>
               {popupMenu === 'banner' && (
                 <div className="image-popup-menu" style={{position: 'absolute', top: '40px', right: '10px', background: '#1f2937', border: '1px solid #374151', borderRadius: '8px', padding: '5px', zIndex: 20, boxShadow: '0 4px 6px rgba(0,0,0,0.3)', display: 'flex', flexDirection: 'column', minWidth: '140px'}}>
