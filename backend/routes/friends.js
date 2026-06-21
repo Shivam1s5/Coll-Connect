@@ -37,6 +37,7 @@ router.get('/users/search', authMiddleware, async (req, res) => {
 router.post('/friend-request', authMiddleware, async (req, res) => {
   const targetUser = await User.findOne({ username: req.body.targetUsername });
   if (!targetUser) return res.status(404).json({ error: 'Target user not found' });
+  if (targetUser.role === 'superadmin') return res.status(403).json({ error: 'Cannot send friend requests to superadmin' });
   
   if (targetUser.friends.includes(req.user.username)) return res.status(400).json({ error: 'Already friends' });
   if (targetUser.friendRequests.some(fr => fr.username === req.user.username)) return res.status(400).json({ error: 'Request already sent' });
@@ -97,6 +98,10 @@ router.post('/unfriend', authMiddleware, async (req, res) => {
   const me = await User.findOne({ username: req.user.username });
   const targetUser = await User.findOne({ username: req.body.targetUsername });
   if (!me || !targetUser) return res.status(404).json({ error: 'User not found' });
+  if (targetUser.role === 'superadmin' || me.role === 'superadmin') {
+    return res.status(403).json({ error: 'Superadmins cannot be unfriended' });
+  }
+  
   me.friends = me.friends.filter(f => f !== targetUser.username);
   targetUser.friends = targetUser.friends.filter(f => f !== me.username);
   

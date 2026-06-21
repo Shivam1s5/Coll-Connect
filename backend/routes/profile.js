@@ -399,6 +399,11 @@ router.post('/report', authMiddleware, async (req, res) => {
       return res.status(400).json({ error: 'Reported user and reason are required' });
     }
 
+    const targetUser = await User.findOne({ username: reportedUser });
+    if (targetUser && targetUser.role === 'superadmin') {
+      return res.status(403).json({ error: 'Superadmins cannot be reported' });
+    }
+
     let screenshotUrl = '';
     if (screenshotData) {
       const uploadRes = await cloudinary.uploader.upload(screenshotData, { folder: 'reports' });
