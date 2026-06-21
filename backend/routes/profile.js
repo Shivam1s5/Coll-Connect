@@ -157,6 +157,8 @@ router.get('/users/:username', authMiddleware, async (req, res) => {
   }
 
   const isFriend = (targetUser.friends || []).includes(req.user.username);
+  const hasSentRequest = (targetUser.friendRequests || []).some(fr => fr.username === req.user.username);
+  const hasReceivedRequest = (visitingUser?.friendRequests || []).some(fr => fr.username === targetUser.username);
   
   const friendsList = [];
   for (let fName of (targetUser.friends || [])) {
@@ -178,6 +180,8 @@ router.get('/users/:username', authMiddleware, async (req, res) => {
     socials: targetUser.socials,
     role: targetUser.role,
     isFriend: isFriend,
+    hasSentRequest,
+    hasReceivedRequest,
     friends: friendsList
   });
 });

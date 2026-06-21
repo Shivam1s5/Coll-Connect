@@ -28,8 +28,8 @@ app.use((req, res, next) => {
 
 // Import Routes
 app.use('/api', require('./routes/auth'));
-app.use('/api', require('./routes/profile'));
 app.use('/api', require('./routes/friends'));
+app.use('/api', require('./routes/profile'));
 app.use('/api', require('./routes/admin'));
 app.use('/api', require('./routes/support'));
 app.use('/api', require('./routes/announcements'));
