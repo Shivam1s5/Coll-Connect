@@ -71,7 +71,7 @@ router.post('/login', async (req, res) => {
 
   if (user.blockedUntil) {
     if (user.blockedUntil === 'permanent') return res.status(403).json({ error: 'Permanently blocked' });
-    if (new Date(user.blockedUntil) > new Date()) return res.status(403).json({ error: `Blocked until ${new Date(user.blockedUntil).toLocaleString()}` });
+    if (new Date(user.blockedUntil) > new Date()) return res.status(403).json({ error: 'Blocked', blockedUntil: user.blockedUntil });
     user.blockedUntil = undefined;
     await user.save();
   }
@@ -98,7 +98,7 @@ router.post('/auth/google', async (req, res) => {
 
     if (user.blockedUntil) {
       if (user.blockedUntil === 'permanent') return res.status(403).json({ error: 'Permanently blocked' });
-      if (new Date(user.blockedUntil) > new Date()) return res.status(403).json({ error: `Blocked until ${new Date(user.blockedUntil).toLocaleString()}` });
+      if (new Date(user.blockedUntil) > new Date()) return res.status(403).json({ error: 'Blocked', blockedUntil: user.blockedUntil });
       user.blockedUntil = undefined;
       await user.save();
     }

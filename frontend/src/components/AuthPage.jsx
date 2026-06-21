@@ -42,6 +42,9 @@ const AuthContent = () => {
       const data = await response.json();
 
       if (!response.ok) {
+        if (data.blockedUntil) {
+          throw new Error(`Blocked until ${new Date(data.blockedUntil).toLocaleString()}`);
+        }
         throw new Error(data.error || 'Server error. Please try again.');
       }
 
@@ -63,7 +66,12 @@ const AuthContent = () => {
       });
       const data = await response.json();
       
-      if (!response.ok) throw new Error(data.error);
+      if (!response.ok) {
+        if (data.blockedUntil) {
+          throw new Error(`Blocked until ${new Date(data.blockedUntil).toLocaleString()}`);
+        }
+        throw new Error(data.error);
+      }
 
       if (data.requiresRegistration) {
         setGoogleRegData(data);
