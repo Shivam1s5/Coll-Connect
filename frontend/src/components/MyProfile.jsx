@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useSocket } from '../contexts/SocketContext';
-import { Camera, Edit2, Save, X, User as UserIcon, Link as LinkIcon } from 'lucide-react';
+import { Camera, Edit2, Save, X, User as UserIcon, Link as LinkIcon, Image as ImageIcon } from 'lucide-react';
 import { FaInstagram as Instagram, FaFacebook as Facebook, FaLinkedin as Linkedin, FaSnapchat as Snapchat } from 'react-icons/fa';
+import ImageCropperModal from './ImageCropperModal';
 import '../index.css';
 
 const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
@@ -25,9 +26,11 @@ const MyProfile = () => {
 
   const [activeTab, setActiveTab] = useState('profile'); // 'profile' or 'friends'
 
-  // Image Upload States
-  const [imageFile, setImageFile] = useState(null);
-  const [imagePreview, setImagePreview] = useState('');
+  // Image Cropper States
+  const [cropperOpen, setCropperOpen] = useState(false);
+  const [cropperSrc, setCropperSrc] = useState('');
+  const [cropperAspect, setCropperAspect] = useState(1); // 1 for profile, 16/9 for banner
+  const [cropperTarget, setCropperTarget] = useState(''); // 'profile' or 'banner'
   const [isUploading, setIsUploading] = useState(false);
 
   useEffect(() => {
@@ -54,24 +57,29 @@ const MyProfile = () => {
     }
   };
 
-  const handleImageChange = (e) => {
+  const handleImageChange = (e, target) => {
     const file = e.target.files[0];
     if (file) {
       if (file.size > 5 * 1024 * 1024) return alert('Image must be less than 5MB');
-      setImageFile(file);
       const reader = new FileReader();
-      reader.onloadend = () => setImagePreview(reader.result);
+      reader.onloadend = () => {
+        setCropperSrc(reader.result);
+        setCropperTarget(target);
+        setCropperAspect(target === 'profile' ? 1 : 16 / 9);
+        setCropperOpen(true);
+      };
       reader.readAsDataURL(file);
     }
   };
 
-  const handleImageUpload = async () => {
-    if (!imageFile) return;
+  const handleCropComplete = async (croppedFile) => {
+    setCropperOpen(false);
+    if (!croppedFile) return;
     setIsUploading(true);
     try {
       const token = localStorage.getItem('token');
       const formData = new FormData();
-      formData.append('file', imageFile);
+      formData.append('file', croppedFile);
 
       const uploadRes = await fetch(`${backendUrl}/api/upload`, {
         method: 'POST',
@@ -82,23 +90,24 @@ const MyProfile = () => {
       if (!uploadRes.ok) throw new Error('Cloudinary upload failed');
       const uploadData = await uploadRes.json();
       
-      const saveRes = await fetch(`${backendUrl}/api/profile-pic`, {
+      const endpoint = cropperTarget === 'profile' ? '/api/profile-pic' : '/api/profile-banner';
+      const payload = cropperTarget === 'profile' 
+        ? { profilePic: uploadData.url } 
+        : { bannerImage: uploadData.url };
+
+      const saveRes = await fetch(`${backendUrl}${endpoint}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({ profilePic: uploadData.url })
+        body: JSON.stringify(payload)
       });
 
       if (saveRes.ok) {
         const data = await saveRes.json();
-        setProfileData(prev => ({ ...prev, profilePic: data.profilePic }));
-        setImageFile(null);
-        setImagePreview('');
-        // We do not have a setAuthUser context updater easily, but the topbar reads from context.
-        // It might require a page reload to update the Topbar if we don't have a specific context update func.
-        alert('Profile picture updated successfully! It may take a refresh to reflect everywhere.');
+        setProfileData(prev => ({ ...prev, ...data }));
+        alert(`${cropperTarget === 'profile' ? 'Profile picture' : 'Background banner'} updated successfully!`);
       }
     } catch (err) {
       console.error(err);
@@ -194,23 +203,34 @@ const MyProfile = () => {
       {activeTab === 'profile' ? (
         <div className="profile-content grid-layout">
           {/* Avatar Section */}
-          <div className="profile-card avatar-card">
-            <div className="avatar-wrapper">
-              <img src={imagePreview || profileData.profilePic || 'https://via.placeholder.com/150'} alt="Profile" className="profile-large-avatar" />
+          <div className="profile-card avatar-card" style={{padding: 0}}>
+            {/* Banner Area */}
+            <div className="banner-area" style={{ 
+                height: '120px', 
+                width: '100%', 
+                backgroundColor: '#374151',
+                backgroundImage: profileData.bannerImage ? `url(${profileData.bannerImage})` : 'none',
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                position: 'relative',
+                borderTopLeftRadius: '12px',
+                borderTopRightRadius: '12px'
+              }}>
+              <label htmlFor="banner-upload" className="banner-edit-btn" style={{position: 'absolute', top: '10px', right: '10px', background: 'rgba(0,0,0,0.5)', padding: '5px 10px', borderRadius: '5px', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.8rem'}}>
+                <ImageIcon size={14} /> Edit Banner
+              </label>
+              <input type="file" id="banner-upload" accept="image/*" style={{display: 'none'}} onChange={(e) => handleImageChange(e, 'banner')} />
+            </div>
+
+            <div className="avatar-wrapper" style={{ marginTop: '-60px' }}>
+              <img src={profileData.profilePic || 'https://via.placeholder.com/150'} alt="Profile" className="profile-large-avatar" style={{backgroundColor: '#1f2937'}} />
               <label htmlFor="profile-upload" className="avatar-edit-btn">
                 <Camera size={18} />
               </label>
-              <input type="file" id="profile-upload" accept="image/*" style={{display: 'none'}} onChange={handleImageChange} />
+              <input type="file" id="profile-upload" accept="image/*" style={{display: 'none'}} onChange={(e) => handleImageChange(e, 'profile')} />
             </div>
-            {imageFile && (
-              <div className="upload-actions">
-                <button className="btn-save" onClick={handleImageUpload} disabled={isUploading}>
-                  {isUploading ? 'Uploading...' : 'Save Picture'}
-                </button>
-                <button className="btn-cancel" onClick={() => {setImageFile(null); setImagePreview('');}} disabled={isUploading}>Cancel</button>
-              </div>
-            )}
-            <h3 className="profile-role">{profileData.role.toUpperCase()}</h3>
+            
+            <h3 className="profile-role" style={{marginBottom: '20px'}}>{profileData.role.toUpperCase()}</h3>
           </div>
 
           {/* Details Section */}
@@ -218,27 +238,29 @@ const MyProfile = () => {
             {/* Account Info */}
             <div className="profile-card info-card">
               <h3>Account Info</h3>
-              <div className="info-row">
-                <span className="info-label">Email</span>
-                <span className="info-value text-muted">{profileData.email}</span>
+              <div className="form-group" style={{marginTop: '15px'}}>
+                <label>Email</label>
+                <input type="text" className="profile-input text-muted" value={profileData.email} disabled />
               </div>
-              <div className="info-row">
-                <span className="info-label">Username</span>
+              
+              <div className="form-group">
+                <label>Username</label>
                 {isEditingUsername ? (
                   <div className="edit-group">
                     <input type="text" value={newUsername} onChange={(e) => setNewUsername(e.target.value)} className="profile-input" />
-                    <button className="btn-icon save" onClick={handleSaveUsername}><Save size={16}/></button>
-                    <button className="btn-icon cancel" onClick={() => {setIsEditingUsername(false); setNewUsername(profileData.username);}}><X size={16}/></button>
+                    <button className="btn-save" style={{padding: '10px'}} onClick={handleSaveUsername}>Save</button>
+                    <button className="btn-cancel" style={{padding: '10px'}} onClick={() => {setIsEditingUsername(false); setNewUsername(profileData.username);}}>Cancel</button>
                   </div>
                 ) : (
-                  <div className="value-group">
-                    <span className="info-value">{profileData.username}</span>
-                    <button className="btn-icon edit" onClick={() => setIsEditingUsername(true)} title="You can only change username once a year"><Edit2 size={14}/></button>
+                  <div className="edit-group">
+                    <input type="text" className="profile-input" value={profileData.username} disabled />
+                    <button className="btn-action btn-blue" onClick={() => setIsEditingUsername(true)} title="Change Username">Edit</button>
                   </div>
                 )}
               </div>
-              <div className="info-row">
-                <span className="info-label">Gender</span>
+              
+              <div className="form-group">
+                <label>Gender</label>
                 {isEditingGender ? (
                   <div className="edit-group">
                     <select value={gender} onChange={(e) => setGender(e.target.value)} className="profile-input">
@@ -247,13 +269,13 @@ const MyProfile = () => {
                       <option value="Female">Female</option>
                       <option value="Other">Other</option>
                     </select>
-                    <button className="btn-icon save" onClick={handleSaveGender}><Save size={16}/></button>
-                    <button className="btn-icon cancel" onClick={() => {setIsEditingGender(false); setGender(profileData.gender || 'Not Specified');}}><X size={16}/></button>
+                    <button className="btn-save" style={{padding: '10px'}} onClick={handleSaveGender}>Save</button>
+                    <button className="btn-cancel" style={{padding: '10px'}} onClick={() => {setIsEditingGender(false); setGender(profileData.gender || 'Not Specified');}}>Cancel</button>
                   </div>
                 ) : (
-                  <div className="value-group">
-                    <span className="info-value">{profileData.gender || 'Not Specified'}</span>
-                    <button className="btn-icon edit" onClick={() => setIsEditingGender(true)}><Edit2 size={14}/></button>
+                  <div className="edit-group">
+                    <input type="text" className="profile-input" value={profileData.gender || 'Not Specified'} disabled />
+                    <button className="btn-action btn-blue" onClick={() => setIsEditingGender(true)}>Edit</button>
                   </div>
                 )}
               </div>
@@ -321,6 +343,22 @@ const MyProfile = () => {
           </div>
         </div>
       )}
+      {isUploading && (
+        <div className="modal-overlay" style={{zIndex: 99999}}>
+          <div className="modal-content" style={{padding: '20px', textAlign: 'center'}}>
+            <h3>Uploading Image...</h3>
+            <p className="text-muted">Please wait while we process your request.</p>
+          </div>
+        </div>
+      )}
+
+      <ImageCropperModal 
+        isOpen={cropperOpen}
+        onClose={() => setCropperOpen(false)}
+        imageSrc={cropperSrc}
+        aspect={cropperAspect}
+        onCropComplete={handleCropComplete}
+      />
     </div>
   );
 };

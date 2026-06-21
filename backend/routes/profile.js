@@ -100,6 +100,13 @@ router.post('/profile-pic', authMiddleware, async (req, res) => {
   res.json({ success: true, profilePic: user.profilePic });
 });
 
+router.post('/profile-banner', authMiddleware, async (req, res) => {
+  const user = await User.findOneAndUpdate({ username: req.user.username }, { bannerImage: req.body.bannerImage || '' }, { new: true });
+  if (!user) return res.status(404).json({ error: 'Not found' });
+  if (req.io) req.io.emit('admin-update');
+  res.json({ success: true, bannerImage: user.bannerImage });
+});
+
 router.post('/profile/socials', authMiddleware, async (req, res) => {
   const user = await User.findOneAndUpdate({ username: req.user.username }, { socials: req.body.socials }, { new: true });
   if (!user) return res.status(404).json({ error: 'Not found' });

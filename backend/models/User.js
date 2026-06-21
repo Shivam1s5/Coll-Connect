@@ -7,6 +7,7 @@ const userSchema = new mongoose.Schema({
   role: { type: String, default: 'user' },
   gender: { type: String, default: 'Not Specified' },
   profilePic: { type: String, default: '' },
+  bannerImage: { type: String, default: '' },
   joinedAt: { type: Date, default: Date.now },
   lastUsernameChangeDate: { type: Date },
   blockedUntil: { type: mongoose.Schema.Types.Mixed }, // String ('permanent') or Date
