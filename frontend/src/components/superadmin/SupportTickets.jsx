@@ -41,6 +41,20 @@ const SupportTickets = () => {
     }
   };
 
+  const dismissTicket = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this ticket?')) return;
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${backendUrl}/api/support/${id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) fetchTickets();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   return (
     <div className="manage-users-container">
       <h2>Support Tickets</h2>
@@ -74,8 +88,9 @@ const SupportTickets = () => {
                 )}
               </div>
               {ticket.status !== 'resolved' && (
-                <div className="ticket-actions mt-2">
+                <div className="ticket-actions mt-2" style={{display: 'flex', gap: '10px'}}>
                   <button className="btn-action btn-blue" onClick={() => resolveTicket(ticket._id)}>Mark as Resolved</button>
+                  <button className="btn-action btn-red" onClick={() => dismissTicket(ticket._id)}>Dismiss Invalid Ticket</button>
                 </div>
               )}
             </div>

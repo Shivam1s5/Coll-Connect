@@ -46,15 +46,17 @@ const ContactSupportModal = ({ isOpen, onClose }) => {
       let imageUrl = '';
       const token = localStorage.getItem('token');
 
-      if (imagePreview) {
+      if (imageFile) {
         // Upload image first
+        const formData = new FormData();
+        formData.append('file', imageFile);
+
         const uploadRes = await fetch(`${backendUrl}/api/upload`, {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`
           },
-          body: JSON.stringify({ fileData: imagePreview, fileType: 'image' })
+          body: formData
         });
         const uploadData = await uploadRes.json();
         if (uploadData.url) imageUrl = uploadData.url;
