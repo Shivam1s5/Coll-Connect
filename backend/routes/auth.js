@@ -7,12 +7,7 @@ const { sendEmail } = require('../utils/mailer');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'super-secret-key-123';
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
-const nodemailer = require('nodemailer');
 
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: { user: process.env.ADMIN_EMAIL, pass: process.env.ADMIN_APP_PASSWORD }
-});
 const resetCodes = new Map();
 
 router.post('/forgot-password', async (req, res) => {
@@ -39,7 +34,11 @@ router.post('/forgot-password', async (req, res) => {
       <p style="font-size: 14px; color: #94a3b8; text-align: center;">Best regards,<br>The Coll-Connect Team</p>
     </div>
   `;
-  await sendEmail(user.email, '🔐 Password Reset OTP', mailHtml);
+  try {
+    await sendEmail(user.email, '🔐 Password Reset OTP', mailHtml);
+  } catch (e) {
+    console.error('[Mailer] OTP email failed:', e);
+  }
 
   res.json({ success: true, message: 'If the email exists, an OTP has been sent.' });
 });
@@ -66,9 +65,10 @@ router.post('/reset-password', async (req, res) => {
       <p style="font-size: 14px; color: #94a3b8; text-align: center;">Best regards,<br>The Coll-Connect Team</p>
     </div>
   `;
-  await sendEmail(user.email, '✅ Password Reset Successful', mailHtml);
-
   res.json({ success: true, message: 'Password reset successfully!' });
+
+  // Fire email in background
+  sendEmail(user.email, '✅ Password Reset Successful', mailHtml).catch(e => console.error('[Mailer] Background send failed:', e));
 });
 
 router.post('/register', async (req, res) => {

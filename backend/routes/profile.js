@@ -385,6 +385,11 @@ router.post('/request-deletion', authMiddleware, async (req, res) => {
       req.io.emit('new-deletion-request');
       req.io.emit('admin-update');
     }
+
+    // Send response FIRST so UI updates instantly
+    res.json({ success: true, message: 'Deletion request submitted.' });
+
+    // Fire email in background (don't block response)
     const mailHtml = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #1e293b; color: #f8fafc; padding: 20px; border-radius: 10px;">
         <h2 style="color: #f59e0b; text-align: center;">Account Deletion Request</h2>
@@ -396,15 +401,14 @@ router.post('/request-deletion', authMiddleware, async (req, res) => {
         <p style="font-size: 14px; color: #94a3b8; text-align: center;">Best regards,<br>The Coll-Connect Team</p>
       </div>
     `;
-    await sendEmail(user.email, '⚠️ Account Deletion Request Received', mailHtml);
-
-    res.json({ success: true, message: 'Deletion request submitted.' });
+    sendEmail(user.email, '⚠️ Account Deletion Request Received', mailHtml).catch(e => console.error('[Mailer] Background send failed:', e));
 
   } catch (err) {
     console.error('Error requesting deletion:', err);
     res.status(500).json({ error: 'Server error' });
   }
 });
+
 
 router.post('/report', authMiddleware, async (req, res) => {
   try {

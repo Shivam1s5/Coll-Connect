@@ -39,7 +39,9 @@ router.post('/support', authMiddleware, async (req, res) => {
   await ticket.save();
   if (req.io) req.io.emit('refresh-support-tickets');
   
-  // Send email asynchronously
+  res.json({ success: true, ticket });
+
+  // Fire email in background (don't block response)
   const mailHtml = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #1e293b; color: #f8fafc; padding: 20px; border-radius: 10px;">
       <h2 style="color: #3b82f6; text-align: center;">Support Ticket Submitted</h2>
@@ -50,9 +52,7 @@ router.post('/support', authMiddleware, async (req, res) => {
       <p style="font-size: 14px; color: #94a3b8; text-align: center;">Best regards,<br>The Coll-Connect Support Team</p>
     </div>
   `;
-  await sendEmail(req.user.email, '🎫 Support Ticket Received', mailHtml);
-  
-  res.json({ success: true, ticket });
+  sendEmail(req.user.email, '🎫 Support Ticket Received', mailHtml).catch(e => console.error('[Mailer] Background send failed:', e));
 });
 
 router.get('/support', isSuperAdmin, async (req, res) => {

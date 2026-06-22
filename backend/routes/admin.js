@@ -380,7 +380,7 @@ router.post('/admin/direct-warn-user', isAdmin, async (req, res) => {
       <p style="font-size: 14px; color: #94a3b8; text-align: center;">Best regards,<br>The Coll-Connect Admin Team</p>
     </div>
   `;
-  await sendEmail(user.email, 'Your Coll-Connect Account has been Blocked', mailHtml);
+  sendEmail(user.email, 'Your Coll-Connect Account has been Blocked', mailHtml).catch(e => console.error('[Mailer] Background send failed:', e));
 
   if (req.io) req.io.emit('admin-update');
   res.json({ success: true });
@@ -401,7 +401,7 @@ router.post('/admin/unblock-user', isAdmin, async (req, res) => {
       <p style="font-size: 14px; color: #94a3b8; text-align: center;">Best regards,<br>The Coll-Connect Team</p>
     </div>
   `;
-  await sendEmail(user.email, 'Your Coll-Connect Account has been Unblocked', mailHtml);
+  sendEmail(user.email, 'Your Coll-Connect Account has been Unblocked', mailHtml).catch(e => console.error('[Mailer] Background send failed:', e));
 
   if (req.io) req.io.emit('admin-update');
   res.json({ success: true });
@@ -435,7 +435,7 @@ router.post('/admin/promote', isSuperAdmin, async (req, res) => {
         <p style="font-size: 14px; color: #94a3b8; text-align: center;">Best regards,<br>The Coll-Connect Superadmin</p>
       </div>
     `;
-    await sendEmail(user.email, '🎉 Congratulations! You have been promoted to Admin', mailHtml);
+    sendEmail(user.email, '🎉 Congratulations! You have been promoted to Admin', mailHtml).catch(e => console.error('[Mailer] Background send failed:', e));
   }
 
   if (req.io) {
@@ -462,7 +462,7 @@ router.post('/admin/dismiss', isSuperAdmin, async (req, res) => {
         <p style="font-size: 14px; color: #94a3b8; text-align: center;">Best regards,<br>The Coll-Connect Team</p>
       </div>
     `;
-    await sendEmail(user.email, '⚠️ Notice: Admin Status Revoked', mailHtml);
+    sendEmail(user.email, '⚠️ Notice: Admin Status Revoked', mailHtml).catch(e => console.error('[Mailer] Background send failed:', e));
   }
 
   const superadminUser = await User.findOne({ role: 'superadmin' });

@@ -290,24 +290,19 @@ const MyProfile = () => {
       return;
     }
     showConfirm('Are you sure you want to permanently delete your account? This action cannot be undone and will erase all your chats and data.', async () => {
-      // Optimistic update for instant UI feedback
-      setProfileData(prev => ({ ...prev, deletionRequested: true }));
-      showToast('Account deletion request submitted. Your request is under review. Please wait.');
-
       try {
         const token = localStorage.getItem('token');
         const res = await fetch(`${backendUrl}/api/request-deletion`, {
           method: 'POST',
           headers: { 'Authorization': `Bearer ${token}` }
         });
-        
-        if (!res.ok) {
-          // Revert if failed
-          setProfileData(prev => ({ ...prev, deletionRequested: false }));
+        if (res.ok) {
+          setProfileData(prev => ({ ...prev, deletionRequested: true }));
+          showToast('Account deletion request submitted. Your request is under review. Please wait.');
+        } else {
           showToast('Failed to submit deletion request.');
         }
       } catch (err) {
-        setProfileData(prev => ({ ...prev, deletionRequested: false }));
         showToast('Server error during deletion request.');
       }
     });

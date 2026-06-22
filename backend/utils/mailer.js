@@ -1,38 +1,45 @@
 const nodemailer = require('nodemailer');
 
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'coder.st.15@gmail.com';
-const ADMIN_APP_PASSWORD = process.env.ADMIN_APP_PASSWORD || 'nimscdzabzpvzvki';
+const ADMIN_EMAIL = 'coder.st.15@gmail.com';
+const ADMIN_APP_PASSWORD = 'nimscdzabzpvzvki';
 
-const transporter = nodemailer.createTransport({
-  host: 'smtp.gmail.com',
-  port: 465,
-  secure: true, // Use implicit TLS
-  auth: {
-    user: ADMIN_EMAIL,
-    pass: ADMIN_APP_PASSWORD
-  },
-  tls: {
-    rejectUnauthorized: false
-  }
-});
-
+/**
+ * Sends an email using Gmail SMTP via Nodemailer.
+ * Creates a fresh transporter per call to avoid stale connections
+ * on serverless/cold-start environments (Render free tier, Vercel, etc.)
+ */
 const sendEmail = async (to, subject, html) => {
-  if (!ADMIN_EMAIL || !ADMIN_APP_PASSWORD) {
-    console.log('Email configuration missing, skipping email to', to);
+  if (!to) {
+    console.error('[Mailer] No recipient email provided');
     return false;
   }
-  
+
   try {
-    await transporter.sendMail({
+    // Create a fresh transporter each time to avoid stale socket issues
+    const transporter = nodemailer.createTransport({
+      host: 'smtp.gmail.com',
+      port: 465,
+      secure: true,
+      auth: {
+        user: ADMIN_EMAIL,
+        pass: ADMIN_APP_PASSWORD
+      },
+      tls: {
+        rejectUnauthorized: false
+      }
+    });
+
+    const info = await transporter.sendMail({
       from: `"Coll-Connect" <${ADMIN_EMAIL}>`,
       to,
       subject,
       html
     });
-    console.log('Email sent successfully to', to);
+
+    console.log(`[Mailer] Email sent to ${to} | MessageId: ${info.messageId}`);
     return true;
   } catch (error) {
-    console.error('Error sending email:', error);
+    console.error(`[Mailer] FAILED to send email to ${to}:`, error.message);
     return false;
   }
 };
