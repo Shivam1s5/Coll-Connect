@@ -2289,7 +2289,9 @@ body {
   .banner-area { height: 100px !important; }
   .profile-large-avatar { width: 100px !important; height: 100px !important; }
   .avatar-wrapper { margin-top: -50px !important; }
-  .friends-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)) !important; }
+  .friends-grid { grid-template-columns: 1fr !important; }
+  .user-badge { flex-wrap: wrap; }
+  .user-badge .badge { font-size: 0.6rem; padding: 2px 4px; line-height: 1; }
 
   /* Messages - Mobile View Toggle */
   .messages-layout { flex-direction: column; }
@@ -2305,10 +2307,16 @@ body {
 
   /* Video Room - Mobile specific */
   .local-video { display: none !important; }
-  .video-section { min-height: 50vh; padding: 5px; }
-  .video-grid { flex-direction: column !important; margin-bottom: 10px; }
+  .video-section { min-height: 50vh; padding: 5px; display: flex; flex-direction: column; }
+  .video-grid { flex-direction: column !important; margin-bottom: 10px; order: 2; }
+  .video-controls { order: 1; flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; justify-content: flex-start; padding-bottom: 5px; margin-bottom: 10px; gap: 6px; }
+  .control-btn { font-size: 0.65rem; padding: 6px 10px; flex: 0 0 auto; min-width: unset; border-radius: 20px; transition: transform 0.2s; white-space: nowrap; }
+  .control-btn:active, .control-btn:hover { transform: scale(1.05); }
   .remote-video { height: 100%; border: 2px solid #8b5cf6; border-radius: 16px; box-shadow: 0 4px 20px rgba(139, 92, 246, 0.2); transition: transform 0.3s ease; }
   
+  /* Hide Chat Size on Mobile */
+  .chat-resizer { display: none !important; }
+
   /* Swipe Animation Hint */
   .remote-video::after {
     content: "← Swipe Next →";
@@ -2325,11 +2333,6 @@ body {
     backdrop-filter: blur(4px);
     z-index: 10;
   }
-
-  /* Video Controls */
-  .video-controls { flex-wrap: wrap; gap: 8px; justify-content: center; margin-bottom: 10px; }
-  .control-btn { font-size: 0.75rem; padding: 8px 12px; flex: 1; min-width: calc(33% - 8px); border-radius: 20px; text-align: center; display: flex; justify-content: center; align-items: center; transition: transform 0.2s; }
-  .control-btn:active, .control-btn:hover { transform: scale(1.05); }
 
   /* Instagram-Style Messages List */
   .messages-sidebar { background: #000 !important; }
@@ -2351,8 +2354,7 @@ body {
   .messages-sidebar .custom-scrollbar > div > div > div:nth-child(2) { margin-top: 0 !important; padding: 0 !important; }
   
   /* Instagram-Style Chat Screen */
-  .messages-wrapper.chat-open { padding: 0 !important; position: fixed !important; top: 0; left: 0; right: 0; bottom: 0; height: 100vh !important; z-index: 1000; background: #000; }
-  .messages-layout.chat-open { height: 100% !important; border-radius: 0 !important; border: none !important; }
+  .messages-layout.chat-open { position: fixed !important; top: 0; left: 0; right: 0; bottom: 0; height: 100dvh !important; width: 100vw !important; z-index: 9999; background: #000; border-radius: 0 !important; border: none !important; margin: 0 !important; }
   .messages-main { background: #000 !important; height: 100%; display: flex; flex-direction: column; }
   .messages-main > div:first-child { background: #000 !important; border-bottom: 1px solid #262626 !important; padding-top: 15px !important; }
   .messages-main .chat-msg { max-width: 85%; font-size: 0.95rem; border-radius: 22px; padding: 12px 16px; line-height: 1.3; }
