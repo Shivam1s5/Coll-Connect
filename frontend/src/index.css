@@ -2363,7 +2363,7 @@ body {
   .messages-main .chat-msg.stranger { background: #262626 !important; border-bottom-left-radius: 4px; }
   
   /* Chat Input Area - Pill shape */
-  .chat-input-area { background: #000 !important; border-top: none !important; padding: 10px 16px 20px 16px !important; margin-bottom: 0 !important; flex-wrap: nowrap; }
+  .chat-input-area { background: #000 !important; border-top: none !important; padding: 10px 16px 30px 16px !important; margin-bottom: 0 !important; flex-wrap: nowrap; box-sizing: border-box; }
   .chat-input-area .chat-input { background: #262626 !important; border-radius: 24px !important; border: 1px solid #333 !important; padding: 12px 20px !important; margin: 0 5px; flex: 1; min-width: 0; }
   .chat-input-area button[type="submit"], .chat-input-area button { background: transparent !important; color: #3797f0 !important; padding: 0; margin: 0; min-width: unset; }
   .chat-input-area .emoji-btn, .chat-input-area .gif-btn, .chat-input-area .icon-btn { color: #8e8e8e !important; padding: 5px !important; }
@@ -2373,6 +2373,9 @@ body {
 
   /* Profiles centering fix */
   .my-profile-container { width: 100% !important; padding: 10px !important; box-sizing: border-box !important; overflow-x: hidden; }
+
+  /* Notification/Announcement Dropdown Mobile Fix */
+  .notification-dropdown { position: fixed !important; top: 60px !important; right: 10px !important; left: 10px !important; width: auto !important; max-width: calc(100vw - 20px) !important; z-index: 1000 !important; }
 }
 
 @media (max-width: 480px) {
