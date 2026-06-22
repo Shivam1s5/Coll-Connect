@@ -562,7 +562,7 @@ const Messages = () => {
                         {canMessageDirectly && (
                           <button onClick={() => openChat(u)} style={{ background: '#10b981', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '4px' }}><MessageCircle size={14}/> Message</button>
                         )}
-                        {(!isFriend && authUser?.role !== 'admin' && authUser?.role !== 'superadmin' && u.role !== 'superadmin') && (
+                        {(!isFriend && authUser?.role !== 'superadmin' && u.role !== 'superadmin') && (
                           u.hasSentRequest ? (
                             <button disabled style={{ background: '#374151', color: '#9ca3af', border: 'none', padding: '6px 12px', borderRadius: '6px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '4px' }}><Clock size={14}/> Pending</button>
                           ) : (

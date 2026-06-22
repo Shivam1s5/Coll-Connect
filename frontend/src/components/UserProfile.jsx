@@ -189,7 +189,7 @@ const UserProfile = () => {
               const isTargetSuperadmin = profileData.role === 'superadmin';
               const isAdminViewer = authUser?.role === 'admin';
               
-              if (isSuperadminViewer || isTargetSuperadmin || isAdminViewer) {
+              if (isSuperadminViewer || isTargetSuperadmin) {
                 return (
                   <button className="btn-action" style={{display: 'flex', alignItems: 'center', gap: '8px', background: '#10b981', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer'}} onClick={() => navigate('/messages', { state: { openChatWith: profileData.username } })}>
                     <MessageCircle size={18} /> Message
