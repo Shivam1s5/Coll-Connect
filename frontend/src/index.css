@@ -2328,7 +2328,8 @@ body {
 
   /* Video Controls */
   .video-controls { flex-wrap: wrap; gap: 8px; justify-content: center; margin-bottom: 10px; }
-  .control-btn { font-size: 0.75rem; padding: 8px 12px; flex: 1; min-width: calc(33% - 8px); border-radius: 20px; text-align: center; display: flex; justify-content: center; align-items: center; }
+  .control-btn { font-size: 0.75rem; padding: 8px 12px; flex: 1; min-width: calc(33% - 8px); border-radius: 20px; text-align: center; display: flex; justify-content: center; align-items: center; transition: transform 0.2s; }
+  .control-btn:active, .control-btn:hover { transform: scale(1.05); }
 
   /* Instagram-Style Messages List */
   .messages-sidebar { background: #000 !important; }
@@ -2350,21 +2351,27 @@ body {
   .messages-sidebar .custom-scrollbar > div > div > div:nth-child(2) { margin-top: 0 !important; padding: 0 !important; }
   
   /* Instagram-Style Chat Screen */
-  .messages-main { background: #000 !important; }
-  .messages-main > div:first-child { background: #000 !important; border-bottom: 1px solid #262626 !important; }
+  .messages-wrapper.chat-open { padding: 0 !important; position: fixed !important; top: 0; left: 0; right: 0; bottom: 0; height: 100vh !important; z-index: 1000; background: #000; }
+  .messages-layout.chat-open { height: 100% !important; border-radius: 0 !important; border: none !important; }
+  .messages-main { background: #000 !important; height: 100%; display: flex; flex-direction: column; }
+  .messages-main > div:first-child { background: #000 !important; border-bottom: 1px solid #262626 !important; padding-top: 15px !important; }
   .messages-main .chat-msg { max-width: 85%; font-size: 0.95rem; border-radius: 22px; padding: 12px 16px; line-height: 1.3; }
   .messages-main .chat-msg.self { background: #3797f0 !important; border-bottom-right-radius: 4px; }
   .messages-main .chat-msg.stranger { background: #262626 !important; border-bottom-left-radius: 4px; }
   
   /* Chat Input Area - Pill shape */
-  .chat-input-area { background: #000 !important; border-top: none !important; padding: 10px 16px !important; }
-  .chat-input-area .chat-input { background: #262626 !important; border-radius: 24px !important; border: 1px solid #333 !important; padding: 12px 20px !important; }
-  .chat-input-area button[type="submit"] { background: transparent !important; color: #3797f0 !important; }
-  .chat-input-area .emoji-btn, .chat-input-area .gif-btn { color: #8e8e8e !important; }
+  .chat-input-area { background: #000 !important; border-top: none !important; padding: 10px 16px 20px 16px !important; margin-bottom: 0 !important; flex-wrap: nowrap; }
+  .chat-input-area .chat-input { background: #262626 !important; border-radius: 24px !important; border: 1px solid #333 !important; padding: 12px 20px !important; margin: 0 5px; flex: 1; min-width: 0; }
+  .chat-input-area button[type="submit"], .chat-input-area button { background: transparent !important; color: #3797f0 !important; padding: 0; margin: 0; min-width: unset; }
+  .chat-input-area .emoji-btn, .chat-input-area .gif-btn, .chat-input-area .icon-btn { color: #8e8e8e !important; padding: 5px !important; }
+
+  /* Empty state text wrap */
+  .messages-main p { word-wrap: break-word; white-space: normal; text-align: center; padding: 0 20px; }
 }
 
 @media (max-width: 480px) {
   .topbar-search { display: none; }
   .video-grid { flex-direction: column !important; }
   .remote-video { min-height: 45vh; }
+  .profile-container, .profile-content { width: 100% !important; margin: 0 !important; padding: 10px !important; box-sizing: border-box; overflow-x: hidden; }
 }
