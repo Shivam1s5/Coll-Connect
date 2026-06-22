@@ -772,7 +772,7 @@ const Messages = () => {
 
             {/* Audio Recorder Preview */}
             {audioBlob && (
-              <div style={{ padding: '16px 24px', background: '#1f2937', borderTop: '1px solid #374151', display: 'flex', alignItems: 'center', gap: '16px' }}>
+              <div className="chat-input-area" style={{ padding: '16px 24px', background: '#1f2937', borderTop: '1px solid #374151', display: 'flex', alignItems: 'center', gap: '16px' }}>
                 <audio src={URL.createObjectURL(audioBlob)} controls style={{ flex: 1, height: '40px' }} />
                 <button onClick={discardAudioMessage} style={{ background: '#374151', border: 'none', color: '#ef4444', width: '45px', height: '45px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }} title="Discard">
                   <Trash2 size={20} />
@@ -785,7 +785,7 @@ const Messages = () => {
 
             {/* Chat Input */}
             {!audioBlob && (
-              <div style={{ padding: '20px 24px', background: '#1f2937', borderTop: '1px solid #374151', position: 'relative' }}>
+              <div className="chat-input-area" style={{ padding: '20px 24px', background: '#1f2937', borderTop: '1px solid #374151', position: 'relative' }}>
                 
                 {/* GIF Picker Popover */}
                 {showGifPicker && (
