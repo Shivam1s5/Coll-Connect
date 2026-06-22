@@ -11,15 +11,15 @@ const transporter = nodemailer.createTransport({
     user: ADMIN_EMAIL,
     pass: ADMIN_APP_PASSWORD
   },
-  connectionTimeout: 5000, // 5 seconds
-  greetingTimeout: 5000,
-  socketTimeout: 5000
+  tls: {
+    rejectUnauthorized: false
+  }
 });
 
 const sendEmail = async (to, subject, html) => {
   if (!ADMIN_EMAIL || !ADMIN_APP_PASSWORD) {
     console.log('Email configuration missing, skipping email to', to);
-    return;
+    return false;
   }
   
   try {
@@ -30,8 +30,10 @@ const sendEmail = async (to, subject, html) => {
       html
     });
     console.log('Email sent successfully to', to);
+    return true;
   } catch (error) {
     console.error('Error sending email:', error);
+    return false;
   }
 };
 
