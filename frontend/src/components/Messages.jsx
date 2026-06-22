@@ -12,6 +12,17 @@ const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
 // Giphy Public API Key for development
 const GIPHY_API_KEY = 'GlVGYHqc3SyCEGqmeHgNa1gwJzOwkHfT';
 
+const renderFormattedText = (text) => {
+  if (!text) return null;
+  const parts = text.split(/(\*\*.*?\*\*)/g);
+  return parts.map((part, i) => {
+    if (part.startsWith('**') && part.endsWith('**')) {
+      return <strong key={i}>{part.slice(2, -2)}</strong>;
+    }
+    return part;
+  });
+};
+
 const useClickOutside = (ref, handler) => {
   useEffect(() => {
     const listener = (event) => {
@@ -751,7 +762,7 @@ const Messages = () => {
                           </div>
                         )}
                         
-                        {msg.text && <p style={{ margin: 0, fontSize: '0.95rem', lineHeight: '1.4' }}>{msg.text}</p>}
+                        {msg.text && <p style={{ margin: 0, fontSize: '0.95rem', lineHeight: '1.4', whiteSpace: 'pre-wrap' }}>{renderFormattedText(msg.text)}</p>}
                         <span style={{ fontSize: '0.65rem', color: isMe ? '#bfdbfe' : '#9ca3af', display: 'block', textAlign: 'right', marginTop: '4px' }}>
                           {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </span>
