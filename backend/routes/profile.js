@@ -65,7 +65,7 @@ router.get('/me', authMiddleware, async (req, res) => {
       });
     }
   } else {
-    const interactionUsernames = Array.from(friendsAndInteracted).filter(uname => uname !== user.username && uname.toLowerCase() !== 'admin');
+    const interactionUsernames = Array.from(friendsAndInteracted).filter(uname => uname !== user.username);
     const fUsers = await User.find({ username: { $in: interactionUsernames } });
     
     for (let fUser of fUsers) {

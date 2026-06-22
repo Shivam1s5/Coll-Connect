@@ -22,7 +22,7 @@ router.get('/users/search', authMiddleware, async (req, res) => {
   
   const users = await User.find({ username: new RegExp(q, 'i') });
   const matches = users
-    .filter(u => u.username !== req.user.username && u.username.toLowerCase() !== 'admin')
+    .filter(u => u.username !== req.user.username)
     .map(u => ({
       username: u.username,
       profilePic: u.profilePic,
