@@ -69,7 +69,21 @@ router.post('/admin/deletion-requests/:username/accept', isSuperAdmin, async (re
   if (!user) return res.status(404).json({ error: 'User not found' });
   
   try {
+    const userEmail = user.email;
     await cascadeDeleteUser(targetUsername, req.io);
+
+    // Fire email in background
+    const mailHtml = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #1e293b; color: #f8fafc; padding: 20px; border-radius: 10px;">
+        <h2 style="color: #ef4444; text-align: center;">Account Deleted</h2>
+        <p style="font-size: 16px;">Hello <strong>${targetUsername}</strong>,</p>
+        <p style="font-size: 16px;">Your request to delete your Coll-Connect account has been processed. Your account and all associated data have been permanently removed.</p>
+        <br>
+        <p style="font-size: 14px; color: #94a3b8; text-align: center;">Best regards,<br>The Coll-Connect Team</p>
+      </div>
+    `;
+    sendEmail(userEmail, 'Account Deletion Confirmed', mailHtml).catch(e => console.error('[Mailer] Background send failed:', e));
+
     res.json({ success: true, message: 'Account permanently deleted' });
   } catch (err) {
     console.error('Error accepting deletion:', err);
@@ -97,6 +111,18 @@ router.post('/admin/deletion-requests/:username/dismiss', isSuperAdmin, async (r
     req.io.emit('deletion-request-resolved');
   }
   
+  // Fire email in background
+  const mailHtml = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #1e293b; color: #f8fafc; padding: 20px; border-radius: 10px;">
+      <h2 style="color: #3b82f6; text-align: center;">Deletion Request Declined</h2>
+      <p style="font-size: 16px;">Hello <strong>${targetUsername}</strong>,</p>
+      <p style="font-size: 16px;">Your request to delete your Coll-Connect account has been reviewed and declined by an administrator. Your account remains active.</p>
+      <br>
+      <p style="font-size: 14px; color: #94a3b8; text-align: center;">Best regards,<br>The Coll-Connect Team</p>
+    </div>
+  `;
+  sendEmail(user.email, 'Account Deletion Request Declined', mailHtml).catch(e => console.error('[Mailer] Background send failed:', e));
+
   res.json({ success: true });
 });
 
