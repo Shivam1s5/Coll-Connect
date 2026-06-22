@@ -128,8 +128,12 @@ const Messages = () => {
     const handleFriendRemoved = (data) => {
       fetchProfileData();
       if (activeChatUser && activeChatUser.username === data.username) {
-        setActiveChatUser(null);
-        setChatHistory([]);
+        const isMeAdmin = authUser?.role === 'admin' || authUser?.role === 'superadmin';
+        const isTargetAdmin = activeChatUser?.role === 'admin' || activeChatUser?.role === 'superadmin';
+        if (!isMeAdmin && !isTargetAdmin) {
+          setActiveChatUser(null);
+          setChatHistory([]);
+        }
       }
     };
     const handleProfileUpdated = (data) => {
@@ -240,7 +244,12 @@ const Messages = () => {
         });
         if (res.ok) {
           showToast(`Unfriended ${activeChatUser.username}`);
-          setActiveChatUser(null);
+          const isMeAdmin = authUser?.role === 'admin' || authUser?.role === 'superadmin';
+          const isTargetAdmin = activeChatUser?.role === 'admin' || activeChatUser?.role === 'superadmin';
+          if (!isMeAdmin && !isTargetAdmin) {
+            setActiveChatUser(null);
+            setChatHistory([]);
+          }
           fetchProfileData();
         } else { showToast('Failed to unfriend'); }
       } catch (err) { showToast('Server error during unfriend'); }
