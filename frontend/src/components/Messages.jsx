@@ -545,8 +545,7 @@ const Messages = () => {
                 searchResults.length === 0 ? <p style={{color: '#6b7280', textAlign: 'center', padding: '20px'}}>No users found</p> :
                 searchResults.map(u => {
                   const isFriend = friends.some(f => f.username === u.username);
-                  const isSystemAdmin = authUser?.username?.toLowerCase() === 'admin';
-                  const canMessageDirectly = isFriend || authUser?.role === 'admin' || authUser?.role === 'superadmin' || isSystemAdmin;
+                  const canMessageDirectly = isFriend || authUser?.role === 'admin' || authUser?.role === 'superadmin';
                   
                   return (
                     <div key={u.username} style={{ display: 'flex', alignItems: 'center', padding: '12px', borderRadius: '8px', background: '#111827', marginBottom: '8px', gap: '12px' }}>
@@ -563,7 +562,7 @@ const Messages = () => {
                         {canMessageDirectly && (
                           <button onClick={() => openChat(u)} style={{ background: '#10b981', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '4px' }}><MessageCircle size={14}/> Message</button>
                         )}
-                        {(!isFriend && !isSystemAdmin && authUser?.role !== 'superadmin' && u.role !== 'superadmin') && (
+                        {(!isFriend && authUser?.role !== 'admin' && authUser?.role !== 'superadmin' && u.role !== 'superadmin') && (
                           u.hasSentRequest ? (
                             <button disabled style={{ background: '#374151', color: '#9ca3af', border: 'none', padding: '6px 12px', borderRadius: '6px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '4px' }}><Clock size={14}/> Pending</button>
                           ) : (
