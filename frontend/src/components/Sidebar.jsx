@@ -82,7 +82,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
                 <span style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
                   Messages
                   {badges.messages > 0 && (
-                    <span style={{ background: '#ef4444', color: 'white', borderRadius: '12px', padding: '2px 8px', fontSize: '0.75rem', marginLeft: 'auto', fontWeight: 'bold' }}>
+                    <span className="blue-crystal-indicator">
                       {badges.messages}
                     </span>
                   )}
@@ -111,7 +111,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
                   <span style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
                     Reports
                     {badges.reports > 0 && (
-                      <span style={{ background: '#ef4444', color: 'white', borderRadius: '12px', padding: '2px 8px', fontSize: '0.75rem', marginLeft: 'auto', fontWeight: 'bold' }}>
+                      <span className="blue-crystal-indicator">
                         {badges.reports}
                       </span>
                     )}
@@ -121,7 +121,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
                   <span style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
                     Deletion Requests
                     {badges.deletionRequests > 0 && (
-                      <span style={{ background: '#ef4444', color: 'white', borderRadius: '12px', padding: '2px 8px', fontSize: '0.75rem', marginLeft: 'auto', fontWeight: 'bold' }}>
+                      <span className="blue-crystal-indicator">
                         {badges.deletionRequests}
                       </span>
                     )}
@@ -145,7 +145,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
                   <span style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
                     Reports
                     {badges.reports > 0 && (
-                      <span style={{ background: '#ef4444', color: 'white', borderRadius: '12px', padding: '2px 8px', fontSize: '0.75rem', marginLeft: 'auto', fontWeight: 'bold' }}>
+                      <span className="blue-crystal-indicator">
                         {badges.reports}
                       </span>
                     )}
