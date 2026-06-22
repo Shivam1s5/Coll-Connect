@@ -245,7 +245,7 @@ const VideoRoom = () => {
       socket.emit('skip');
       handlePartnerDisconnect();
       setMessages([{ text: 'Looking for a stranger...', system: true }]);
-      socket.emit('find-partner', { myGender, interestedIn, username: user.username });
+      socket.emit('find-partner', { myGender, interestedIn, username: user.username, role: user.role });
     }
   }, [socket, user, myGender, interestedIn]);
 
