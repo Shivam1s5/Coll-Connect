@@ -575,7 +575,7 @@ const VideoRoom = () => {
           </button>
 
           {/* Friend Request Logic */}
-          {partnerConnected && partnerUsername && user?.role !== 'superadmin' && partnerRole !== 'superadmin' && (
+          {partnerConnected && partnerUsername && user?.role?.toLowerCase() !== 'superadmin' && partnerRole?.toLowerCase() !== 'superadmin' && (
             <>
               {friendStatus === 'none' && (
                 <button className="control-btn btn-yellow" onClick={sendFriendRequest}>ADD FRIEND</button>

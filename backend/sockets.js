@@ -219,16 +219,10 @@ module.exports = (io) => {
       if (matchIndex !== -1) {
         const partner = waitingUsers.splice(matchIndex, 1)[0];
 
-        // Use the role passed from the client, fallback to DB fetch
-        let role1 = socket.preferences.role;
-        let role2 = partner.preferences.role;
-        
-        if (!role1 || !role2) {
-          const u1 = await User.findOne({ username: new RegExp('^' + socket.username + '$', 'i') });
-          const u2 = await User.findOne({ username: new RegExp('^' + partner.username + '$', 'i') });
-          if (!role1) role1 = u1 ? u1.role : 'user';
-          if (!role2) role2 = u2 ? u2.role : 'user';
-        }
+        const u1 = await User.findOne({ username: new RegExp('^' + socket.username + '$', 'i') });
+        const u2 = await User.findOne({ username: new RegExp('^' + partner.username + '$', 'i') });
+        const role1 = u1 ? u1.role : 'user';
+        const role2 = u2 ? u2.role : 'user';
 
         const roomId = `room_${partner.id}_${socket.id}`;
         socket.join(roomId);
