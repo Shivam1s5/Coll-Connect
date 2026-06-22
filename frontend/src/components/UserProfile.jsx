@@ -45,7 +45,8 @@ const UserProfile = () => {
     try {
       const token = localStorage.getItem('token');
       const res = await fetch(`${backendUrl}/api/users/${username}`, {
-        headers: { 'Authorization': `Bearer ${token}` }
+        headers: { 'Authorization': `Bearer ${token}` },
+        cache: 'no-store'
       });
       if (res.ok) {
         const data = await res.json();

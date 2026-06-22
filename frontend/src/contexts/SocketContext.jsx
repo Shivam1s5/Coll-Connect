@@ -41,6 +41,21 @@ export const SocketProvider = ({ children }) => {
         if (logout) logout();
       });
 
+      newSocket.on('profile-updated', (data) => {
+        if (data.username?.toLowerCase() === user.username?.toLowerCase()) {
+          window.dispatchEvent(new Event('profile-refresh-required'));
+        }
+      });
+
+      const handleFriendUpdate = () => {
+        window.dispatchEvent(new Event('profile-refresh-required'));
+      };
+
+      newSocket.on('friend-removed', handleFriendUpdate);
+      newSocket.on('friend-request-received', handleFriendUpdate);
+      newSocket.on('friend-request-accepted', handleFriendUpdate);
+      newSocket.on('friend-request-declined', handleFriendUpdate);
+
       setSocket(newSocket);
       return () => newSocket.close();
     }
