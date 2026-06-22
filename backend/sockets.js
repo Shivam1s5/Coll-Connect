@@ -12,7 +12,7 @@ module.exports = (io) => {
     console.log('User connected:', socket.id);
 
     socket.on('register-active', async (username) => {
-      const u = await User.findOne({ username: new RegExp('^' + username + '$', 'i') });
+      const u = await User.findOne({ username });
       if (u && u.blockedUntil) {
         const blockTime = new Date(u.blockedUntil);
         if (u.blockedUntil === 'permanent' || blockTime > new Date()) {
@@ -175,8 +175,8 @@ module.exports = (io) => {
         
         const partnerSocketId = activeUsers.get(partnerUsername);
         if (partnerSocketId) {
-          const u1 = await User.findOne({ username: new RegExp('^' + socket.username + '$', 'i') });
-          const u2 = await User.findOne({ username: new RegExp('^' + partnerUsername + '$', 'i') });
+          const u1 = await User.findOne({ username: socket.username });
+          const u2 = await User.findOne({ username: partnerUsername });
           const role1 = u1 ? u1.role : 'user';
           const role2 = u2 ? u2.role : 'user';
 
@@ -219,8 +219,8 @@ module.exports = (io) => {
       if (matchIndex !== -1) {
         const partner = waitingUsers.splice(matchIndex, 1)[0];
 
-        const u1 = await User.findOne({ username: new RegExp('^' + socket.username + '$', 'i') });
-        const u2 = await User.findOne({ username: new RegExp('^' + partner.username + '$', 'i') });
+        const u1 = await User.findOne({ username: socket.username });
+        const u2 = await User.findOne({ username: partner.username });
         const role1 = u1 ? u1.role : 'user';
         const role2 = u2 ? u2.role : 'user';
 
