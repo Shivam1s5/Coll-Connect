@@ -108,7 +108,7 @@ const Topbar = ({ toggleSidebar }) => {
                           <div style={{textAlign: 'center', fontSize: '0.8rem', color: '#9ca3af', marginTop: '4px'}}>Tap to view full image</div>
                         </div>
                       )}
-                      <p className="notification-content custom-scrollbar" style={{maxHeight: '100px', overflowY: 'auto', overflowX: 'hidden', paddingRight: '5px', display: 'block', wordBreak: 'break-all', overflowWrap: 'break-word', width: '100%', maxWidth: '100%', minWidth: 0}}>{ann.content}</p>
+                      <p className="notification-content custom-scrollbar" style={{maxHeight: '100px', overflowY: 'auto', overflowX: 'hidden', paddingRight: '5px', display: 'block', wordBreak: 'break-word', overflowWrap: 'break-word', width: '100%', maxWidth: '100%', minWidth: 0}}>{ann.content}</p>
                       <span className="notification-time">{new Date(ann.timestamp).toLocaleString()}</span>
                     </div>
                   ))

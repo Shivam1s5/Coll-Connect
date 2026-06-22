@@ -93,7 +93,7 @@ const SupportTickets = () => {
                 From: <strong>{ticket.username}</strong> ({ticket.email})
               </div>
               <div className="ticket-body">
-                <p className="custom-scrollbar" style={{margin: 0, color: '#e5e7eb', fontSize: '0.9rem', whiteSpace: 'pre-wrap', lineHeight: '1.4', wordBreak: 'break-all', overflowWrap: 'break-word', maxHeight: '150px', overflowY: 'auto', overflowX: 'hidden', width: '100%', maxWidth: '100%', minWidth: 0, paddingRight: '5px', display: 'block', flexShrink: 0}}>
+                <p className="custom-scrollbar" style={{margin: 0, color: '#e5e7eb', fontSize: '0.9rem', whiteSpace: 'pre-wrap', lineHeight: '1.4', wordBreak: 'break-word', overflowWrap: 'break-word', maxHeight: '150px', overflowY: 'auto', overflowX: 'hidden', width: '100%', maxWidth: '100%', minWidth: 0, paddingRight: '5px', display: 'block', flexShrink: 0}}>
                   {ticket.message}
                 </p>
                 {ticket.imageUrl && (
