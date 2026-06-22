@@ -17,7 +17,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
     try {
       const token = localStorage.getItem('token');
       if (!token) return;
-      const res = await fetch(`${backendUrl}/api/profile/badges`, {
+      const res = await fetch(`${backendUrl}/api/badges`, {
         headers: { 'Authorization': `Bearer ${token}`, 'Cache-Control': 'no-cache' }
       });
       if (res.ok) {
