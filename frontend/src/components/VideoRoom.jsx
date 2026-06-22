@@ -210,6 +210,16 @@ const VideoRoom = () => {
       handlePartnerDisconnect();
     });
 
+    const handleRoleChanged = (data) => {
+      if (data.username === partnerUsername) {
+        setPartnerRole(data.newRole || data.role || 'user');
+      }
+    };
+
+    socket.on('user-role-changed', handleRoleChanged);
+    socket.on('user-promoted', handleRoleChanged);
+    socket.on('user-demoted', handleRoleChanged);
+
     return () => {
       socket.off('partner-found');
       socket.off('partner-username');
@@ -223,6 +233,9 @@ const VideoRoom = () => {
       socket.off('answer');
       socket.off('ice-candidate');
       socket.off('partner-disconnected');
+      socket.off('user-role-changed', handleRoleChanged);
+      socket.off('user-promoted', handleRoleChanged);
+      socket.off('user-demoted', handleRoleChanged);
     };
   }, [socket, createPeerConnection, partnerConnected, partnerUsername, showToast]);
 

@@ -169,7 +169,7 @@ router.put('/privacy', authMiddleware, async (req, res) => {
 });
 
 router.get('/users/:username', authMiddleware, async (req, res) => {
-  const targetUser = await User.findOne({ username: req.params.username });
+  const targetUser = await User.findOne({ username: new RegExp('^' + req.params.username + '$', 'i') });
   if (!targetUser) return res.status(404).json({ error: 'User not found' });
 
   const visitingUser = await User.findOne({ username: req.user.username });

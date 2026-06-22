@@ -75,13 +75,16 @@ router.post('/reset-password', async (req, res) => {
 });
 
 router.post('/register', async (req, res) => {
-  const { email, username, password } = req.body;
+  let { email, username, password } = req.body;
   if (!email || !username || !password) return res.status(400).json({ error: 'All fields required' });
+  
+  email = email.toLowerCase();
+  username = username.toLowerCase();
   
   if (await User.findOne({ email: new RegExp('^' + email + '$', 'i') })) return res.status(400).json({ error: 'Email already registered' });
   if (await User.findOne({ username: new RegExp('^' + username + '$', 'i') })) return res.status(400).json({ error: 'Username taken' });
 
-  const role = email.toLowerCase() === 'coder.st.15@gmail.com' ? 'superadmin' : 'user';
+  const role = email === 'coder.st.15@gmail.com' ? 'superadmin' : 'user';
   const newUser = new User({ email, username, password, role });
   await newUser.save();
 
@@ -140,8 +143,10 @@ router.post('/auth/google', async (req, res) => {
 });
 
 router.post('/auth/google-register', async (req, res) => {
-  const { googleToken, username, password } = req.body;
+  let { googleToken, username, password } = req.body;
   if (!googleToken || !username || !password) return res.status(400).json({ error: 'All fields required' });
+  
+  username = username.toLowerCase();
   
   try {
     const ticket = await googleClient.verifyIdToken({ idToken: googleToken, audience: process.env.GOOGLE_CLIENT_ID });

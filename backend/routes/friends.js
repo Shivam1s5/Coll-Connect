@@ -35,7 +35,7 @@ router.get('/users/search', authMiddleware, async (req, res) => {
 });
 
 router.post('/friend-request', authMiddleware, async (req, res) => {
-  const targetUser = await User.findOne({ username: req.body.targetUsername });
+  const targetUser = await User.findOne({ username: new RegExp('^' + req.body.targetUsername + '$', 'i') });
   if (!targetUser) return res.status(404).json({ error: 'Target user not found' });
   if (targetUser.role === 'superadmin') return res.status(403).json({ error: 'Cannot send friend requests to superadmin' });
   
@@ -57,7 +57,7 @@ router.post('/friend-request', authMiddleware, async (req, res) => {
 
 router.post('/friend-accept', authMiddleware, async (req, res) => {
   const me = await User.findOne({ username: req.user.username });
-  const targetUser = await User.findOne({ username: req.body.targetUsername });
+  const targetUser = await User.findOne({ username: new RegExp('^' + req.body.targetUsername + '$', 'i') });
   if (!me || !targetUser) return res.status(404).json({ error: 'User not found' });
 
   me.friendRequests = me.friendRequests.filter(fr => fr.username !== req.body.targetUsername);
@@ -96,7 +96,7 @@ router.post('/friend-decline', authMiddleware, async (req, res) => {
 
 router.post('/unfriend', authMiddleware, async (req, res) => {
   const me = await User.findOne({ username: req.user.username });
-  const targetUser = await User.findOne({ username: req.body.targetUsername });
+  const targetUser = await User.findOne({ username: new RegExp('^' + req.body.targetUsername + '$', 'i') });
   if (!me || !targetUser) return res.status(404).json({ error: 'User not found' });
   if (targetUser.role === 'superadmin' || me.role === 'superadmin') {
     return res.status(403).json({ error: 'Superadmins cannot be unfriended' });
