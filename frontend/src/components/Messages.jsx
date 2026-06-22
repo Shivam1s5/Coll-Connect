@@ -128,6 +128,15 @@ const Messages = () => {
       if (activeChatUser && (msg.sender === activeChatUser.username || msg.receiver === activeChatUser.username)) {
         setChatHistory(prev => [...prev, msg]);
         scrollToBottom();
+        if (msg.sender === activeChatUser.username) {
+          const token = localStorage.getItem('token');
+          fetch(`${backendUrl}/api/messages/${msg.sender}/read`, {
+            method: 'PUT',
+            headers: { 'Authorization': `Bearer ${token}` }
+          }).then(() => {
+            window.dispatchEvent(new Event('badge-update-required'));
+          });
+        }
       } else {
         if (msg.sender !== authUser?.username) {
           setUnreadCounts(prev => ({ ...prev, [msg.sender]: (prev[msg.sender] || 0) + 1 }));
