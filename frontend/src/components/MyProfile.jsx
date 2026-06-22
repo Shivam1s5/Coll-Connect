@@ -562,7 +562,7 @@ const MyProfile = () => {
           </div>
           
           {authUser?.role !== 'superadmin' && (
-            <div style={{ marginTop: '20px', padding: '20px', backgroundColor: '#1f2937', borderRadius: '12px', border: '1px solid #ef4444', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ marginTop: '20px', padding: '20px', backgroundColor: '#1f2937', borderRadius: '12px', border: '1px solid #ef4444', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '15px' }}>
               <div>
                 <h4 style={{ margin: '0 0 4px 0', color: '#ef4444', fontSize: '1.1rem' }}>Danger Zone</h4>
                 <span style={{ fontSize: '0.85rem', color: '#9ca3af' }}>
