@@ -313,23 +313,47 @@ const UserProfile = () => {
                   <p style={{fontSize: '0.85rem', margin: 0}}>Become friends to see their social links and friends list.</p>
                 </div>
               ) : (
-                <div className="socials-list" style={{marginTop: '15px'}}>
-                  <div className="social-item">
-                    <Instagram size={18} className="social-icon text-pink"/> 
-                    <span className="social-text">{profileData.socials?.instagram || 'Not set'}</span>
-                  </div>
-                  <div className="social-item">
-                    <Facebook size={18} className="social-icon text-blue"/> 
-                    <span className="social-text">{profileData.socials?.facebook || 'Not set'}</span>
-                  </div>
-                  <div className="social-item">
-                    <Linkedin size={18} className="social-icon text-lightblue"/> 
-                    <span className="social-text">{profileData.socials?.linkedin || 'Not set'}</span>
-                  </div>
-                  <div className="social-item">
-                    <span style={{fontWeight: 'bold', marginRight: '8px', color: '#eab308'}}>👻</span> 
-                    <span className="social-text">{profileData.socials?.snapchat || 'Not set'}</span>
-                  </div>
+                <div className="socials-list" style={{marginTop: '15px', display: 'flex', gap: '12px', flexWrap: 'wrap'}}>
+                  {(() => {
+                    const getSocialUrl = (platform, value) => {
+                      if (!value) return null;
+                      const v = value.trim();
+                      if (v.startsWith('http://') || v.startsWith('https://')) return v;
+                      switch (platform) {
+                        case 'instagram': return `https://instagram.com/${v.replace(/^@/, '')}`;
+                        case 'facebook': return `https://facebook.com/${v}`;
+                        case 'linkedin': return v.includes('linkedin.com') ? `https://${v}` : `https://linkedin.com/in/${v}`;
+                        case 'snapchat': return `https://snapchat.com/add/${v.replace(/^@/, '')}`;
+                        default: return null;
+                      }
+                    };
+                    const socials = profileData.socials || {};
+                    const platforms = [
+                      { key: 'instagram', icon: <Instagram size={22} />, color: '#E1306C', hoverBg: 'rgba(225,48,108,0.15)' },
+                      { key: 'facebook', icon: <Facebook size={22} />, color: '#1877F2', hoverBg: 'rgba(24,119,242,0.15)' },
+                      { key: 'linkedin', icon: <Linkedin size={22} />, color: '#0A66C2', hoverBg: 'rgba(10,102,194,0.15)' },
+                      { key: 'snapchat', icon: <span style={{fontSize: '20px'}}>👻</span>, color: '#FFFC00', hoverBg: 'rgba(255,252,0,0.15)' },
+                    ];
+                    const hasAny = platforms.some(p => socials[p.key]);
+                    if (!hasAny) return <span style={{color: '#6b7280', fontSize: '0.9rem'}}>No social links added</span>;
+                    return platforms.map(p => {
+                      const url = getSocialUrl(p.key, socials[p.key]);
+                      if (!url) return null;
+                      return (
+                        <a key={p.key} href={url} target="_blank" rel="noopener noreferrer" title={p.key.charAt(0).toUpperCase() + p.key.slice(1)}
+                          style={{
+                            width: '44px', height: '44px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: p.color,
+                            transition: 'all 0.2s ease', cursor: 'pointer', textDecoration: 'none'
+                          }}
+                          onMouseEnter={e => { e.currentTarget.style.background = p.hoverBg; e.currentTarget.style.transform = 'scale(1.1)'; e.currentTarget.style.borderColor = p.color; }}
+                          onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'; }}
+                        >
+                          {p.icon}
+                        </a>
+                      );
+                    });
+                  })()}
                 </div>
               )}
             </div>
