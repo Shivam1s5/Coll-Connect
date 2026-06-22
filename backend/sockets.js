@@ -43,9 +43,7 @@ module.exports = (io) => {
         const isSenderAdmin = senderUser.role === 'admin' || senderUser.role === 'superadmin';
         const isReceiverAdmin = receiverUser.role === 'admin' || receiverUser.role === 'superadmin';
         const areFriends = (senderUser.friends || []).includes(receiverUser.username) || (receiverUser.friends || []).includes(senderUser.username);
-        const isSystemAdmin = senderUser.username.toLowerCase() === 'admin' || receiverUser.username.toLowerCase() === 'admin';
-
-        if (!isSenderAdmin && !isReceiverAdmin && !areFriends && !isSystemAdmin) {
+        if (!isSenderAdmin && !isReceiverAdmin && !areFriends) {
           socket.emit('chat-error', { message: 'You can only chat with your friends.' });
           return;
         }

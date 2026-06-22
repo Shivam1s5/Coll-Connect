@@ -50,7 +50,7 @@ router.get('/me', authMiddleware, async (req, res) => {
   if (user.role === 'superadmin') {
     const allUsers = await User.find({ username: { $ne: user.username } });
     for (let u of allUsers) {
-      if (u.username.toLowerCase() === 'admin') continue;
+
       friendsList.push({
         username: u.username,
         email: u.email,
