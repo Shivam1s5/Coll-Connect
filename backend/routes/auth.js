@@ -156,6 +156,8 @@ router.post('/auth/google-register', async (req, res) => {
     });
     await newUser.save();
 
+    if (req.io) req.io.emit('admin-update');
+
     const jwtToken = jwt.sign({ username: newUser.username, email: newUser.email }, JWT_SECRET, { expiresIn: '30d' });
     res.json({ token: jwtToken, username: newUser.username, role: newUser.role, success: true });
   } catch(err) {
