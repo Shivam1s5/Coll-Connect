@@ -175,8 +175,13 @@ module.exports = (io) => {
         
         const partnerSocketId = activeUsers.get(partnerUsername);
         if (partnerSocketId) {
-          socket.emit('partner-username', { username: partnerUsername, gender: 'Not Specified' });
-          io.to(partnerSocketId).emit('partner-username', { username: socket.username, gender: socket.preferences?.myGender || 'Not Specified' });
+          const u1 = await User.findOne({ username: socket.username });
+          const u2 = await User.findOne({ username: partnerUsername });
+          const role1 = u1 ? u1.role : 'user';
+          const role2 = u2 ? u2.role : 'user';
+
+          socket.emit('partner-username', { username: partnerUsername, gender: 'Not Specified', role: role2 });
+          io.to(partnerSocketId).emit('partner-username', { username: socket.username, gender: socket.preferences?.myGender || 'Not Specified', role: role1 });
         }
 
         if (role === 'caller') {
@@ -187,7 +192,7 @@ module.exports = (io) => {
       }
     });
 
-    socket.on('find-partner', (preferences = { myGender: 'Any', interestedIn: 'Any', username: 'Unknown' }) => {
+    socket.on('find-partner', async (preferences = { myGender: 'Any', interestedIn: 'Any', username: 'Unknown' }) => {
       socket.preferences = preferences;
       socket.username = preferences.username;
       activeUsers.set(preferences.username, socket.id);
@@ -214,6 +219,11 @@ module.exports = (io) => {
       if (matchIndex !== -1) {
         const partner = waitingUsers.splice(matchIndex, 1)[0];
 
+        const u1 = await User.findOne({ username: socket.username });
+        const u2 = await User.findOne({ username: partner.username });
+        const role1 = u1 ? u1.role : 'user';
+        const role2 = u2 ? u2.role : 'user';
+
         const roomId = `room_${partner.id}_${socket.id}`;
         socket.join(roomId);
         partner.join(roomId);
@@ -222,8 +232,8 @@ module.exports = (io) => {
         partner.roomId = roomId;
 
         io.to(roomId).emit('partner-found');
-        socket.emit('partner-username', { username: partner.username, gender: partner.preferences.myGender || 'Not Specified' });
-        partner.emit('partner-username', { username: socket.username, gender: socket.preferences.myGender || 'Not Specified' });
+        socket.emit('partner-username', { username: partner.username, gender: partner.preferences.myGender || 'Not Specified', role: role2 });
+        partner.emit('partner-username', { username: socket.username, gender: socket.preferences.myGender || 'Not Specified', role: role1 });
 
         partner.emit('initiate-offer');
       } else {
