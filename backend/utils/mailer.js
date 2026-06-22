@@ -1,42 +1,46 @@
-const nodemailer = require('nodemailer');
-
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'coder.st.15@gmail.com';
-const ADMIN_APP_PASSWORD = process.env.ADMIN_APP_PASSWORD || 'nimscdzabzpvzvki';
+const BREVO_API_KEY = process.env.BREVO_API_KEY;
 
 /**
- * Sends an email using Gmail SMTP via Nodemailer.
- * Important: This requires outbound SMTP ports (465/587) to be open.
- * Free tier hosting providers like Render and Vercel block these ports.
+ * Sends an email using Brevo (Sendinblue) HTTP API.
+ * This completely bypasses Render's SMTP port blocks since it uses port 443 (HTTP).
+ * Supports sending emails to ANY user.
  */
-const sendEmail = async (to, subject, html) => {
+const sendEmail = async (to, subject, htmlContent) => {
   if (!to) {
     console.error('[Mailer] No recipient email provided');
     return false;
   }
 
   try {
-    // Create a fresh transporter each time to avoid stale socket issues
-    const transporter = nodemailer.createTransport({
-      host: 'smtp.gmail.com',
-      port: 465,
-      secure: true,
-      auth: {
-        user: ADMIN_EMAIL,
-        pass: ADMIN_APP_PASSWORD
+    const response = await fetch('https://api.brevo.com/v3/smtp/email', {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'api-key': BREVO_API_KEY
       },
-      tls: {
-        rejectUnauthorized: false
-      }
+      body: JSON.stringify({
+        sender: {
+          name: 'Coll-Connect',
+          email: ADMIN_EMAIL
+        },
+        to: [
+          { email: to }
+        ],
+        subject: subject,
+        htmlContent: htmlContent
+      })
     });
 
-    const info = await transporter.sendMail({
-      from: `"Coll-Connect" <${ADMIN_EMAIL}>`,
-      to,
-      subject,
-      html
-    });
+    const data = await response.json();
 
-    console.log(`[Mailer] Email sent to ${to} | MessageId: ${info.messageId}`);
+    if (!response.ok) {
+      console.error(`[Mailer] FAILED to send email to ${to} via Brevo:`, data);
+      return false;
+    }
+
+    console.log(`[Mailer] Email sent to ${to} | Brevo MessageId: ${data.messageId}`);
     return true;
   } catch (error) {
     console.error(`[Mailer] FAILED to send email to ${to}:`, error.message);
