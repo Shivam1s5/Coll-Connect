@@ -162,7 +162,7 @@ module.exports = (io) => {
       }
     });
 
-    socket.on('join-direct-room', ({ role, partnerUsername, myUsername }) => {
+    socket.on('join-direct-room', async ({ role, partnerUsername, myUsername }) => {
       socket.username = myUsername;
       activeUsers.set(myUsername, socket.id);
       const roomId = [myUsername, partnerUsername].sort().join('_');
@@ -179,6 +179,7 @@ module.exports = (io) => {
           const u2 = await User.findOne({ username: new RegExp('^' + String(partnerUsername).trim() + '$', 'i') });
           const role1 = u1 ? u1.role : 'user';
           const role2 = u2 ? u2.role : 'user';
+          console.log('[join-direct-room] Roles fetched from DB:', socket.username, '=', role1, '|', partnerUsername, '=', role2);
 
           socket.emit('partner-username', { username: partnerUsername, gender: 'Not Specified', role: role2 });
           io.to(partnerSocketId).emit('partner-username', { username: socket.username, gender: socket.preferences?.myGender || 'Not Specified', role: role1 });
@@ -223,6 +224,7 @@ module.exports = (io) => {
         const u2 = await User.findOne({ username: new RegExp('^' + String(partner.username).trim() + '$', 'i') });
         const role1 = u1 ? u1.role : 'user';
         const role2 = u2 ? u2.role : 'user';
+        console.log('[find-partner] DB lookup:', socket.username, '=> u1:', u1 ? u1.username + '/' + u1.role : 'NOT FOUND', '|', partner.username, '=> u2:', u2 ? u2.username + '/' + u2.role : 'NOT FOUND');
 
         const roomId = `room_${partner.id}_${socket.id}`;
         socket.join(roomId);
@@ -234,6 +236,7 @@ module.exports = (io) => {
         io.to(roomId).emit('partner-found');
         socket.emit('partner-username', { username: partner.username, gender: partner.preferences.myGender || 'Not Specified', role: role2 });
         partner.emit('partner-username', { username: socket.username, gender: socket.preferences.myGender || 'Not Specified', role: role1 });
+        console.log('[find-partner] Emitted roles:', 'to', socket.username, '=> role:', role2, '| to', partner.username, '=> role:', role1);
 
         partner.emit('initiate-offer');
       } else {
