@@ -1,12 +1,11 @@
-const nodemailer = require('nodemailer');
+const { Resend } = require('resend');
 
-const ADMIN_EMAIL = 'coder.st.15@gmail.com';
-const ADMIN_APP_PASSWORD = 'nimscdzabzpvzvki';
+// Initialize Resend with the provided API key
+const resend = new Resend('re_6CwZ74pW_C5VLhevmKPEsgV4anzxftPcY');
 
 /**
- * Sends an email using Gmail SMTP via Nodemailer.
- * Creates a fresh transporter per call to avoid stale connections
- * on serverless/cold-start environments (Render free tier, Vercel, etc.)
+ * Sends an email using Resend HTTP API.
+ * This completely bypasses Render's SMTP port blocks since it uses port 443 (HTTP).
  */
 const sendEmail = async (to, subject, html) => {
   if (!to) {
@@ -15,28 +14,19 @@ const sendEmail = async (to, subject, html) => {
   }
 
   try {
-    // Create a fresh transporter each time to avoid stale socket issues
-    const transporter = nodemailer.createTransport({
-      host: 'smtp.gmail.com',
-      port: 465,
-      secure: true,
-      auth: {
-        user: ADMIN_EMAIL,
-        pass: ADMIN_APP_PASSWORD
-      },
-      tls: {
-        rejectUnauthorized: false
-      }
-    });
-
-    const info = await transporter.sendMail({
-      from: `"Coll-Connect" <${ADMIN_EMAIL}>`,
-      to,
+    const { data, error } = await resend.emails.send({
+      from: 'Coll-Connect <onboarding@resend.dev>', // Resend free tier allows sending from onboarding@resend.dev
+      to: [to],
       subject,
       html
     });
 
-    console.log(`[Mailer] Email sent to ${to} | MessageId: ${info.messageId}`);
+    if (error) {
+      console.error(`[Mailer] FAILED to send email to ${to} via Resend:`, error);
+      return false;
+    }
+
+    console.log(`[Mailer] Email sent to ${to} | Resend ID: ${data.id}`);
     return true;
   } catch (error) {
     console.error(`[Mailer] FAILED to send email to ${to}:`, error.message);
