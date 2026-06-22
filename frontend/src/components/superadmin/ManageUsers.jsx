@@ -167,7 +167,6 @@ const ManageUsers = () => {
 
       {loading ? <p style={{color: '#9ca3af'}}>Loading users...</p> : (
         <>
-          {isSuperadmin && (
           <div className="user-section">
             <h3 className="section-heading blue-heading">Admins ({admins.length})</h3>
             <div className="user-list">
@@ -184,16 +183,18 @@ const ManageUsers = () => {
                     <span className="label">Email:</span>
                     <span className="value">{u.email}</span>
                   </div>
-                  <div className="user-card-row">
-                    <span className="label text-danger">Password:</span>
-                    <span className="value text-danger">{u.password || '*********'}</span>
-                  </div>
+                  {isSuperadmin && (
+                    <div className="user-card-row">
+                      <span className="label text-danger">Password:</span>
+                      <span className="value text-danger">{u.password || '*********'}</span>
+                    </div>
+                  )}
                   
                   <div className="user-actions row-actions" style={{marginTop: '10px'}}>
                     {u.role !== 'superadmin' && (
                       <button className="btn-action" style={{backgroundColor: '#3b82f6', color: 'white'}} onClick={() => navigate(`/user/${u.username}`)}>VISIT PROFILE</button>
                     )}
-                    {u.role === 'admin' && (
+                    {isSuperadmin && u.role === 'admin' && (
                       <button className="btn-action btn-red" onClick={() => dismissAdmin(u.username)}>
                         DISMISS ADMIN
                       </button>
@@ -203,7 +204,6 @@ const ManageUsers = () => {
               ))}
             </div>
           </div>
-          )}
 
           <div className="user-section">
             <h3 className="section-heading green-heading">Normal Users ({normalUsers.length})</h3>
