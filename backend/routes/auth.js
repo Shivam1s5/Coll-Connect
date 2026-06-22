@@ -158,4 +158,50 @@ router.post('/auth/google-register', async (req, res) => {
   }
 });
 
+
+// Temporary diagnostic endpoint - hit /api/test-email to check email on Render
+router.get('/test-email', async (req, res) => {
+  const nodemailer = require('nodemailer');
+  const results = { steps: [], success: false };
+
+  try {
+    // Step 1: Create transporter
+    results.steps.push('Creating transporter...');
+    const transporter = nodemailer.createTransport({
+      host: 'smtp.gmail.com',
+      port: 465,
+      secure: true,
+      auth: {
+        user: 'coder.st.15@gmail.com',
+        pass: 'nimscdzabzpvzvki'
+      },
+      tls: { rejectUnauthorized: false }
+    });
+
+    // Step 2: Verify connection
+    results.steps.push('Verifying SMTP connection...');
+    await transporter.verify();
+    results.steps.push('SMTP connection verified OK');
+
+    // Step 3: Send test email
+    results.steps.push('Sending test email to shivamtyagiji15@gmail.com...');
+    const info = await transporter.sendMail({
+      from: '"Coll-Connect" <coder.st.15@gmail.com>',
+      to: 'shivamtyagiji15@gmail.com',
+      subject: 'Render Email Test - ' + new Date().toISOString(),
+      html: '<h2 style="color:green;">Email from Render is WORKING!</h2><p>Time: ' + new Date().toISOString() + '</p>'
+    });
+
+    results.steps.push('Email sent! MessageId: ' + info.messageId);
+    results.success = true;
+    results.messageId = info.messageId;
+  } catch (error) {
+    results.steps.push('ERROR: ' + error.message);
+    results.errorCode = error.code;
+    results.errorFull = error.toString();
+  }
+
+  res.json(results);
+});
+
 module.exports = router;
