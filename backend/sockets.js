@@ -12,7 +12,7 @@ module.exports = (io) => {
     console.log('User connected:', socket.id);
 
     socket.on('register-active', async (username) => {
-      const u = await User.findOne({ username });
+      const u = await User.findOne({ username: new RegExp('^' + String(username).trim() + '$', 'i') });
       if (u && u.blockedUntil) {
         const blockTime = new Date(u.blockedUntil);
         if (u.blockedUntil === 'permanent' || blockTime > new Date()) {
@@ -28,8 +28,8 @@ module.exports = (io) => {
     socket.on('private-message', async ({ id, to, text, type = 'text', fileUrl }) => {
       if (!socket.username) return;
 
-      const senderUser = await User.findOne({ username: socket.username });
-      const receiverUser = await User.findOne({ username: to });
+      const senderUser = await User.findOne({ username: new RegExp('^' + String(socket.username).trim() + '$', 'i') });
+      const receiverUser = await User.findOne({ username: new RegExp('^' + String(to).trim() + '$', 'i') });
 
       if (senderUser && senderUser.blockedUntil) {
         const blockTime = new Date(senderUser.blockedUntil);
@@ -87,7 +87,7 @@ module.exports = (io) => {
     });
 
     socket.on('admin-delete-message', async ({ messageId }) => {
-      const u = await User.findOne({ username: socket.username });
+      const u = await User.findOne({ username: new RegExp('^' + String(socket.username).trim() + '$', 'i') });
       if (!u) return;
       const msg = await Message.findById(messageId);
       if (!msg) return;
@@ -114,7 +114,7 @@ module.exports = (io) => {
     });
 
     socket.on('admin-clear-chat', async ({ targetUser }) => {
-      const u = await User.findOne({ username: socket.username });
+      const u = await User.findOne({ username: new RegExp('^' + String(socket.username).trim() + '$', 'i') });
       if (!u || u.role !== 'superadmin') return; 
       
       const query = {
@@ -175,8 +175,8 @@ module.exports = (io) => {
         
         const partnerSocketId = activeUsers.get(partnerUsername);
         if (partnerSocketId) {
-          const u1 = await User.findOne({ username: socket.username });
-          const u2 = await User.findOne({ username: partnerUsername });
+          const u1 = await User.findOne({ username: new RegExp('^' + String(socket.username).trim() + '$', 'i') });
+          const u2 = await User.findOne({ username: new RegExp('^' + String(partnerUsername).trim() + '$', 'i') });
           const role1 = u1 ? u1.role : 'user';
           const role2 = u2 ? u2.role : 'user';
 
@@ -219,8 +219,8 @@ module.exports = (io) => {
       if (matchIndex !== -1) {
         const partner = waitingUsers.splice(matchIndex, 1)[0];
 
-        const u1 = await User.findOne({ username: socket.username });
-        const u2 = await User.findOne({ username: partner.username });
+        const u1 = await User.findOne({ username: new RegExp('^' + String(socket.username).trim() + '$', 'i') });
+        const u2 = await User.findOne({ username: new RegExp('^' + String(partner.username).trim() + '$', 'i') });
         const role1 = u1 ? u1.role : 'user';
         const role2 = u2 ? u2.role : 'user';
 

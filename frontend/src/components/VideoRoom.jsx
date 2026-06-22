@@ -211,7 +211,7 @@ const VideoRoom = () => {
     });
 
     const handleRoleChanged = (data) => {
-      if (data.username === partnerUsername) {
+      if (data.username?.toLowerCase() === partnerUsername?.toLowerCase()) {
         setPartnerRole(data.newRole || data.role || 'user');
       }
     };
