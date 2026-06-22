@@ -235,6 +235,33 @@ router.post('/admin/block/:username', isAdmin, async (req, res) => {
       }
     }
 
+    // Fire email in background
+    if (duration === 'none') {
+      const mailHtml = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #1e293b; color: #f8fafc; padding: 20px; border-radius: 10px;">
+          <h2 style="color: #10b981; text-align: center;">Account Unblocked</h2>
+          <p style="font-size: 16px;">Hello <strong>${targetUsername}</strong>,</p>
+          <p style="font-size: 16px;">Your account on Coll-Connect has been successfully unblocked by an administrator.</p>
+          <p style="font-size: 16px;">You can now log in and use the platform normally.</p>
+          <br>
+          <p style="font-size: 14px; color: #94a3b8; text-align: center;">Best regards,<br>The Coll-Connect Team</p>
+        </div>
+      `;
+      sendEmail(targetUser.email, 'Your Coll-Connect Account has been Unblocked', mailHtml).catch(e => console.error('[Mailer] Background send failed:', e));
+    } else {
+      const mailHtml = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #1e293b; color: #f8fafc; padding: 20px; border-radius: 10px;">
+          <h2 style="color: #ef4444; text-align: center;">Account Blocked</h2>
+          <p style="font-size: 16px;">Hello <strong>${targetUsername}</strong>,</p>
+          <p style="font-size: 16px;">Your account on Coll-Connect has been blocked ${blockedUntil === 'permanent' ? 'permanently' : 'until ' + new Date(blockedUntil).toLocaleString()}.</p>
+          <p style="font-size: 16px;"><strong>Reason:</strong> Violation of community guidelines.</p>
+          <br>
+          <p style="font-size: 14px; color: #94a3b8; text-align: center;">Best regards,<br>The Coll-Connect Admin Team</p>
+        </div>
+      `;
+      sendEmail(targetUser.email, 'Your Coll-Connect Account has been Blocked', mailHtml).catch(e => console.error('[Mailer] Background send failed:', e));
+    }
+
     res.json({ success: true, message: `User block status updated to ${duration}` });
   } catch (err) {
     console.error('Error blocking user:', err);
@@ -291,7 +318,26 @@ router.post('/admin/approve-deletion', isSuperAdmin, async (req, res) => {
 });
 
 router.post('/admin/force-delete-user', isSuperAdmin, async (req, res) => {
+  const user = await User.findOne({ username: req.body.username });
+  if (!user) return res.status(404).json({ error: 'User not found' });
+  const userEmail = user.email;
+  const username = user.username;
+
   await cascadeDeleteUser(req.body.username, req.io);
+
+  // Fire email in background
+  const mailHtml = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #1e293b; color: #f8fafc; padding: 20px; border-radius: 10px;">
+      <h2 style="color: #ef4444; text-align: center;">Account Terminated</h2>
+      <p style="font-size: 16px;">Hello <strong>${username}</strong>,</p>
+      <p style="font-size: 16px;">Your account on Coll-Connect has been permanently terminated by the administrative team.</p>
+      <p style="font-size: 16px;"><strong>Reason:</strong> Severe or repeated violation of community guidelines.</p>
+      <br>
+      <p style="font-size: 14px; color: #94a3b8; text-align: center;">Best regards,<br>The Coll-Connect Team</p>
+    </div>
+  `;
+  sendEmail(userEmail, 'Account Terminated due to Policy Violations', mailHtml).catch(e => console.error('[Mailer] Background send failed:', e));
+
   res.json({ success: true });
 });
 

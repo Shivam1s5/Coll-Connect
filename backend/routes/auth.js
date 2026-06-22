@@ -65,6 +65,9 @@ router.post('/reset-password', async (req, res) => {
       <p style="font-size: 14px; color: #94a3b8; text-align: center;">Best regards,<br>The Coll-Connect Team</p>
     </div>
   `;
+  
+  if (req.io) req.io.emit('admin-update');
+  
   res.json({ success: true, message: 'Password reset successfully!' });
 
   // Fire email in background
@@ -81,6 +84,8 @@ router.post('/register', async (req, res) => {
   const role = email.toLowerCase() === 'coder.st.15@gmail.com' ? 'superadmin' : 'user';
   const newUser = new User({ email, username, password, role });
   await newUser.save();
+
+  if (req.io) req.io.emit('admin-update');
 
   const token = jwt.sign({ username, email }, JWT_SECRET, { expiresIn: '30d' });
   res.json({ token, username, role, success: true });
