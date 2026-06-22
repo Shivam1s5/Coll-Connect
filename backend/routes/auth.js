@@ -159,46 +159,47 @@ router.post('/auth/google-register', async (req, res) => {
 });
 
 
-// Temporary diagnostic endpoint - hit /api/test-email to check email on Render
+// Temporary diagnostic endpoint
 router.get('/test-email', async (req, res) => {
   const nodemailer = require('nodemailer');
-  const results = { steps: [], success: false };
+  const results = { tests: [] };
 
+  // Test port 587 (STARTTLS)
   try {
-    // Step 1: Create transporter
-    results.steps.push('Creating transporter...');
-    const transporter = nodemailer.createTransport({
+    const t587 = nodemailer.createTransport({
+      host: 'smtp.gmail.com',
+      port: 587,
+      secure: false,
+      auth: { user: 'coder.st.15@gmail.com', pass: 'nimscdzabzpvzvki' },
+      tls: { rejectUnauthorized: false },
+      connectionTimeout: 10000
+    });
+    await t587.verify();
+    const info = await t587.sendMail({
+      from: '"Coll-Connect" <coder.st.15@gmail.com>',
+      to: 'shivamtyagiji15@gmail.com',
+      subject: 'Render Port 587 Test - ' + new Date().toISOString(),
+      html: '<h2 style="color:green;">Port 587 WORKS!</h2>'
+    });
+    results.tests.push({ port: 587, status: 'SUCCESS', messageId: info.messageId });
+  } catch (e) {
+    results.tests.push({ port: 587, status: 'FAILED', error: e.message, code: e.code });
+  }
+
+  // Test port 465 (Implicit TLS)
+  try {
+    const t465 = nodemailer.createTransport({
       host: 'smtp.gmail.com',
       port: 465,
       secure: true,
-      auth: {
-        user: 'coder.st.15@gmail.com',
-        pass: 'nimscdzabzpvzvki'
-      },
-      tls: { rejectUnauthorized: false }
+      auth: { user: 'coder.st.15@gmail.com', pass: 'nimscdzabzpvzvki' },
+      tls: { rejectUnauthorized: false },
+      connectionTimeout: 10000
     });
-
-    // Step 2: Verify connection
-    results.steps.push('Verifying SMTP connection...');
-    await transporter.verify();
-    results.steps.push('SMTP connection verified OK');
-
-    // Step 3: Send test email
-    results.steps.push('Sending test email to shivamtyagiji15@gmail.com...');
-    const info = await transporter.sendMail({
-      from: '"Coll-Connect" <coder.st.15@gmail.com>',
-      to: 'shivamtyagiji15@gmail.com',
-      subject: 'Render Email Test - ' + new Date().toISOString(),
-      html: '<h2 style="color:green;">Email from Render is WORKING!</h2><p>Time: ' + new Date().toISOString() + '</p>'
-    });
-
-    results.steps.push('Email sent! MessageId: ' + info.messageId);
-    results.success = true;
-    results.messageId = info.messageId;
-  } catch (error) {
-    results.steps.push('ERROR: ' + error.message);
-    results.errorCode = error.code;
-    results.errorFull = error.toString();
+    await t465.verify();
+    results.tests.push({ port: 465, status: 'SUCCESS' });
+  } catch (e) {
+    results.tests.push({ port: 465, status: 'FAILED', error: e.message, code: e.code });
   }
 
   res.json(results);
