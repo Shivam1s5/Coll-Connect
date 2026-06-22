@@ -4,7 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useSocket } from '../contexts/SocketContext';
 import { useToast } from '../contexts/ToastContext';
 import EmojiPicker from 'emoji-picker-react';
-import { Search, Send, User, Check, X, Clock, MessageCircle, Paperclip, Mic, Smile, AlertTriangle, UserMinus, MoreVertical, Square, Trash2, Image, Play, Maximize2 } from 'lucide-react';
+import { Search, Send, User, Check, X, Clock, MessageCircle, Paperclip, Mic, Smile, AlertTriangle, UserMinus, MoreVertical, Square, Trash2, Image, Play, Maximize2, ArrowLeft } from 'lucide-react';
 import html2canvas from 'html2canvas';
 
 const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
@@ -491,7 +491,7 @@ const Messages = () => {
 
   return (
     <div className="messages-wrapper" style={{ padding: '20px', height: 'calc(100vh - 70px)', boxSizing: 'border-box' }}>
-      <div className="messages-layout" style={{ display: 'flex', height: '100%', maxWidth: '1400px', margin: '0 auto', background: '#111827', color: '#f3f4f6', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 4px 20px rgba(0,0,0,0.4)', border: '1px solid #374151' }}>
+      <div className={`messages-layout ${activeChatUser ? 'chat-open' : ''}`} style={{ display: 'flex', height: '100%', maxWidth: '1400px', margin: '0 auto', background: '#111827', color: '#f3f4f6', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 4px 20px rgba(0,0,0,0.4)', border: '1px solid #374151' }}>
       
       {/* Lightbox / Media Modal */}
       {previewMedia && (
@@ -508,7 +508,7 @@ const Messages = () => {
       )}
 
       {/* Left Sidebar */}
-      <div style={{ width: '350px', borderRight: '1px solid #374151', display: 'flex', flexDirection: 'column', background: '#1f2937' }}>
+      <div className="messages-sidebar" style={{ width: '350px', borderRight: '1px solid #374151', display: 'flex', flexDirection: 'column', background: '#1f2937' }}>
         <div style={{ padding: '20px', borderBottom: '1px solid #374151' }}>
           <h2 style={{ margin: '0 0 16px 0', fontSize: '1.5rem', fontWeight: 'bold' }}>Messages</h2>
           <div style={{ position: 'relative', marginBottom: '16px' }}>
@@ -644,12 +644,19 @@ const Messages = () => {
       </div>
 
       {/* Right Chat Area */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: '#111827', position: 'relative' }}>
+      <div className="messages-main" style={{ flex: 1, display: 'flex', flexDirection: 'column', background: '#111827', position: 'relative' }}>
         {activeChatUser ? (
           <>
             {/* Chat Header */}
             <div style={{ padding: '16px 24px', borderBottom: '1px solid #374151', display: 'flex', alignItems: 'center', background: '#1f2937', justifyContent: 'space-between' }}>
               <div style={{ display: 'flex', alignItems: 'center' }}>
+                <button 
+                  className="mobile-back-btn"
+                  onClick={() => { setActiveChatUser(null); setChatHistory([]); }} 
+                  style={{ display: 'none', background: 'transparent', border: 'none', color: '#9ca3af', marginRight: '12px', cursor: 'pointer', padding: '4px' }}
+                >
+                  <ArrowLeft size={24} />
+                </button>
                 <div onClick={() => navigate(`/user/${activeChatUser.username}`)} style={{ cursor: 'pointer', width: '40px', height: '40px', borderRadius: '50%', background: '#4b5563', overflow: 'hidden', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   {activeChatUser.profilePic ? <img src={activeChatUser.profilePic} alt={activeChatUser.username} style={{width: '100%', height: '100%', objectFit: 'cover'}}/> : <User size={20} color="#9ca3af" />}
                 </div>

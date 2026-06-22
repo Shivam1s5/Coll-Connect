@@ -143,6 +143,7 @@ const SuperAdminDashboard = () => {
             
             <div className="analytics-table-container" style={{ overflowX: 'auto', marginTop: '20px' }}>
               <h4 style={{ color: '#e2e8f0', marginBottom: '10px' }}>Detailed Hourly Log</h4>
+            <div className="table-responsive">
               <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', color: '#cbd5e1', fontSize: '0.9rem' }}>
                 <thead>
                   <tr style={{ borderBottom: '1px solid #334155' }}>
@@ -159,6 +160,7 @@ const SuperAdminDashboard = () => {
                   ))}
                 </tbody>
               </table>
+            </div>
             </div>
           </div>
         )}

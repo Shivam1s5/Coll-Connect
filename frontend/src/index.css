@@ -2257,3 +2257,63 @@ body {
   background-color: #374151;
   cursor: not-allowed;
 }
+
+/* ==========================================================================
+   MOBILE & TABLET RESPONSIVENESS OVERHAUL
+   ========================================================================== */
+
+@media (max-width: 1024px) {
+  .main-content-area { padding: 15px; }
+  .video-room-container { flex-direction: column; }
+  .video-section { flex: 1; border-right: none; border-bottom: 1px solid #2d3748; padding: 10px; min-height: 40vh; }
+  .chat-section { flex: 1; }
+  .profile-content.grid-layout { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 768px) {
+  /* Layout & Navigation */
+  .main-content-area { padding: 10px; }
+  
+  /* Topbar */
+  .topbar { padding: 0 15px; }
+  .topbar-search input { width: 130px; }
+
+  /* Admin Dashboard & Tables */
+  .table-responsive { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; margin-bottom: 15px; }
+  .table-responsive table { min-width: 600px; }
+  .admin-stats-grid { grid-template-columns: 1fr !important; gap: 15px; }
+  .reports-grid { grid-template-columns: 1fr !important; }
+
+  /* Profiles */
+  .profile-content.grid-layout { grid-template-columns: 1fr !important; gap: 15px; }
+  .banner-area { height: 100px !important; }
+  .profile-large-avatar { width: 100px !important; height: 100px !important; }
+  .avatar-wrapper { margin-top: -50px !important; }
+  .friends-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)) !important; }
+
+  /* Messages - Mobile View Toggle */
+  .messages-layout { flex-direction: column; }
+  .messages-layout .messages-sidebar { width: 100% !important; border-right: none !important; flex: 1; }
+  .messages-layout .messages-main { width: 100% !important; flex: 1; display: none; }
+  
+  /* When chat is open, hide sidebar, show main */
+  .messages-layout.chat-open .messages-sidebar { display: none; }
+  .messages-layout.chat-open .messages-main { display: flex; flex-direction: column; }
+  
+  /* Back button in chat header */
+  .mobile-back-btn { display: flex !important; }
+
+  /* Modals */
+  .modal-content { width: 95% !important; max-width: 400px; padding: 20px; }
+  .image-cropper-modal .modal-content { width: 95% !important; max-width: 600px; padding: 15px; }
+  
+  /* Dashboard specific fixes */
+  .dashboard-stats { grid-template-columns: 1fr !important; }
+}
+
+@media (max-width: 480px) {
+  .topbar-search { display: none; }
+  .video-grid { flex-direction: column !important; }
+  .video-box { min-height: 150px; }
+  .chat-msg { max-width: 90%; }
+}
