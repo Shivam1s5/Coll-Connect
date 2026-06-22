@@ -325,7 +325,15 @@ router.delete('/profile-banner', authMiddleware, async (req, res) => {
 router.post('/profile/socials', authMiddleware, async (req, res) => {
   const user = await User.findOneAndUpdate({ username: req.user.username }, { socials: req.body.socials }, { new: true });
   if (!user) return res.status(404).json({ error: 'Not found' });
-  if (req.io) req.io.emit('admin-update');
+  if (req.io) {
+    req.io.emit('admin-update');
+    req.io.emit('profile-updated', { 
+      username: user.username, 
+      profilePic: user.profilePic, 
+      bannerImage: user.bannerImage,
+      socials: user.socials
+    });
+  }
   res.json({ success: true, socials: user.socials });
 });
 

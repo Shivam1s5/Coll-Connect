@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
+import { useSocket } from '../contexts/SocketContext';
 import { User as UserIcon, Eye, Trash2, MessageCircle, Clock, UserPlus, Check, X, UserMinus, Lock } from 'lucide-react';
 import { FaInstagram as Instagram, FaFacebook as Facebook, FaLinkedin as Linkedin, FaSnapchat as Snapchat } from 'react-icons/fa';
 import ImageModal from './ImageModal';
@@ -14,6 +15,7 @@ const UserProfile = () => {
   const navigate = useNavigate();
   const { user: authUser } = useAuth();
   const { showToast, showConfirm } = useToast();
+  const { socket } = useSocket();
   const [profileData, setProfileData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('profile');
@@ -26,6 +28,17 @@ const UserProfile = () => {
     setActiveTab('profile');
     setPopupMenu(null);
   }, [username]);
+
+  useEffect(() => {
+    if (!socket) return;
+    const handleProfileUpdated = (data) => {
+      if (data.username?.toLowerCase() === username?.toLowerCase()) {
+        fetchProfile(); // Refetch to get the latest socials/images/etc
+      }
+    };
+    socket.on('profile-updated', handleProfileUpdated);
+    return () => socket.off('profile-updated', handleProfileUpdated);
+  }, [socket, username]);
 
   const fetchProfile = async () => {
     setLoading(true);
