@@ -28,39 +28,35 @@ export const AuthProvider = ({ children }) => {
   const [globalProfileData, setGlobalProfileData] = useState(null);
 
   useEffect(() => {
-    if (!user || !user.username) {
-      setGlobalProfileData(null);
-      return;
-    }
-
-    const fetchProfile = async () => {
-      try {
-        const res = await fetch(`${backendUrl}/api/me`, {
-          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` },
-          cache: 'no-store'
-        });
-        if (res.ok) {
-          const data = await res.json();
-          setGlobalProfileData(data);
-          
-          if (data.role && data.role !== user.role) {
-            const updatedUser = { ...user, role: data.role };
-            localStorage.setItem('user', JSON.stringify(updatedUser));
-            setUser(updatedUser);
+    if (user && user.username) {
+      const fetchProfile = async () => {
+        try {
+          const res = await fetch(`${backendUrl}/api/me`, {
+            headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+          });
+          if (res.ok) {
+            const data = await res.json();
+            setGlobalProfileData(data);
+            
+            // Sync local storage user if role differs (e.g. promoted/demoted while offline)
+            if (data.role && data.role !== user.role) {
+              const updatedUser = { ...user, role: data.role };
+              localStorage.setItem('user', JSON.stringify(updatedUser));
+              setUser(updatedUser);
+            }
+          } else if (res.status === 404 || res.status === 401) {
+            // User deleted or token invalid
+            logout();
           }
-        } else if (res.status === 404 || res.status === 401) {
-          logout();
+        } catch (err) {
+          console.error('Failed to fetch global profile data', err);
         }
-      } catch (err) {
-        console.error('Failed to fetch global profile data', err);
-      }
-    };
-
-    fetchProfile();
-
-    window.addEventListener('profile-refresh-required', fetchProfile);
-    return () => window.removeEventListener('profile-refresh-required', fetchProfile);
-  }, [user?.username, user?.role]);
+      };
+      fetchProfile();
+    } else {
+      setGlobalProfileData(null);
+    }
+  }, [user]);
 
   const updateGlobalProfile = (newData) => {
     setGlobalProfileData(prev => ({ ...prev, ...newData }));
