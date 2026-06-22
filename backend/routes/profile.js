@@ -340,7 +340,7 @@ router.post('/profile/change-username', authMiddleware, async (req, res) => {
   const oldUsername = req.user.username;
   let { newUsername } = req.body;
   if (!newUsername) return res.status(400).json({ error: 'New username required' });
-  newUsername = newUsername.trim();
+  newUsername = newUsername.trim().toLowerCase();
   if (newUsername.length < 3 || newUsername.length > 20) return res.status(400).json({ error: 'Username must be 3-20 chars' });
   if (!/^[a-zA-Z0-9_]+$/.test(newUsername)) return res.status(400).json({ error: 'Invalid characters' });
 
