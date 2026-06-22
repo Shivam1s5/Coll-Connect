@@ -128,12 +128,8 @@ const Messages = () => {
     const handleFriendRemoved = (data) => {
       fetchProfileData();
       if (activeChatUser && activeChatUser.username === data.username) {
-        const isMeAdmin = authUser?.role === 'admin' || authUser?.role === 'superadmin';
-        const isTargetAdmin = activeChatUser?.role === 'admin' || activeChatUser?.role === 'superadmin';
-        if (!isMeAdmin && !isTargetAdmin) {
-          setActiveChatUser(null);
-          setChatHistory([]);
-        }
+        setActiveChatUser(null);
+        setChatHistory([]);
       }
     };
     const handleProfileUpdated = (data) => {

@@ -137,6 +137,9 @@ router.post('/unfriend', authMiddleware, async (req, res) => {
     await Message.deleteMany({ $or: orCondition });
   }
   
+  await me.save();
+  await targetUser.save();
+
   if (req.io && req.io.activeUsers) {
     const meSocket = req.io.activeUsers.get(me.username);
     const targetSocket = req.io.activeUsers.get(targetUser.username);
@@ -144,8 +147,6 @@ router.post('/unfriend', authMiddleware, async (req, res) => {
     if (targetSocket) req.io.to(targetSocket).emit('friend-removed', { username: me.username });
   }
 
-  await me.save();
-  await targetUser.save();
   res.json({ success: true });
 });
 
