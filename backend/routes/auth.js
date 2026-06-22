@@ -3,12 +3,47 @@ const router = express.Router();
 const jwt = require('jsonwebtoken');
 const { OAuth2Client } = require('google-auth-library');
 const User = require('../models/User');
+const Message = require('../models/Message');
 const { sendEmail } = require('../utils/mailer');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'super-secret-key-123';
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 const resetCodes = new Map();
+
+async function sendWelcomeMessage(targetUsername, io) {
+  try {
+    const superadmin = await User.findOne({ role: 'superadmin' });
+    const senderName = superadmin ? superadmin.username : 'Prime';
+
+    const welcomeText = `🎉 Welcome to Coll-Connect, ${targetUsername}! 🎉\n\nWe are absolutely thrilled to have you onboard! To ensure you get the most out of our platform, here is a quick guide on how to use all the amazing features we've built for you:\n\n💬 **1. Random Video Chat (Sidebar)**\n- Click on "Random Chat" in the sidebar to instantly meet new people.\n- During a call, you can use the **Blur/Unblur** button to maintain privacy.\n- If someone misbehaves, use the **Report** button to notify us immediately.\n- Enjoyed the conversation? Use the **Add Friend** button to stay connected!\n\n🔍 **2. Messages & Search**\n- Go to the "Messages" tab to chat with your friends.\n- You can search for ANY user globally using the **Search Box** by typing their unique username.\n- From the search results, you can easily send them a Friend Request.\n\n👤 **3. My Profile**\n- Your profile is your digital identity. Here you can check your **Friends List** and see your **Profile Visitors** to know who has been checking you out!\n- **Profile Privacy:** You have the option to Lock or Unlock your profile. \n  🔒 **Locked:** Only your accepted friends can see your full details.\n  🔓 **Unlocked:** Anyone can view your profile, making it easier to grow your network and popularity!\n\nIf you have any questions, feel free to reach out. Enjoy your time on Coll-Connect, and let the seamless connections begin!\n\nBest Regards,\nThe Admin Team`;
+
+    const msg = new Message({
+      sender: senderName,
+      receiver: targetUsername,
+      text: welcomeText,
+      type: 'text',
+      timestamp: new Date()
+    });
+    await msg.save();
+
+    if (io && io.activeUsers) {
+      const targetSocketId = io.activeUsers.get(targetUsername);
+      if (targetSocketId) {
+        io.to(targetSocketId).emit('private-message', {
+          id: msg._id.toString(),
+          sender: senderName,
+          receiver: targetUsername,
+          text: welcomeText,
+          type: 'text',
+          timestamp: msg.timestamp
+        });
+      }
+    }
+  } catch(e) {
+    console.error('Failed to send welcome message:', e);
+  }
+}
 
 router.post('/forgot-password', async (req, res) => {
   const { email } = req.body;
@@ -88,6 +123,8 @@ router.post('/register', async (req, res) => {
   const newUser = new User({ email, username, password, role });
   await newUser.save();
 
+  await sendWelcomeMessage(username, req.io);
+
   if (req.io) req.io.emit('admin-update');
 
   const token = jwt.sign({ username, email }, JWT_SECRET, { expiresIn: '30d' });
@@ -160,6 +197,8 @@ router.post('/auth/google-register', async (req, res) => {
       username, email, password, profilePic: picture || '', role: assignedRole
     });
     await newUser.save();
+
+    await sendWelcomeMessage(newUser.username, req.io);
 
     if (req.io) req.io.emit('admin-update');
 
