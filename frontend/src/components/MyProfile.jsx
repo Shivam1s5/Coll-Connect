@@ -51,6 +51,17 @@ const MyProfile = () => {
     return () => window.removeEventListener('profile-refresh-required', handleRefresh);
   }, []);
 
+  useEffect(() => {
+    if (!socket || !authUser) return;
+    const handleProfileUpdated = (data) => {
+      if (data.username?.toLowerCase() === authUser.username?.toLowerCase()) {
+        fetchProfile();
+      }
+    };
+    socket.on('profile-updated', handleProfileUpdated);
+    return () => socket.off('profile-updated', handleProfileUpdated);
+  }, [socket, authUser]);
+
   const fetchProfile = async () => {
     try {
       const token = localStorage.getItem('token');

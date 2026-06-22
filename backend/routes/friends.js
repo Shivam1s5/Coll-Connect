@@ -45,10 +45,14 @@ router.post('/friend-request', authMiddleware, async (req, res) => {
   targetUser.friendRequests.push({ username: req.user.username, timestamp: Date.now() });
   await targetUser.save();
 
-  if (req.io && req.io.activeUsers) {
-    const targetSocketId = req.io.activeUsers.get(req.body.targetUsername);
-    if (targetSocketId) {
-      req.io.to(targetSocketId).emit('friend-request-received', req.user.username);
+  if (req.io) {
+    req.io.emit('profile-updated', { username: req.user.username });
+    req.io.emit('profile-updated', { username: targetUser.username });
+    if (req.io.activeUsers) {
+      const targetSocketId = req.io.activeUsers.get(req.body.targetUsername);
+      if (targetSocketId) {
+        req.io.to(targetSocketId).emit('friend-request-received', req.user.username);
+      }
     }
   }
   
@@ -67,10 +71,14 @@ router.post('/friend-accept', authMiddleware, async (req, res) => {
   await me.save();
   await targetUser.save();
 
-  if (req.io && req.io.activeUsers) {
-    const targetSocketId = req.io.activeUsers.get(req.body.targetUsername);
-    if (targetSocketId) {
-      req.io.to(targetSocketId).emit('friend-request-accepted', req.user.username);
+  if (req.io) {
+    req.io.emit('profile-updated', { username: req.user.username });
+    req.io.emit('profile-updated', { username: targetUser.username });
+    if (req.io.activeUsers) {
+      const targetSocketId = req.io.activeUsers.get(req.body.targetUsername);
+      if (targetSocketId) {
+        req.io.to(targetSocketId).emit('friend-request-accepted', req.user.username);
+      }
     }
   }
 
@@ -84,10 +92,14 @@ router.post('/friend-decline', authMiddleware, async (req, res) => {
   me.friendRequests = me.friendRequests.filter(fr => fr.username !== req.body.targetUsername);
   await me.save();
 
-  if (req.io && req.io.activeUsers) {
-    const targetSocketId = req.io.activeUsers.get(req.body.targetUsername);
-    if (targetSocketId) {
-      req.io.to(targetSocketId).emit('friend-request-declined', req.user.username);
+  if (req.io) {
+    req.io.emit('profile-updated', { username: req.user.username });
+    req.io.emit('profile-updated', { username: req.body.targetUsername });
+    if (req.io.activeUsers) {
+      const targetSocketId = req.io.activeUsers.get(req.body.targetUsername);
+      if (targetSocketId) {
+        req.io.to(targetSocketId).emit('friend-request-declined', req.user.username);
+      }
     }
   }
 
@@ -140,11 +152,15 @@ router.post('/unfriend', authMiddleware, async (req, res) => {
   await me.save();
   await targetUser.save();
 
-  if (req.io && req.io.activeUsers) {
-    const meSocket = req.io.activeUsers.get(me.username);
-    const targetSocket = req.io.activeUsers.get(targetUser.username);
-    if (meSocket) req.io.to(meSocket).emit('friend-removed', { username: targetUser.username });
-    if (targetSocket) req.io.to(targetSocket).emit('friend-removed', { username: me.username });
+  if (req.io) {
+    req.io.emit('profile-updated', { username: me.username });
+    req.io.emit('profile-updated', { username: targetUser.username });
+    if (req.io.activeUsers) {
+      const meSocket = req.io.activeUsers.get(me.username);
+      const targetSocket = req.io.activeUsers.get(targetUser.username);
+      if (meSocket) req.io.to(meSocket).emit('friend-removed', { username: targetUser.username });
+      if (targetSocket) req.io.to(targetSocket).emit('friend-removed', { username: me.username });
+    }
   }
 
   res.json({ success: true });
