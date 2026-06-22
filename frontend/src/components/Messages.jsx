@@ -361,6 +361,7 @@ const Messages = () => {
         method: 'PUT', 
         headers: { 'Authorization': `Bearer ${token}` } 
       });
+      window.dispatchEvent(new Event('badge-update-required'));
 
       const res = await fetch(`${backendUrl}/api/messages/${user.username}`, { headers: { 'Authorization': `Bearer ${token}` } });
       if (res.ok) { setChatHistory(await res.json()); scrollToBottom(); }

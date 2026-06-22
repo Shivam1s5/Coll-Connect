@@ -4,6 +4,7 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const Message = require('../models/Message');
 const Report = require('../models/Report');
+const DeletionRequest = require('../models/DeletionRequest');
 const { cloudinary } = require('../config/cloudinary');
 const { sendEmail } = require('../utils/mailer');
 
@@ -452,6 +453,31 @@ router.post('/report', authMiddleware, async (req, res) => {
     res.json({ success: true });
   } catch (err) {
     console.error('Error submitting report:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+router.get('/badges', authMiddleware, async (req, res) => {
+  try {
+    const unreadMessages = await Message.countDocuments({ receiver: req.user.username, read: false });
+    
+    let unreadReports = 0;
+    if (req.user.role === 'admin' || req.user.role === 'superadmin') {
+      unreadReports = await Report.countDocuments({ status: 'pending' });
+    }
+
+    let unreadDeletionRequests = 0;
+    if (req.user.role === 'superadmin') {
+      unreadDeletionRequests = await DeletionRequest.countDocuments({ status: 'pending' });
+    }
+
+    res.json({
+      messages: unreadMessages,
+      reports: unreadReports,
+      deletionRequests: unreadDeletionRequests
+    });
+  } catch (err) {
+    console.error('Error fetching badges:', err);
     res.status(500).json({ error: 'Server error' });
   }
 });

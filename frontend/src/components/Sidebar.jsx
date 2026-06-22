@@ -1,13 +1,51 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useSocket } from '../contexts/SocketContext';
 import { X } from 'lucide-react';
 import ContactSupportModal from './ContactSupportModal';
 
 const Sidebar = ({ isOpen, toggleSidebar }) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const { socket } = useSocket();
   const [isSupportOpen, setIsSupportOpen] = useState(false);
+  const [badges, setBadges] = useState({ messages: 0, reports: 0, deletionRequests: 0 });
+  const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
+
+  const fetchBadges = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+      const res = await fetch(`${backendUrl}/api/profile/badges`, {
+        headers: { 'Authorization': `Bearer ${token}`, 'Cache-Control': 'no-cache' }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setBadges(data);
+      }
+    } catch (err) { console.error('Failed to fetch badges', err); }
+  };
+
+  useEffect(() => {
+    if (user) fetchBadges();
+  }, [user]);
+
+  useEffect(() => {
+    if (!socket) return;
+    
+    const handleUpdate = () => fetchBadges();
+    
+    socket.on('private-message', handleUpdate);
+    socket.on('admin-update', handleUpdate);
+    window.addEventListener('badge-update-required', handleUpdate);
+    
+    return () => {
+      socket.off('private-message', handleUpdate);
+      socket.off('admin-update', handleUpdate);
+      window.removeEventListener('badge-update-required', handleUpdate);
+    };
+  }, [socket]);
 
   const handleLogout = () => {
     logout();
@@ -41,7 +79,14 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
                 My Profile
               </NavLink>
               <NavLink to="/messages" className={({isActive}) => isActive ? "nav-item active" : "nav-item"} onClick={toggleSidebar}>
-                Messages
+                <span style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+                  Messages
+                  {badges.messages > 0 && (
+                    <span style={{ background: '#ef4444', color: 'white', borderRadius: '12px', padding: '2px 8px', fontSize: '0.75rem', marginLeft: 'auto', fontWeight: 'bold' }}>
+                      {badges.messages}
+                    </span>
+                  )}
+                </span>
               </NavLink>
             </nav>
           </div>
@@ -63,10 +108,24 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
                   Announcements
                 </NavLink>
                 <NavLink to="/superadmin/reports" className={({isActive}) => isActive ? "nav-item active" : "nav-item"} onClick={toggleSidebar}>
-                  Reports
+                  <span style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+                    Reports
+                    {badges.reports > 0 && (
+                      <span style={{ background: '#ef4444', color: 'white', borderRadius: '12px', padding: '2px 8px', fontSize: '0.75rem', marginLeft: 'auto', fontWeight: 'bold' }}>
+                        {badges.reports}
+                      </span>
+                    )}
+                  </span>
                 </NavLink>
                 <NavLink to="/superadmin/deletion-requests" className={({isActive}) => isActive ? "nav-item active" : "nav-item"} onClick={toggleSidebar}>
-                  Deletion Requests
+                  <span style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+                    Deletion Requests
+                    {badges.deletionRequests > 0 && (
+                      <span style={{ background: '#ef4444', color: 'white', borderRadius: '12px', padding: '2px 8px', fontSize: '0.75rem', marginLeft: 'auto', fontWeight: 'bold' }}>
+                        {badges.deletionRequests}
+                      </span>
+                    )}
+                  </span>
                 </NavLink>
               </nav>
             </div>
@@ -83,7 +142,14 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
                   Manage Users
                 </NavLink>
                 <NavLink to="/admin/reports" className={({isActive}) => isActive ? "nav-item active" : "nav-item"} onClick={toggleSidebar}>
-                  Reports
+                  <span style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+                    Reports
+                    {badges.reports > 0 && (
+                      <span style={{ background: '#ef4444', color: 'white', borderRadius: '12px', padding: '2px 8px', fontSize: '0.75rem', marginLeft: 'auto', fontWeight: 'bold' }}>
+                        {badges.reports}
+                      </span>
+                    )}
+                  </span>
                 </NavLink>
               </nav>
             </div>
