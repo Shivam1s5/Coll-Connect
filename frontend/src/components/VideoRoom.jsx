@@ -57,6 +57,28 @@ const VideoRoom = () => {
   const localStreamRef = useRef(null);
   const emojiPickerRef = useRef(null);
 
+  // Swipe logic
+  const [touchStart, setTouchStart] = useState(null);
+  const [touchEnd, setTouchEnd] = useState(null);
+  const minSwipeDistance = 50;
+
+  const onTouchStartEvent = (e) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const onTouchMoveEvent = (e) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const onTouchEndEvent = () => {
+    if (!touchStart || !touchEnd) return;
+    const distance = touchStart - touchEnd;
+    if (distance > minSwipeDistance || distance < -minSwipeDistance) {
+      handleNext();
+    }
+  };
+
   // Close emoji picker when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -517,7 +539,12 @@ const VideoRoom = () => {
           </div>
 
           {/* Remote Video Box (Right) */}
-          <div className="video-box remote-video">
+          <div 
+            className="video-box remote-video"
+            onTouchStart={onTouchStartEvent}
+            onTouchMove={onTouchMoveEvent}
+            onTouchEnd={onTouchEndEvent}
+          >
             {!partnerConnected ? (
               <div className="waiting-overlay">
                 <div className="spinner"></div>
