@@ -242,8 +242,8 @@ const UserProfile = () => {
       </div>
 
       {activeTab === 'profile' ? (
-        <div className="profile-content grid-layout" onClick={() => setPopupMenu(null)}>
-          <div className="profile-card avatar-card" style={{padding: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column'}}>
+        <div className="profile-content" onClick={() => setPopupMenu(null)} style={{display: 'flex', justifyContent: 'center', padding: '20px 0'}}>
+          <div className="profile-card avatar-card" style={{padding: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column', width: '100%', maxWidth: '400px'}}>
             <div className="banner-area" 
               onClick={(e) => { e.stopPropagation(); setPopupMenu('banner'); }}
               style={{ 
@@ -364,7 +364,7 @@ const UserProfile = () => {
 
               {/* Spotify Preview */}
               {profileData.spotifyUrl && profileData.spotifyUrl.includes('open.spotify.com/track/') && (
-                <div style={{ width: '100%', borderRadius: '12px', overflow: 'hidden', marginTop: 'auto', boxShadow: '0 4px 15px rgba(30, 215, 96, 0.15)' }}>
+                <div style={{ width: '100%', borderRadius: '12px', overflow: 'hidden', marginTop: '15px', boxShadow: '0 4px 15px rgba(30, 215, 96, 0.15)' }}>
                   <iframe 
                     src={profileData.spotifyUrl.replace('/track/', '/embed/track/')} 
                     width="100%" 
@@ -375,97 +375,6 @@ const UserProfile = () => {
                     loading="lazy"
                     style={{display: 'block'}}
                   ></iframe>
-                </div>
-              )}
-            </div>
-          </div>
-
-          <div className="profile-details-grid">
-            <div className="profile-card info-card">
-              <h3>Account Info</h3>
-              <div className="form-group" style={{marginTop: '15px'}}>
-                <label>Username</label>
-                <input type="text" className="profile-input" value={profileData.username} disabled />
-              </div>
-              <div className="form-group">
-                <label>Gender</label>
-                <input type="text" className="profile-input" value={profileData.gender || 'Not Specified'} disabled />
-              </div>
-              {profileData.spotifyUrl && (
-                <div className="form-group" style={{marginTop: '15px'}}>
-                  <label>Spotify Vibe</label>
-                  {profileData.spotifyUrl.includes('open.spotify.com/track/') ? (
-                    <div style={{ marginTop: '10px', borderRadius: '12px', overflow: 'hidden' }}>
-                      <iframe 
-                        src={profileData.spotifyUrl.replace('/track/', '/embed/track/')} 
-                        width="100%" 
-                        height="80" 
-                        frameBorder="0" 
-                        allowFullScreen="" 
-                        allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
-                        loading="lazy"
-                        style={{ borderRadius: '12px', boxShadow: '0 4px 15px rgba(30, 215, 96, 0.2)' }}
-                      ></iframe>
-                    </div>
-                  ) : (
-                    <input type="text" className="profile-input" value={profileData.spotifyUrl} disabled />
-                  )}
-                </div>
-              )}
-            </div>
-
-            <div className="profile-card info-card">
-              <h3>Social Links</h3>
-              {isLocked ? (
-                <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '30px 10px', color: '#9ca3af', textAlign: 'center'}}>
-                  <div style={{width: '60px', height: '60px', borderRadius: '50%', border: '2px solid #374151', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '15px'}}>
-                    <Lock size={30} color="#6b7280" />
-                  </div>
-                  <h4 style={{margin: '0 0 5px 0', color: '#e5e7eb'}}>This account is private</h4>
-                  <p style={{fontSize: '0.85rem', margin: 0}}>Become friends to see their social links and friends list.</p>
-                </div>
-              ) : (
-                <div className="socials-list" style={{marginTop: '15px', display: 'flex', gap: '12px', flexWrap: 'wrap'}}>
-                  {(() => {
-                    const getSocialUrl = (platform, value) => {
-                      if (!value) return null;
-                      const v = value.trim();
-                      if (v.startsWith('http://') || v.startsWith('https://')) return v;
-                      switch (platform) {
-                        case 'instagram': return `https://instagram.com/${v.replace(/^@/, '')}`;
-                        case 'facebook': return `https://facebook.com/${v}`;
-                        case 'linkedin': return v.includes('linkedin.com') ? `https://${v}` : `https://linkedin.com/in/${v}`;
-                        case 'snapchat': return `https://snapchat.com/add/${v.replace(/^@/, '')}`;
-                        default: return null;
-                      }
-                    };
-                    const socials = profileData.socials || {};
-                    const platforms = [
-                      { key: 'instagram', icon: <Instagram size={22} />, color: '#E1306C', hoverBg: 'rgba(225,48,108,0.15)' },
-                      { key: 'facebook', icon: <Facebook size={22} />, color: '#1877F2', hoverBg: 'rgba(24,119,242,0.15)' },
-                      { key: 'linkedin', icon: <Linkedin size={22} />, color: '#0A66C2', hoverBg: 'rgba(10,102,194,0.15)' },
-                      { key: 'snapchat', icon: <span style={{fontSize: '20px'}}>👻</span>, color: '#FFFC00', hoverBg: 'rgba(255,252,0,0.15)' },
-                    ];
-                    const hasAny = platforms.some(p => socials[p.key]);
-                    if (!hasAny) return <span style={{color: '#6b7280', fontSize: '0.9rem'}}>No social links added</span>;
-                    return platforms.map(p => {
-                      const url = getSocialUrl(p.key, socials[p.key]);
-                      if (!url) return null;
-                      return (
-                        <a key={p.key} href={url} target="_blank" rel="noopener noreferrer" title={p.key.charAt(0).toUpperCase() + p.key.slice(1)}
-                          style={{
-                            width: '44px', height: '44px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: p.color,
-                            transition: 'all 0.2s ease', cursor: 'pointer', textDecoration: 'none'
-                          }}
-                          onMouseEnter={e => { e.currentTarget.style.background = p.hoverBg; e.currentTarget.style.transform = 'scale(1.1)'; e.currentTarget.style.borderColor = p.color; }}
-                          onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'; }}
-                        >
-                          {p.icon}
-                        </a>
-                      );
-                    });
-                  })()}
                 </div>
               )}
             </div>

@@ -501,7 +501,7 @@ const MyProfile = () => {
 
               {/* Spotify Preview */}
               {profileData.spotifyUrl && profileData.spotifyUrl.includes('open.spotify.com/track/') && (
-                <div style={{ width: '100%', borderRadius: '12px', overflow: 'hidden', marginTop: 'auto', boxShadow: '0 4px 15px rgba(30, 215, 96, 0.15)' }}>
+                <div style={{ width: '100%', borderRadius: '12px', overflow: 'hidden', marginTop: '15px', boxShadow: '0 4px 15px rgba(30, 215, 96, 0.15)' }}>
                   <iframe 
                     src={profileData.spotifyUrl.replace('/track/', '/embed/track/')} 
                     width="100%" 
@@ -536,9 +536,8 @@ const MyProfile = () => {
                     <button className="btn-cancel" style={{padding: '10px'}} onClick={() => {setIsEditingUsername(false); setNewUsername(profileData.username);}}>Cancel</button>
                   </div>
                 ) : (
-                  <div className="edit-group">
-                    <input type="text" className="profile-input" value={profileData.username} disabled />
-                    <button className="btn-action btn-blue" onClick={() => setIsEditingUsername(true)} title="Change Username">Edit</button>
+                  <div>
+                    <button className="btn-action btn-blue" onClick={() => setIsEditingUsername(true)} title="Change Username">Edit Username</button>
                   </div>
                 )}
               </div>
@@ -557,9 +556,8 @@ const MyProfile = () => {
                     <button className="btn-cancel" style={{padding: '10px'}} onClick={() => {setIsEditingGender(false); setGender(profileData.gender || 'Not Specified');}}>Cancel</button>
                   </div>
                 ) : (
-                  <div className="edit-group">
-                    <input type="text" className="profile-input" value={profileData.gender || 'Not Specified'} disabled />
-                    <button className="btn-action btn-blue" onClick={() => setIsEditingGender(true)}>Edit</button>
+                  <div>
+                    <button className="btn-action btn-blue" onClick={() => setIsEditingGender(true)}>Edit Gender</button>
                   </div>
                 )}
               </div>
@@ -573,23 +571,8 @@ const MyProfile = () => {
                     <button className="btn-cancel" style={{padding: '10px'}} onClick={() => {setIsEditingSpotify(false); setSpotifyUrl(profileData.spotifyUrl || '');}}>Cancel</button>
                   </div>
                 ) : (
-                  <div className="edit-group">
-                    <input type="text" className="profile-input" value={profileData.spotifyUrl || 'No vibe set'} disabled />
-                    <button className="btn-action btn-blue" onClick={() => setIsEditingSpotify(true)}>Edit</button>
-                  </div>
-                )}
-                {profileData.spotifyUrl && !isEditingSpotify && profileData.spotifyUrl.includes('open.spotify.com/track/') && (
-                  <div style={{ marginTop: '10px', borderRadius: '12px', overflow: 'hidden' }}>
-                    <iframe 
-                      src={profileData.spotifyUrl.replace('/track/', '/embed/track/')} 
-                      width="100%" 
-                      height="80" 
-                      frameBorder="0" 
-                      allowFullScreen="" 
-                      allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
-                      loading="lazy"
-                      style={{ borderRadius: '12px', boxShadow: '0 4px 15px rgba(30, 215, 96, 0.2)' }}
-                    ></iframe>
+                  <div>
+                    <button className="btn-action btn-blue" onClick={() => setIsEditingSpotify(true)}>Edit Spotify Vibe</button>
                   </div>
                 )}
               </div>
