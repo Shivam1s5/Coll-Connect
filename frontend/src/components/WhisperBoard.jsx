@@ -133,7 +133,7 @@ const WhisperBoard = () => {
         </div>
 
         {/* Instagram Reels Style Container */}
-        <div style={{ position: 'relative', width: '100%', maxWidth: '450px', marginTop: '40px', flex: 1, maxHeight: '75vh', display: 'flex', flexDirection: 'column' }}>
+        <div style={{ position: 'relative', width: '100%', maxWidth: '450px', marginTop: '40px', marginBottom: '40px', flex: 1, maxHeight: '75vh', display: 'flex', flexDirection: 'column' }}>
           {/* 3D Glowing SVG Cat */}
           <svg viewBox="0 0 24 24" width="70" height="70" stroke="#c084fc" strokeWidth="1.2" fill="rgba(30, 41, 59, 0.9)" strokeLinecap="round" strokeLinejoin="round" className="live-cat" style={{ position: 'absolute', top: '-55px', left: '50%', transform: 'translateX(-50%)', zIndex: 10, animation: 'floatCat 4s ease-in-out infinite', filter: 'drop-shadow(0 0 15px rgba(192, 132, 252, 0.8))' }}>
             <path d="M12 5c.67 0 1.35.09 2 .26 1.78-2 5.03-2.84 6.42-2.26 1.4.58-.42 7-.42 7 .57 1.07 1 2.24 1 3.44C21 17.9 16.97 21 12 21s-9-3.1-9-7.56c0-1.25.5-2.4 1-3.44 0 0-1.89-6.42-.5-7 1.39-.58 4.72.23 6.5 2.23A9.04 9.04 0 0 1 12 5Z" />
@@ -151,8 +151,8 @@ const WhisperBoard = () => {
               </div>
             ) : (
               whispers.map(w => (
-                <div key={w._id} className="whisper-reel-card" style={{ height: '100%', width: '100%', scrollSnapAlign: 'start', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '15px', boxSizing: 'border-box' }}>
-                  <div className="whisper-card" style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', transformStyle: 'preserve-3d', transition: 'all 0.4s ease', margin: '0', background: 'transparent', border: 'none', boxShadow: 'none' }}>
+                <div key={w._id} className="whisper-reel-card" style={{ height: '100%', width: '100%', scrollSnapAlign: 'start', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box' }}>
+                  <div className="whisper-card" style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', transformStyle: 'preserve-3d', transition: 'all 0.4s ease', margin: '0', background: 'transparent', border: 'none', boxShadow: 'none', padding: '20px' }}>
                 <div className="whisper-card-header" style={{ flexShrink: 0, marginBottom: '10px' }}>
                   <div className="author-info">
                     <span className="author-name">{w.authorDisplay}</span>
