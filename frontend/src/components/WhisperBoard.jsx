@@ -165,16 +165,16 @@ const WhisperBoard = () => {
                   )}
                 </div>
                 
-                <div className="whisper-message hide-scrollbar" style={{ flex: '0 0 50%', height: '50%', wordWrap: 'break-word', wordBreak: 'break-all', overflowWrap: 'anywhere', whiteSpace: 'pre-wrap', overflowY: 'scroll', fontSize: '1.1rem', lineHeight: '1.6', padding: '10px 15px', background: 'rgba(0,0,0,0.2)', borderRadius: '12px' }}>
+                <div className="whisper-message hide-scrollbar" style={{ flex: '0 0 30%', height: '30%', wordWrap: 'break-word', wordBreak: 'break-all', overflowWrap: 'anywhere', whiteSpace: 'pre-wrap', overflowY: 'scroll', fontSize: '1.1rem', lineHeight: '1.6', padding: '10px 15px', background: 'rgba(0,0,0,0.2)', borderRadius: '12px' }}>
                     "{w.content}"
                   </div>
 
                 {w.targetUserDetails && (
                   <>
-                  <div style={{ flex: '0 0 5%' }}></div>
-                  <div className="tagged-user-card" onClick={() => navigate('/messages', { state: { openChatWith: w.targetUserDetails.username } })} style={{ flex: '0 0 35%', height: '35%', display: 'flex', flexDirection: 'column', marginTop: '0' }}>
-                    <div className="tagged-banner" style={{ ...(w.targetUserDetails.bannerImage ? { backgroundImage: `url(${w.targetUserDetails.bannerImage})` } : {}), flex: '0 0 50%' }}></div>
-                    <div className="tagged-info" style={{ flex: '1', marginTop: '-20px' }}>
+                  <div style={{ flex: '0 0 10%' }}></div>
+                  <div className="tagged-user-card" onClick={() => navigate('/messages', { state: { openChatWith: w.targetUserDetails.username } })} style={{ flex: '0 0 50%', height: '50%', display: 'flex', flexDirection: 'column', marginTop: '0' }}>
+                    <div className="tagged-banner" style={{ ...(w.targetUserDetails.bannerImage ? { backgroundImage: `url(${w.targetUserDetails.bannerImage})` } : {}), flex: '0 0 40%' }}></div>
+                    <div className="tagged-info" style={{ flex: '1', marginTop: '-25px' }}>
                       <div className="tagged-avatar">
                         {w.targetUserDetails.profilePic ? (
                           <img src={w.targetUserDetails.profilePic} alt="Profile" />
@@ -187,6 +187,11 @@ const WhisperBoard = () => {
                         <span className={`badge badge-${w.targetUserDetails.role || 'user'}`}>{(w.targetUserDetails.role || 'USER').toUpperCase()}</span>
                       </div>
                     </div>
+                  </div>
+                  <div style={{ flex: '0 0 10%', height: '10%', display: 'flex', justifyContent: 'center', alignItems: 'flex-end', paddingBottom: '5px' }}>
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#c084fc" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ filter: 'drop-shadow(0 0 8px #c084fc)', animation: 'floatCat 1.5s ease-in-out infinite' }}>
+                      <path d="M18 15l-6-6-6 6"/>
+                    </svg>
                   </div>
                   </>
                 )}
