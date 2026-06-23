@@ -105,7 +105,7 @@ const WhisperBoard = () => {
   };
 
   return (
-    <div className="whisper-board-container" style={{ background: 'linear-gradient(to bottom, #020617, #0f172a, #1e1b4b)', width: '100vw', height: '100vh', overflow: 'hidden', position: 'relative' }}>
+    <div className="whisper-board-container" style={{ background: 'linear-gradient(to bottom, #020617, #0f172a, #1e1b4b)', width: '100%', height: 'calc(100vh - 60px)', overflow: 'hidden', position: 'relative' }}>
       {/* Live Moonlit Stars Background (Pure CSS) */}
       <div className="stars-bg"></div>
       <div className="css-moon"></div>
@@ -165,7 +165,7 @@ const WhisperBoard = () => {
                   )}
                 </div>
                 
-                <div className="whisper-message custom-scrollbar" style={{ wordWrap: 'break-word', wordBreak: 'break-all', overflowWrap: 'anywhere', whiteSpace: 'pre-wrap', overflowY: 'auto', maxHeight: '50vh', fontSize: '1.1rem', lineHeight: '1.6', padding: '10px 15px', background: 'rgba(0,0,0,0.2)', borderRadius: '12px' }}>
+                <div className="whisper-message hide-scrollbar" style={{ wordWrap: 'break-word', wordBreak: 'break-all', overflowWrap: 'anywhere', whiteSpace: 'pre-wrap', overflowY: 'scroll', maxHeight: '200px', fontSize: '1.1rem', lineHeight: '1.6', padding: '10px 15px', background: 'rgba(0,0,0,0.2)', borderRadius: '12px' }}>
                     "{w.content}"
                   </div>
 
