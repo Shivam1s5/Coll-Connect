@@ -152,7 +152,7 @@ const WhisperBoard = () => {
             ) : (
               whispers.map(w => (
                 <div key={w._id} className="whisper-reel-card" style={{ height: '100%', width: '100%', scrollSnapAlign: 'start', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box' }}>
-                  <div className="whisper-card" style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', transformStyle: 'preserve-3d', transition: 'all 0.4s ease', margin: '0', background: 'transparent', border: 'none', boxShadow: 'none', padding: '20px' }}>
+                  <div className="whisper-card" style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', transformStyle: 'preserve-3d', transition: 'all 0.4s ease', margin: '0', background: 'rgba(255, 255, 255, 0.03)', border: '1px solid rgba(255, 255, 255, 0.15)', boxShadow: '0 0 25px rgba(255, 255, 255, 0.08)', borderRadius: '24px', padding: '20px' }}>
                 <div className="whisper-card-header" style={{ flexShrink: 0, marginBottom: '10px' }}>
                   <div className="author-info">
                     <span className="author-name">{w.authorDisplay}</span>
@@ -171,7 +171,7 @@ const WhisperBoard = () => {
 
                 {w.targetUserDetails && (
                   <>
-                  <div style={{ flex: '0 0 10%' }}></div>
+                  <div style={{ flex: '0 0 5%' }}></div>
                   <div className="tagged-user-card" onClick={() => navigate('/messages', { state: { openChatWith: w.targetUserDetails.username } })} style={{ flex: '0 0 50%', height: '50%', display: 'flex', flexDirection: 'column', marginTop: '0', background: 'rgba(15, 23, 42, 0.5)', backdropFilter: 'blur(12px)', border: '1px solid rgba(139, 92, 246, 0.25)', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 8px 32px rgba(0,0,0,0.2)' }}>
                     <div className="tagged-banner" style={{ 
                       backgroundImage: w.targetUserDetails.bannerImage ? `linear-gradient(to bottom, rgba(15, 23, 42, 0) 30%, rgba(15, 23, 42, 0.95) 100%), url(${w.targetUserDetails.bannerImage})` : `linear-gradient(to bottom, rgba(15, 23, 42, 0) 30%, rgba(15, 23, 42, 0.95) 100%), linear-gradient(to right, #4338ca, #3b82f6)`,
@@ -193,7 +193,7 @@ const WhisperBoard = () => {
                       </div>
                     </div>
                   </div>
-                  <div style={{ flex: '0 0 10%', height: '10%', display: 'flex', justifyContent: 'center', alignItems: 'flex-end', paddingBottom: '5px' }}>
+                  <div style={{ flex: '0 0 15%', height: '15%', display: 'flex', justifyContent: 'center', alignItems: 'flex-end', paddingBottom: '5px' }}>
                     <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#c084fc" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ filter: 'drop-shadow(0 0 8px #c084fc)', animation: 'floatCat 1.5s ease-in-out infinite' }}>
                       <path d="M18 15l-6-6-6 6"/>
                     </svg>
