@@ -74,7 +74,7 @@ const WhisperBoard = () => {
         setTargetUser('');
         setContent('');
         setIsAnonymous(false);
-        // fetchWhispers(searchQuery); // handled by socket
+        fetchWhispers(searchQuery);
       } else {
         showToast(data.error || 'Failed to post whisper');
       }
@@ -93,6 +93,7 @@ const WhisperBoard = () => {
       });
       if (res.ok) {
         showToast('Whisper deleted successfully');
+        fetchWhispers(searchQuery);
       } else {
         showToast('Failed to delete whisper');
       }
@@ -108,6 +109,8 @@ const WhisperBoard = () => {
         <div id="stars"></div>
         <div id="stars2"></div>
         <div id="stars3"></div>
+        <div className="moon"></div>
+        <div className="forest-silhouette"></div>
       </div>
       
       <div className="whisper-board-content custom-scrollbar">

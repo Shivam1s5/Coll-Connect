@@ -772,11 +772,20 @@ const Messages = () => {
                       }}>
                         
                         {msg.isTimeCapsule && new Date() < new Date(msg.deliverAt) ? (
-                          <div style={{ padding: '20px', textAlign: 'center', background: 'rgba(0,0,0,0.2)', borderRadius: '12px' }}>
-                            <Lock size={24} style={{ marginBottom: '8px', opacity: 0.8 }} />
-                            <h4 style={{ margin: '0 0 5px 0' }}>Time Capsule</h4>
-                            <p style={{ margin: 0, fontSize: '0.85rem', opacity: 0.8 }}>
-                              Unlocks at: {new Date(msg.deliverAt).toLocaleString()}
+                          <div style={{ 
+                            padding: '24px', 
+                            textAlign: 'center', 
+                            background: 'rgba(255, 255, 255, 0.1)', 
+                            backdropFilter: 'blur(10px)', 
+                            border: '1px solid rgba(255, 255, 255, 0.2)', 
+                            borderRadius: '16px',
+                            boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.37)'
+                          }}>
+                            <Lock size={32} color="#fbbf24" style={{ marginBottom: '12px', filter: 'drop-shadow(0 0 8px rgba(251, 191, 36, 0.6))' }} />
+                            <h4 style={{ margin: '0 0 8px 0', color: '#f3f4f6', letterSpacing: '1px' }}>TIME CAPSULE</h4>
+                            <p style={{ margin: 0, fontSize: '0.85rem', color: '#cbd5e1' }}>
+                              Unlocks at:<br/>
+                              <strong style={{ color: '#fff' }}>{new Date(msg.deliverAt).toLocaleString()}</strong>
                             </p>
                           </div>
                         ) : (

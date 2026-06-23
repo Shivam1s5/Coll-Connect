@@ -56,8 +56,8 @@ module.exports = (io) => {
         type: type,
         fileUrl: fileUrl,
         timestamp: new Date(),
-        isTimeCapsule: isTimeCapsule || false,
-        deliverAt: deliverAt || null
+        isTimeCapsule: isTimeCapsule === true || isTimeCapsule === 'true',
+        deliverAt: deliverAt ? new Date(deliverAt) : null
       });
       await msg.save();
 

@@ -2464,6 +2464,37 @@ body {
   to { transform: translateY(-1000px); }
 }
 
+/* 3D Moon and Forest Scenery */
+.moon {
+  position: absolute;
+  top: 15%;
+  right: 15%;
+  width: 150px;
+  height: 150px;
+  background: radial-gradient(circle at 30% 30%, #fff, #e2e8f0, #94a3b8);
+  border-radius: 50%;
+  box-shadow: 0 0 60px 15px rgba(255, 255, 255, 0.2), inset -10px -10px 20px rgba(0,0,0,0.4);
+  z-index: 1;
+  animation: floatMoon 10s ease-in-out infinite;
+}
+
+@keyframes floatMoon {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-15px); }
+}
+
+.forest-silhouette {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 250px;
+  background: url('data:image/svg+xml;utf8,<svg viewBox="0 0 1000 200" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="%231e293b" /><stop offset="100%" stop-color="%23020617" /></linearGradient></defs><path d="M0,200 L0,150 L30,120 L50,150 L80,100 L120,160 L150,90 L200,180 L250,70 L300,160 L350,100 L400,170 L450,80 L500,190 L550,60 L600,150 L650,40 L700,140 L750,90 L800,170 L850,50 L900,160 L950,100 L1000,180 L1000,200 Z" fill="url(%23g)"/></svg>') repeat-x bottom;
+  background-size: 1000px 100%;
+  z-index: 1;
+  filter: drop-shadow(0 -10px 20px rgba(0,0,0,0.5));
+}
+
 /* Whisper Board Content */
 .whisper-board-content {
   position: relative;

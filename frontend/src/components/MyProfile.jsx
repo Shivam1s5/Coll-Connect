@@ -503,7 +503,6 @@ const MyProfile = () => {
                 {profileData.spotifyUrl && !isEditingSpotify && profileData.spotifyUrl.includes('open.spotify.com/track/') && (
                   <div style={{ marginTop: '10px', borderRadius: '12px', overflow: 'hidden' }}>
                     <iframe 
-                      style={{ borderRadius: '12px' }} 
                       src={profileData.spotifyUrl.replace('/track/', '/embed/track/')} 
                       width="100%" 
                       height="80" 
@@ -511,6 +510,7 @@ const MyProfile = () => {
                       allowFullScreen="" 
                       allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
                       loading="lazy"
+                      style={{ borderRadius: '12px', boxShadow: '0 4px 15px rgba(30, 215, 96, 0.2)' }}
                     ></iframe>
                   </div>
                 )}

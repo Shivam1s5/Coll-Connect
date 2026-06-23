@@ -11,6 +11,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
   const { socket } = useSocket();
   const [isSupportOpen, setIsSupportOpen] = useState(false);
   const [badges, setBadges] = useState({ messages: 0, reports: 0, deletionRequests: 0 });
+  const [hasNewWhisper, setHasNewWhisper] = useState(false);
   const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
 
   const fetchBadges = async () => {
@@ -35,14 +36,17 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
     if (!socket) return;
     
     const handleUpdate = () => fetchBadges();
+    const handleNewWhisper = () => setHasNewWhisper(true);
     
     socket.on('private-message', handleUpdate);
     socket.on('admin-update', handleUpdate);
+    socket.on('new-whisper', handleNewWhisper);
     window.addEventListener('badge-update-required', handleUpdate);
     
     return () => {
       socket.off('private-message', handleUpdate);
       socket.off('admin-update', handleUpdate);
+      socket.off('new-whisper', handleNewWhisper);
       window.removeEventListener('badge-update-required', handleUpdate);
     };
   }, [socket]);
@@ -78,8 +82,13 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
               <NavLink to="/profile" className={({isActive}) => isActive ? "nav-item active" : "nav-item"} onClick={toggleSidebar}>
                 My Profile
               </NavLink>
-              <NavLink to="/whisper-board" className={({isActive}) => isActive ? "nav-item active" : "nav-item"} onClick={toggleSidebar}>
-                Whisper Board
+              <NavLink to="/whisper-board" className={({isActive}) => isActive ? "nav-item active" : "nav-item"} onClick={() => { toggleSidebar(); setHasNewWhisper(false); }}>
+                <span style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+                  Whisper Board
+                  {hasNewWhisper && (
+                    <span className="blue-crystal-indicator" style={{ width: '8px', height: '8px', padding: 0, borderRadius: '50%', minWidth: '8px' }}></span>
+                  )}
+                </span>
               </NavLink>
               <NavLink to="/messages" className={({isActive}) => isActive ? "nav-item active" : "nav-item"} onClick={toggleSidebar}>
                 <span style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
