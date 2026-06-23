@@ -243,7 +243,7 @@ const UserProfile = () => {
 
       {activeTab === 'profile' ? (
         <div className="profile-content grid-layout" onClick={() => setPopupMenu(null)}>
-          <div className="profile-card avatar-card" style={{padding: 0}}>
+          <div className="profile-card avatar-card" style={{padding: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column'}}>
             <div className="banner-area" 
               onClick={(e) => { e.stopPropagation(); setPopupMenu('banner'); }}
               style={{ 
@@ -254,8 +254,6 @@ const UserProfile = () => {
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
                 position: 'relative',
-                borderTopLeftRadius: '12px',
-                borderTopRightRadius: '12px',
                 cursor: 'pointer'
               }}>
               {popupMenu === 'banner' && (
@@ -274,11 +272,11 @@ const UserProfile = () => {
               )}
             </div>
 
-            <div className="avatar-wrapper" style={{ marginTop: '-60px', position: 'relative' }} onClick={(e) => { e.stopPropagation(); setPopupMenu('profile'); }}>
+            <div className="avatar-wrapper" style={{ marginTop: '-50px', position: 'relative', alignSelf: 'center', marginInline: 'auto' }} onClick={(e) => { e.stopPropagation(); setPopupMenu('profile'); }}>
               {profileData.profilePic ? (
-                <img src={profileData.profilePic} alt="Profile" className="profile-large-avatar" style={{backgroundColor: '#1f2937', cursor: 'pointer'}} />
+                <img src={profileData.profilePic} alt="Profile" className="profile-large-avatar" style={{backgroundColor: '#1f2937', cursor: 'pointer', boxShadow: '0 4px 10px rgba(0,0,0,0.3)'}} />
               ) : (
-                <div className="profile-large-avatar" style={{backgroundColor: '#1f2937', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+                <div className="profile-large-avatar" style={{backgroundColor: '#1f2937', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 10px rgba(0,0,0,0.3)'}}>
                   <UserIcon size={80} color="#9ca3af" />
                 </div>
               )}
@@ -299,6 +297,87 @@ const UserProfile = () => {
               )}
             </div>
             
+            <div style={{ padding: '0 20px 20px 20px', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', flex: 1, width: '100%', boxSizing: 'border-box' }}>
+              <h2 style={{ margin: '10px 0 5px 0', fontSize: '1.5rem', color: '#f3f4f6', fontWeight: '700', letterSpacing: '0.5px' }}>{profileData.username}</h2>
+              
+              <div style={{display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', justifyContent: 'center'}}>
+                <span className={`badge badge-${profileData.role || 'user'}`} style={{boxShadow: '0 2px 10px rgba(0,0,0,0.2)'}}>
+                  {(profileData.role || 'USER').toUpperCase()}
+                </span>
+                {profileData.gender && profileData.gender !== 'Not Specified' && (
+                  <span style={{fontSize: '0.85rem', color: '#e5e7eb', background: 'rgba(55, 65, 81, 0.5)', border: '1px solid #4b5563', padding: '4px 12px', borderRadius: '16px'}}>
+                    {profileData.gender}
+                  </span>
+                )}
+              </div>
+
+              {/* Social Links Preview */}
+              <div style={{width: '100%', marginBottom: '20px'}}>
+                {isLocked ? (
+                  <div style={{background: 'rgba(17, 24, 39, 0.5)', padding: '15px', borderRadius: '12px', border: '1px dashed #4b5563'}}>
+                    <Lock size={20} color="#6b7280" style={{marginBottom: '5px'}}/>
+                    <div style={{fontSize: '0.85rem', color: '#9ca3af'}}>Socials hidden (Private)</div>
+                  </div>
+                ) : (
+                  <div className="socials-list" style={{display: 'flex', gap: '10px', flexWrap: 'wrap', justifyContent: 'center'}}>
+                    {(() => {
+                      const getSocialUrl = (platform, value) => {
+                        if (!value) return null;
+                        const v = value.trim();
+                        if (v.startsWith('http://') || v.startsWith('https://')) return v;
+                        switch (platform) {
+                          case 'instagram': return `https://instagram.com/${v.replace(/^@/, '')}`;
+                          case 'facebook': return `https://facebook.com/${v}`;
+                          case 'linkedin': return v.includes('linkedin.com') ? `https://${v}` : `https://linkedin.com/in/${v}`;
+                          case 'snapchat': return `https://snapchat.com/add/${v.replace(/^@/, '')}`;
+                          default: return null;
+                        }
+                      };
+                      const s = profileData.socials || {};
+                      const platforms = [
+                        { key: 'instagram', icon: <Instagram size={18} />, color: '#E1306C', hoverBg: 'rgba(225,48,108,0.15)' },
+                        { key: 'facebook', icon: <Facebook size={18} />, color: '#1877F2', hoverBg: 'rgba(24,119,242,0.15)' },
+                        { key: 'linkedin', icon: <Linkedin size={18} />, color: '#0A66C2', hoverBg: 'rgba(10,102,194,0.15)' },
+                        { key: 'snapchat', icon: <span style={{fontSize: '16px'}}>👻</span>, color: '#FFFC00', hoverBg: 'rgba(255,252,0,0.15)' },
+                      ];
+                      const hasAny = platforms.some(p => s[p.key]);
+                      if (!hasAny) return <div style={{fontSize: '0.85rem', color: '#6b7280', padding: '10px'}}>No social links added</div>;
+                      return platforms.map(p => {
+                        const url = getSocialUrl(p.key, s[p.key]);
+                        if (!url) return null;
+                        return (
+                          <a key={p.key} href={url} target="_blank" rel="noopener noreferrer" title={p.key.charAt(0).toUpperCase() + p.key.slice(1)}
+                            style={{
+                              width: '36px', height: '36px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: p.color,
+                              transition: 'all 0.2s ease', cursor: 'pointer', textDecoration: 'none'
+                            }}
+                          >
+                            {p.icon}
+                          </a>
+                        );
+                      });
+                    })()}
+                  </div>
+                )}
+              </div>
+
+              {/* Spotify Preview */}
+              {profileData.spotifyUrl && profileData.spotifyUrl.includes('open.spotify.com/track/') && (
+                <div style={{ width: '100%', borderRadius: '12px', overflow: 'hidden', marginTop: 'auto', boxShadow: '0 4px 15px rgba(30, 215, 96, 0.15)' }}>
+                  <iframe 
+                    src={profileData.spotifyUrl.replace('/track/', '/embed/track/')} 
+                    width="100%" 
+                    height="80" 
+                    frameBorder="0" 
+                    allowFullScreen="" 
+                    allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
+                    loading="lazy"
+                    style={{display: 'block'}}
+                  ></iframe>
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="profile-details-grid">
