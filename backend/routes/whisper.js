@@ -103,7 +103,8 @@ router.post('/whispers', authMiddleware, async (req, res) => {
 // Delete a whisper (Superadmin only)
 router.delete('/whispers/:id', authMiddleware, async (req, res) => {
   try {
-    if (req.user.role !== 'superadmin') {
+    const dbUser = await User.findOne({ username: req.user.username });
+    if (!dbUser || dbUser.role !== 'superadmin') {
       return res.status(403).json({ error: 'Forbidden' });
     }
     

@@ -82,6 +82,13 @@ const Messages = () => {
   const [gifs, setGifs] = useState([]);
   const [gifSearchQuery, setGifSearchQuery] = useState('');
 
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
   const chatScrollRef = useRef(null);
   const fileInputRef = useRef(null);
   const mediaRecorderRef = useRef(null);
@@ -768,54 +775,48 @@ const Messages = () => {
                         borderBottomRightRadius: isMe ? '4px' : '16px',
                         borderBottomLeftRadius: isMe ? '16px' : '4px',
                         wordWrap: 'break-word',
-                        boxShadow: '0 1px 2px rgba(0,0,0,0.1)'
+                        boxShadow: msg.isTimeCapsule && currentTime < new Date(msg.deliverAt) ? '0 4px 15px rgba(192, 192, 192, 0.4)' : '0 1px 2px rgba(0,0,0,0.1)',
+                        border: msg.isTimeCapsule && currentTime < new Date(msg.deliverAt) ? '2px solid silver' : 'none',
+                        position: 'relative',
+                        overflow: 'hidden'
                       }}>
                         
-                        {msg.isTimeCapsule && new Date() < new Date(msg.deliverAt) ? (
-                          <div style={{ 
-                            padding: '24px', 
-                            textAlign: 'center', 
-                            background: 'rgba(255, 255, 255, 0.1)', 
-                            backdropFilter: 'blur(10px)', 
-                            border: '1px solid rgba(255, 255, 255, 0.2)', 
-                            borderRadius: '16px',
-                            boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.37)'
-                          }}>
-                            <Lock size={32} color="#fbbf24" style={{ marginBottom: '12px', filter: 'drop-shadow(0 0 8px rgba(251, 191, 36, 0.6))' }} />
-                            <h4 style={{ margin: '0 0 8px 0', color: '#f3f4f6', letterSpacing: '1px' }}>TIME CAPSULE</h4>
-                            <p style={{ margin: 0, fontSize: '0.85rem', color: '#cbd5e1' }}>
-                              Unlocks at:<br/>
-                              <strong style={{ color: '#fff' }}>{new Date(msg.deliverAt).toLocaleString()}</strong>
-                            </p>
-                          </div>
-                        ) : (
-                          <>
-                            {msg.isTimeCapsule && (
-                              <div style={{ fontSize: '0.75rem', color: '#fbbf24', display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '6px' }}>
-                                <Clock size={12} /> Time Capsule Unlocked
-                              </div>
-                            )}
-                            {msg.type === 'image' && (
-                              <div style={{ marginBottom: '8px', borderRadius: '8px', overflow: 'hidden', cursor: 'pointer' }} onClick={() => setPreviewMedia({url: msg.fileUrl, type: 'image'})}>
-                                <img src={msg.fileUrl} alt="attachment" style={{ maxWidth: '100%', maxHeight: '250px', display: 'block', borderRadius: '8px', transition: 'transform 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.02)'} onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'} />
-                              </div>
-                            )}
-                        {msg.type === 'video' && (
-                          <div style={{ marginBottom: '8px', borderRadius: '8px', overflow: 'hidden', position: 'relative', cursor: 'pointer' }} onClick={() => setPreviewMedia({url: msg.fileUrl, type: 'video'})}>
-                            <video src={msg.fileUrl} style={{ maxWidth: '100%', maxHeight: '250px', display: 'block', borderRadius: '8px', background: '#000' }} />
-                            <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', background: 'rgba(0,0,0,0.5)', borderRadius: '50%', padding: '10px', pointerEvents: 'none' }}>
-                              <Play size={24} color="white" fill="white" />
+                        <div style={{ filter: msg.isTimeCapsule && currentTime < new Date(msg.deliverAt) ? 'blur(10px)' : 'none', userSelect: msg.isTimeCapsule && currentTime < new Date(msg.deliverAt) ? 'none' : 'auto', transition: 'filter 0.5s ease' }}>
+                          {msg.isTimeCapsule && currentTime >= new Date(msg.deliverAt) && (
+                            <div style={{ fontSize: '0.75rem', color: '#fbbf24', display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '6px' }}>
+                              <Clock size={12} /> Time Capsule Unlocked
                             </div>
+                          )}
+                          {msg.type === 'image' && (
+                            <div style={{ marginBottom: '8px', borderRadius: '8px', overflow: 'hidden', cursor: 'pointer' }} onClick={() => { if (!(msg.isTimeCapsule && currentTime < new Date(msg.deliverAt))) setPreviewMedia({url: msg.fileUrl, type: 'image'}) }}>
+                              <img src={msg.fileUrl} alt="attachment" style={{ maxWidth: '100%', maxHeight: '250px', display: 'block', borderRadius: '8px', transition: 'transform 0.2s' }} />
+                            </div>
+                          )}
+                          {msg.type === 'video' && (
+                            <div style={{ marginBottom: '8px', borderRadius: '8px', overflow: 'hidden', position: 'relative', cursor: 'pointer' }} onClick={() => { if (!(msg.isTimeCapsule && currentTime < new Date(msg.deliverAt))) setPreviewMedia({url: msg.fileUrl, type: 'video'}) }}>
+                              <video src={msg.fileUrl} style={{ maxWidth: '100%', maxHeight: '250px', display: 'block', borderRadius: '8px', background: '#000' }} />
+                              <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', background: 'rgba(0,0,0,0.5)', borderRadius: '50%', padding: '10px', pointerEvents: 'none' }}>
+                                <Play size={24} color="white" fill="white" />
+                              </div>
+                            </div>
+                          )}
+                          {msg.type === 'audio' && (
+                            <div style={{ marginBottom: '8px' }}>
+                              <audio src={msg.fileUrl} controls style={{ maxWidth: '250px', display: 'block', pointerEvents: (msg.isTimeCapsule && currentTime < new Date(msg.deliverAt)) ? 'none' : 'auto' }} />
+                            </div>
+                          )}
+                          
+                          {msg.text && <p style={{ margin: 0, fontSize: '0.95rem', lineHeight: '1.4', whiteSpace: 'pre-wrap' }}>{renderFormattedText(msg.text)}</p>}
+                        </div>
+
+                        {msg.isTimeCapsule && currentTime < new Date(msg.deliverAt) && (
+                          <div 
+                            style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 10, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.4)', borderRadius: '50%', padding: '10px' }} 
+                            onClick={() => alert(`This Time Capsule unlocks at:\n${new Date(msg.deliverAt).toLocaleString()}`)}
+                            title={`Unlocks at: ${new Date(msg.deliverAt).toLocaleString()}`}
+                          >
+                            <Lock size={32} color="#fbbf24" style={{ filter: 'drop-shadow(0 0 8px rgba(251, 191, 36, 0.8))' }} />
                           </div>
-                        )}
-                        {msg.type === 'audio' && (
-                          <div style={{ marginBottom: '8px' }}>
-                            <audio src={msg.fileUrl} controls style={{ maxWidth: '250px', display: 'block' }} />
-                          </div>
-                        )}
-                        
-                        {msg.text && <p style={{ margin: 0, fontSize: '0.95rem', lineHeight: '1.4', whiteSpace: 'pre-wrap' }}>{renderFormattedText(msg.text)}</p>}
-                          </>
                         )}
                         <span style={{ fontSize: '0.65rem', color: isMe ? '#bfdbfe' : '#9ca3af', display: 'block', textAlign: 'right', marginTop: '4px' }}>
                           {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
