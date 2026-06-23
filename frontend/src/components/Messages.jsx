@@ -66,7 +66,6 @@ const Messages = () => {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [showChatMenu, setShowChatMenu] = useState(false);
   const [showGifPicker, setShowGifPicker] = useState(false);
-  const [showTimeCapsulePicker, setShowTimeCapsulePicker] = useState(false);
   
   // Report System States
   const [showReportModal, setShowReportModal] = useState(false);
@@ -104,7 +103,9 @@ const Messages = () => {
   useClickOutside(emojiPickerRef, () => setShowEmojiPicker(false));
   useClickOutside(chatMenuRef, () => setShowChatMenu(false));
   useClickOutside(gifPickerRef, () => setShowGifPicker(false));
-  useClickOutside(timeCapsuleRef, () => setShowTimeCapsulePicker(false));
+  useClickOutside(timeCapsuleRef, () => {
+    if (!deliverAt) setIsTimeCapsule(false);
+  });
 
   useEffect(() => {
     fetchProfileData();
@@ -879,29 +880,6 @@ const Messages = () => {
                   </div>
                 )}
 
-                {/* Time Capsule Picker Popover */}
-                {showTimeCapsulePicker && (
-                  <div ref={timeCapsuleRef} style={{ position: 'absolute', bottom: '100%', right: '110px', marginBottom: '10px', background: '#1f2937', border: '1px solid #374151', borderRadius: '12px', padding: '15px', boxShadow: '0 10px 25px rgba(0,0,0,0.5)', zIndex: 100, display: 'flex', flexDirection: 'column', gap: '10px', width: '250px' }}>
-                    <h4 style={{ margin: 0, color: '#f3f4f6', fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: '6px' }}><Clock size={16} color="#10b981" /> Time Capsule</h4>
-                    <p style={{ margin: 0, color: '#9ca3af', fontSize: '0.8rem' }}>Select when this message should unlock for the receiver.</p>
-                    <input 
-                      type="datetime-local" 
-                      value={deliverAt} 
-                      onChange={(e) => {
-                        setDeliverAt(e.target.value);
-                        if (e.target.value) setIsTimeCapsule(true);
-                        else setIsTimeCapsule(false);
-                      }} 
-                      style={{ background: '#111827', color: '#f3f4f6', border: '1px solid #4b5563', borderRadius: '8px', padding: '8px', outline: 'none', fontSize: '0.9rem', width: '100%', boxSizing: 'border-box' }}
-                      min={new Date().toISOString().slice(0, 16)}
-                    />
-                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '5px' }}>
-                      <button type="button" onClick={() => { setDeliverAt(''); setIsTimeCapsule(false); setShowTimeCapsulePicker(false); }} style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '0.85rem' }}>Clear</button>
-                      <button type="button" onClick={() => setShowTimeCapsulePicker(false)} style={{ background: '#3b82f6', border: 'none', color: '#fff', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '0.85rem' }}>Done</button>
-                    </div>
-                  </div>
-                )}
-
                 <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*,video/*" style={{ display: 'none' }} />
 
                 <form onSubmit={sendMessage} style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
@@ -928,9 +906,20 @@ const Messages = () => {
                     
                     {!isRecording && (
                       <div style={{ display: 'flex', alignItems: 'center', paddingRight: '8px' }}>
-                        <button type="button" onClick={() => { setShowTimeCapsulePicker(!showTimeCapsulePicker); setShowEmojiPicker(false); setShowGifPicker(false); }} style={{ background: 'transparent', border: 'none', color: isTimeCapsule ? '#10b981' : '#9ca3af', cursor: 'pointer', padding: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }} title="Send as Time Capsule">
-                          <Clock size={20} />
-                        </button>
+                        <div ref={timeCapsuleRef} style={{ display: 'flex', alignItems: 'center' }}>
+                          {isTimeCapsule && (
+                            <input 
+                              type="datetime-local" 
+                              value={deliverAt} 
+                              onChange={(e) => setDeliverAt(e.target.value)} 
+                              style={{ background: '#1f2937', color: '#f3f4f6', border: '1px solid #4b5563', borderRadius: '8px', padding: '4px 8px', outline: 'none', fontSize: '0.8rem', marginRight: '8px', colorScheme: 'dark' }}
+                              required
+                            />
+                          )}
+                          <button type="button" onClick={() => setIsTimeCapsule(!isTimeCapsule)} style={{ background: 'transparent', border: 'none', color: isTimeCapsule ? '#10b981' : '#9ca3af', cursor: 'pointer', padding: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }} title="Send as Time Capsule">
+                            <Clock size={20} />
+                          </button>
+                        </div>
                         <button type="button" onClick={() => setShowGifPicker(!showGifPicker)} style={{ background: 'transparent', border: 'none', color: '#9ca3af', cursor: 'pointer', padding: '8px', fontSize: '0.8rem', fontWeight: 'bold' }}>
                           GIF
                         </button>
