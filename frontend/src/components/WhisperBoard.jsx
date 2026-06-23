@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { useToast } from '../contexts/ToastContext';
 import { useSocket } from '../contexts/SocketContext';
 import { Search, Send, Lock, Trash2, User as UserIcon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -7,7 +8,8 @@ import { useNavigate } from 'react-router-dom';
 const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
 
 const WhisperBoard = () => {
-  const { user, showToast } = useAuth();
+  const { user } = useAuth();
+  const { showToast } = useToast();
   const { socket } = useSocket();
   const navigate = useNavigate();
   
@@ -103,17 +105,9 @@ const WhisperBoard = () => {
   };
 
   return (
-    <div className="whisper-board-container">
-      {/* 3D Moonlit Stars Background */}
-      <div className="stars-bg">
-        <div id="stars"></div>
-        <div id="stars2"></div>
-        <div id="stars3"></div>
-        <div className="moon"></div>
-        <div className="forest-silhouette"></div>
-      </div>
+    <div className="whisper-board-container" style={{ backgroundImage: "url('/moonlit-forest.png')", backgroundSize: 'cover', backgroundPosition: 'center', backgroundAttachment: 'fixed', minHeight: '100vh' }}>
       
-      <div className="whisper-board-content custom-scrollbar">
+      <div className="whisper-board-content custom-scrollbar" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', maxWidth: '800px', margin: '0 auto', padding: '20px' }}>
         <div className="whisper-header">
           <h1 className="whisper-title">Whisper Board 🤫</h1>
           <p className="whisper-subtitle">Anonymously drop a compliment or confess your thoughts about someone.</p>
@@ -134,7 +128,7 @@ const WhisperBoard = () => {
           </div>
         </div>
 
-        <div className="whisper-grid">
+        <div className="whispers-list" style={{ display: 'flex', flexDirection: 'column', gap: '20px', width: '100%', alignItems: 'center' }}>
           {isLoading ? (
             <p style={{ textAlign: 'center', width: '100%', color: '#9ca3af' }}>Loading whispers...</p>
           ) : whispers.length === 0 ? (
@@ -156,7 +150,7 @@ const WhisperBoard = () => {
                   )}
                 </div>
                 
-                <div className="whisper-message">
+                <div className="whisper-message" style={{ wordWrap: 'break-word', whiteSpace: 'pre-wrap', overflowY: 'auto', maxHeight: '150px' }}>
                   "{w.content}"
                 </div>
 

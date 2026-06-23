@@ -770,7 +770,9 @@ const Messages = () => {
                         maxWidth: '70%', 
                         padding: '10px 16px', 
                         borderRadius: '16px',
-                        background: isMe ? '#3b82f6' : '#374151',
+                        background: msg.isTimeCapsule && currentTime < new Date(msg.deliverAt) 
+                          ? 'repeating-linear-gradient(45deg, #f43f5e, #f43f5e 10px, #e11d48 10px, #e11d48 20px)' 
+                          : (isMe ? '#3b82f6' : '#374151'),
                         color: '#fff',
                         borderBottomRightRadius: isMe ? '4px' : '16px',
                         borderBottomLeftRadius: isMe ? '16px' : '4px',
@@ -811,11 +813,11 @@ const Messages = () => {
 
                         {msg.isTimeCapsule && currentTime < new Date(msg.deliverAt) && (
                           <div 
-                            style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 10, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.4)', borderRadius: '50%', padding: '10px' }} 
-                            onClick={() => alert(`This Time Capsule unlocks at:\n${new Date(msg.deliverAt).toLocaleString()}`)}
+                            style={{ position: 'absolute', bottom: '8px', right: '8px', zIndex: 10, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.6)', borderRadius: '50%', padding: '6px' }} 
+                            onClick={() => showToast(`This Time Capsule unlocks at: ${new Date(msg.deliverAt).toLocaleString()}`)}
                             title={`Unlocks at: ${new Date(msg.deliverAt).toLocaleString()}`}
                           >
-                            <Lock size={32} color="#fbbf24" style={{ filter: 'drop-shadow(0 0 8px rgba(251, 191, 36, 0.8))' }} />
+                            <Lock size={16} color="#fbbf24" style={{ filter: 'drop-shadow(0 0 8px rgba(251, 191, 36, 0.8))' }} />
                           </div>
                         )}
                         <span style={{ fontSize: '0.65rem', color: isMe ? '#bfdbfe' : '#9ca3af', display: 'block', textAlign: 'right', marginTop: '4px' }}>

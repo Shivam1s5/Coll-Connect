@@ -18,6 +18,7 @@ const authMiddleware = (req, res, next) => {
 // Get all whispers (with search filtering)
 router.get('/whispers', authMiddleware, async (req, res) => {
   try {
+    const dbUser = await User.findOne({ username: req.user.username });
     const { search } = req.query;
     let query = {};
     
@@ -45,8 +46,8 @@ router.get('/whispers', authMiddleware, async (req, res) => {
       // Handle Anonymity
       if (w.isAnonymous) {
         // Superadmin sees everything
-        if (req.user.role === 'superadmin') {
-          whisperObj.authorDisplay = `Secret Admirer (Real: ${w.author})`;
+        if (dbUser && dbUser.role === 'superadmin') {
+          whisperObj.authorDisplay = w.author;
         } else {
           whisperObj.authorDisplay = 'Secret Admirer';
           // Do NOT send the real author to the frontend unless superadmin
