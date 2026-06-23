@@ -36,8 +36,23 @@ const UserProfile = () => {
         fetchProfile(); // Refetch to get the latest socials/images/etc
       }
     };
+    const handleRoleChanged = (data) => {
+      if (data.username?.toLowerCase() === username?.toLowerCase()) {
+        fetchProfile(); // Refetch to get the updated role instantly
+      }
+    };
+
     socket.on('profile-updated', handleProfileUpdated);
-    return () => socket.off('profile-updated', handleProfileUpdated);
+    socket.on('user-role-changed', handleRoleChanged);
+    socket.on('user-promoted', handleRoleChanged);
+    socket.on('user-demoted', handleRoleChanged);
+    
+    return () => {
+      socket.off('profile-updated', handleProfileUpdated);
+      socket.off('user-role-changed', handleRoleChanged);
+      socket.off('user-promoted', handleRoleChanged);
+      socket.off('user-demoted', handleRoleChanged);
+    };
   }, [socket, username]);
 
   const fetchProfile = async () => {
