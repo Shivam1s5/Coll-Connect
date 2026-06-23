@@ -78,6 +78,9 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
               <NavLink to="/profile" className={({isActive}) => isActive ? "nav-item active" : "nav-item"} onClick={toggleSidebar}>
                 My Profile
               </NavLink>
+              <NavLink to="/whisper-board" className={({isActive}) => isActive ? "nav-item active" : "nav-item"} onClick={toggleSidebar}>
+                Whisper Board
+              </NavLink>
               <NavLink to="/messages" className={({isActive}) => isActive ? "nav-item active" : "nav-item"} onClick={toggleSidebar}>
                 <span style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
                   Messages

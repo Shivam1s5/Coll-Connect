@@ -32,7 +32,9 @@ router.get('/messages/:friend', authMiddleware, async (req, res) => {
     text: m.text,
     type: m.type,
     fileUrl: m.fileUrl,
-    timestamp: m.timestamp
+    timestamp: m.timestamp,
+    isTimeCapsule: m.isTimeCapsule,
+    deliverAt: m.deliverAt
   })));
 });
 

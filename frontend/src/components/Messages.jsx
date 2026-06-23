@@ -4,7 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useSocket } from '../contexts/SocketContext';
 import { useToast } from '../contexts/ToastContext';
 import EmojiPicker from 'emoji-picker-react';
-import { Search, Send, User, Check, X, Clock, MessageCircle, Paperclip, Mic, Smile, AlertTriangle, UserMinus, MoreVertical, Square, Trash2, Image, Play, Maximize2, ArrowLeft } from 'lucide-react';
+import { Search, Send, User, Check, X, Clock, MessageCircle, Paperclip, Mic, Smile, AlertTriangle, UserMinus, MoreVertical, Square, Trash2, Image, Play, Maximize2, ArrowLeft, Lock } from 'lucide-react';
 import html2canvas from 'html2canvas';
 
 const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
@@ -58,6 +58,9 @@ const Messages = () => {
   const [chatHistory, setChatHistory] = useState([]);
   const [messageInput, setMessageInput] = useState('');
   const [isFetchingChat, setIsFetchingChat] = useState(false);
+  
+  const [isTimeCapsule, setIsTimeCapsule] = useState(false);
+  const [deliverAt, setDeliverAt] = useState('');
 
   // Advanced States
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
@@ -380,18 +383,33 @@ const Messages = () => {
   const sendMessage = (e) => {
     if (e) e.preventDefault();
     if (!messageInput.trim() || !activeChatUser || !socket) return;
+    if (isTimeCapsule && !deliverAt) {
+      showToast('Please select a delivery time for the Time Capsule.');
+      return;
+    }
     sendSocketMessage('text', messageInput.trim(), null);
     setMessageInput('');
+    setIsTimeCapsule(false);
+    setDeliverAt('');
     setShowEmojiPicker(false);
   };
 
   const sendSocketMessage = (type, text, fileUrl) => {
     const tempId = Date.now().toString();
-    const msgData = { id: tempId, to: activeChatUser.username, text: text, type: type, fileUrl: fileUrl };
+    const msgData = { 
+      id: tempId, 
+      to: activeChatUser.username, 
+      text: text, 
+      type: type, 
+      fileUrl: fileUrl,
+      isTimeCapsule,
+      deliverAt: isTimeCapsule && deliverAt ? new Date(deliverAt) : null
+    };
     socket.emit('private-message', msgData);
     setChatHistory(prev => [...prev, {
       id: tempId, sender: authUser.username, receiver: activeChatUser.username,
-      text: text, type: type, fileUrl: fileUrl, timestamp: new Date()
+      text: text, type: type, fileUrl: fileUrl, timestamp: new Date(),
+      isTimeCapsule: msgData.isTimeCapsule, deliverAt: msgData.deliverAt
     }]);
     scrollToBottom();
   };
@@ -753,11 +771,26 @@ const Messages = () => {
                         boxShadow: '0 1px 2px rgba(0,0,0,0.1)'
                       }}>
                         
-                        {msg.type === 'image' && (
-                          <div style={{ marginBottom: '8px', borderRadius: '8px', overflow: 'hidden', cursor: 'pointer' }} onClick={() => setPreviewMedia({url: msg.fileUrl, type: 'image'})}>
-                            <img src={msg.fileUrl} alt="attachment" style={{ maxWidth: '100%', maxHeight: '250px', display: 'block', borderRadius: '8px', transition: 'transform 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.02)'} onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'} />
+                        {msg.isTimeCapsule && new Date() < new Date(msg.deliverAt) ? (
+                          <div style={{ padding: '20px', textAlign: 'center', background: 'rgba(0,0,0,0.2)', borderRadius: '12px' }}>
+                            <Lock size={24} style={{ marginBottom: '8px', opacity: 0.8 }} />
+                            <h4 style={{ margin: '0 0 5px 0' }}>Time Capsule</h4>
+                            <p style={{ margin: 0, fontSize: '0.85rem', opacity: 0.8 }}>
+                              Unlocks at: {new Date(msg.deliverAt).toLocaleString()}
+                            </p>
                           </div>
-                        )}
+                        ) : (
+                          <>
+                            {msg.isTimeCapsule && (
+                              <div style={{ fontSize: '0.75rem', color: '#fbbf24', display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '6px' }}>
+                                <Clock size={12} /> Time Capsule Unlocked
+                              </div>
+                            )}
+                            {msg.type === 'image' && (
+                              <div style={{ marginBottom: '8px', borderRadius: '8px', overflow: 'hidden', cursor: 'pointer' }} onClick={() => setPreviewMedia({url: msg.fileUrl, type: 'image'})}>
+                                <img src={msg.fileUrl} alt="attachment" style={{ maxWidth: '100%', maxHeight: '250px', display: 'block', borderRadius: '8px', transition: 'transform 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.02)'} onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'} />
+                              </div>
+                            )}
                         {msg.type === 'video' && (
                           <div style={{ marginBottom: '8px', borderRadius: '8px', overflow: 'hidden', position: 'relative', cursor: 'pointer' }} onClick={() => setPreviewMedia({url: msg.fileUrl, type: 'video'})}>
                             <video src={msg.fileUrl} style={{ maxWidth: '100%', maxHeight: '250px', display: 'block', borderRadius: '8px', background: '#000' }} />
@@ -773,6 +806,8 @@ const Messages = () => {
                         )}
                         
                         {msg.text && <p style={{ margin: 0, fontSize: '0.95rem', lineHeight: '1.4', whiteSpace: 'pre-wrap' }}>{renderFormattedText(msg.text)}</p>}
+                          </>
+                        )}
                         <span style={{ fontSize: '0.65rem', color: isMe ? '#bfdbfe' : '#9ca3af', display: 'block', textAlign: 'right', marginTop: '4px' }}>
                           {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </span>
@@ -854,6 +889,18 @@ const Messages = () => {
                     
                     {!isRecording && (
                       <div style={{ display: 'flex', alignItems: 'center', paddingRight: '8px' }}>
+                        {isTimeCapsule && (
+                          <input 
+                            type="datetime-local" 
+                            value={deliverAt} 
+                            onChange={(e) => setDeliverAt(e.target.value)} 
+                            style={{ background: '#1f2937', color: '#f3f4f6', border: '1px solid #4b5563', borderRadius: '8px', padding: '4px 8px', outline: 'none', fontSize: '0.8rem', marginRight: '8px' }}
+                            required
+                          />
+                        )}
+                        <button type="button" onClick={() => setIsTimeCapsule(!isTimeCapsule)} style={{ background: 'transparent', border: 'none', color: isTimeCapsule ? '#10b981' : '#9ca3af', cursor: 'pointer', padding: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }} title="Send as Time Capsule">
+                          <Clock size={20} />
+                        </button>
                         <button type="button" onClick={() => setShowGifPicker(!showGifPicker)} style={{ background: 'transparent', border: 'none', color: '#9ca3af', cursor: 'pointer', padding: '8px', fontSize: '0.8rem', fontWeight: 'bold' }}>
                           GIF
                         </button>

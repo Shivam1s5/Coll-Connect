@@ -312,6 +312,27 @@ const UserProfile = () => {
                 <label>Gender</label>
                 <input type="text" className="profile-input" value={profileData.gender || 'Not Specified'} disabled />
               </div>
+              {profileData.spotifyUrl && (
+                <div className="form-group" style={{marginTop: '15px'}}>
+                  <label>Spotify Vibe</label>
+                  {profileData.spotifyUrl.includes('open.spotify.com/track/') ? (
+                    <div style={{ marginTop: '10px', borderRadius: '12px', overflow: 'hidden' }}>
+                      <iframe 
+                        style={{ borderRadius: '12px' }} 
+                        src={profileData.spotifyUrl.replace('/track/', '/embed/track/')} 
+                        width="100%" 
+                        height="80" 
+                        frameBorder="0" 
+                        allowFullScreen="" 
+                        allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
+                        loading="lazy"
+                      ></iframe>
+                    </div>
+                  ) : (
+                    <input type="text" className="profile-input" value={profileData.spotifyUrl} disabled />
+                  )}
+                </div>
+              )}
             </div>
 
             <div className="profile-card info-card">

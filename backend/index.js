@@ -35,6 +35,7 @@ app.use('/api', require('./routes/support'));
 app.use('/api', require('./routes/announcements'));
 app.use('/api', require('./routes/chat'));
 app.use('/api', require('./routes/upload'));
+app.use('/api', require('./routes/whisper'));
 
 // Socket logic
 require('./sockets')(io);

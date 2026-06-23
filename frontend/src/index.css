@@ -2397,3 +2397,306 @@ body {
   box-shadow: 0 0 8px rgba(59, 130, 246, 0.6), 0 0 15px rgba(96, 165, 250, 0.4);
   border: 1px solid rgba(255, 255, 255, 0.2);
 }
+
+/* Whisper Board Styles */
+.whisper-board-container {
+  position: relative;
+  width: 100%;
+  height: calc(100vh - 60px);
+  overflow: hidden;
+  background: #000; /* Deep black space */
+}
+
+/* 3D Moonlit Stars Background */
+.stars-bg {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  z-index: 1;
+  overflow: hidden;
+}
+
+@function multiple-box-shadow ($n) {
+  $value: '#{random(2000)}px #{random(2000)}px #FFF';
+  @for $i from 2 through $n {
+    $value: '#{$value}, #{random(2000)}px #{random(2000)}px #FFF';
+  }
+  @return unquote($value);
+}
+
+/* Since standard CSS doesn't support Sass loops, we'll simulate the star field with a repeating background image or a box-shadow trick. For robust implementation, let's use a pure CSS multiple-box-shadow simulation generated via CSS or radial gradients. */
+
+.stars-bg {
+  background: radial-gradient(ellipse at bottom, #1b2735 0%, #090a0f 100%);
+}
+
+.stars-bg::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background-image: 
+    radial-gradient(2px 2px at 20px 30px, #eee, rgba(0,0,0,0)),
+    radial-gradient(2px 2px at 40px 70px, #fff, rgba(0,0,0,0)),
+    radial-gradient(2px 2px at 50px 160px, #ddd, rgba(0,0,0,0)),
+    radial-gradient(2px 2px at 90px 40px, #fff, rgba(0,0,0,0)),
+    radial-gradient(2px 2px at 130px 80px, #fff, rgba(0,0,0,0)),
+    radial-gradient(2px 2px at 160px 120px, #ddd, rgba(0,0,0,0));
+  background-repeat: repeat;
+  background-size: 200px 200px;
+  animation: animStar 50s linear infinite;
+  opacity: 0.6;
+}
+.stars-bg::after {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background-image: 
+    radial-gradient(3px 3px at 50px 160px, #fff, rgba(0,0,0,0)),
+    radial-gradient(3px 3px at 90px 40px, #fff, rgba(0,0,0,0)),
+    radial-gradient(3px 3px at 130px 80px, #fff, rgba(0,0,0,0));
+  background-repeat: repeat;
+  background-size: 300px 300px;
+  animation: animStar 100s linear infinite;
+  opacity: 0.8;
+}
+
+@keyframes animStar {
+  from { transform: translateY(0px); }
+  to { transform: translateY(-1000px); }
+}
+
+/* Whisper Board Content */
+.whisper-board-content {
+  position: relative;
+  z-index: 2;
+  height: 100%;
+  overflow-y: auto;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.whisper-header {
+  text-align: center;
+  margin-bottom: 30px;
+  max-width: 800px;
+  width: 100%;
+}
+
+.whisper-title {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: #fff;
+  text-shadow: 0 0 10px rgba(255,255,255,0.3);
+  margin-bottom: 10px;
+}
+
+.whisper-subtitle {
+  color: #cbd5e1;
+  font-size: 1.1rem;
+  margin-bottom: 20px;
+}
+
+.whisper-controls {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.whisper-search-box {
+  display: flex;
+  align-items: center;
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid rgba(51, 65, 85, 0.5);
+  padding: 10px 15px;
+  border-radius: 30px;
+  flex: 1;
+  max-width: 400px;
+  backdrop-filter: blur(10px);
+}
+
+.whisper-search-box input {
+  background: transparent;
+  border: none;
+  color: white;
+  width: 100%;
+  margin-left: 10px;
+  outline: none;
+}
+
+.post-whisper-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #8b5cf6, #ec4899);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 30px;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(236, 72, 153, 0.4);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.post-whisper-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(236, 72, 153, 0.6);
+}
+
+.whisper-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 20px;
+  width: 100%;
+  max-width: 1000px;
+}
+
+.whisper-card {
+  background: rgba(30, 41, 59, 0.6);
+  border: 1px solid rgba(51, 65, 85, 0.5);
+  backdrop-filter: blur(12px);
+  border-radius: 16px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  transition: transform 0.3s, box-shadow 0.3s;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+
+.whisper-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.5), 0 0 15px rgba(139, 92, 246, 0.2);
+  border-color: rgba(139, 92, 246, 0.4);
+}
+
+.whisper-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.author-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.author-name {
+  color: #fff;
+  font-weight: bold;
+  font-size: 1.1rem;
+  background: linear-gradient(90deg, #c084fc, #f472b6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.whisper-time {
+  color: #64748b;
+  font-size: 0.8rem;
+  margin-top: 2px;
+}
+
+.delete-whisper-btn {
+  background: rgba(239, 68, 68, 0.1);
+  border: none;
+  padding: 6px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.delete-whisper-btn:hover {
+  background: rgba(239, 68, 68, 0.2);
+}
+
+.whisper-message {
+  color: #f1f5f9;
+  font-size: 1.05rem;
+  font-style: italic;
+  line-height: 1.5;
+  border-left: 3px solid #8b5cf6;
+  padding-left: 10px;
+}
+
+.tagged-user-card {
+  background: rgba(15, 23, 42, 0.8);
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: pointer;
+  border: 1px solid rgba(51, 65, 85, 0.4);
+  margin-top: auto;
+  transition: border-color 0.2s;
+}
+
+.tagged-user-card:hover {
+  border-color: #8b5cf6;
+}
+
+.tagged-banner {
+  height: 40px;
+  background: linear-gradient(to right, #4338ca, #3b82f6);
+  background-size: cover;
+  background-position: center;
+}
+
+.tagged-info {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  gap: 12px;
+  margin-top: -20px;
+}
+
+.tagged-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 2px solid #1e293b;
+  background: #334155;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  color: white;
+  overflow: hidden;
+  flex-shrink: 0;
+  z-index: 2;
+}
+
+.tagged-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.tagged-details h4 {
+  margin: 0;
+  color: #f8fafc;
+  font-size: 0.95rem;
+  margin-bottom: 2px;
+}
+
+.premium-reveal-btn {
+  margin-top: 10px;
+  width: 100%;
+  background: rgba(245, 158, 11, 0.1);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  color: #fcd34d;
+  padding: 8px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.2s;
+}
+
+.premium-reveal-btn:hover {
+  background: rgba(245, 158, 11, 0.2);
+  border-color: rgba(245, 158, 11, 0.5);
+}

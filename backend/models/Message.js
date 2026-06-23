@@ -7,7 +7,9 @@ const messageSchema = new mongoose.Schema({
   type: { type: String, default: 'text' }, // text, image, video, audio
   fileUrl: { type: String, default: '' },
   read: { type: Boolean, default: false },
-  timestamp: { type: Date, default: Date.now }
+  timestamp: { type: Date, default: Date.now },
+  isTimeCapsule: { type: Boolean, default: false },
+  deliverAt: { type: Date, default: null }
 });
 
 module.exports = mongoose.model('Message', messageSchema);

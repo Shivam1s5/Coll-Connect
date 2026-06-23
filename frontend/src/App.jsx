@@ -14,6 +14,7 @@ import Dashboard from './components/Dashboard';
 import MyProfile from './components/MyProfile';
 import UserProfile from './components/UserProfile';
 import Messages from './components/Messages';
+import WhisperBoard from './components/WhisperBoard';
 import AuthGuard from './components/auth/AuthGuard';
 import { AuthProvider } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
@@ -38,6 +39,7 @@ function App() {
                 <Route path="profile" element={<MyProfile />} />
                 <Route path="user/:username" element={<UserProfile />} />
                 <Route path="messages" element={<Messages />} />
+                <Route path="whisper-board" element={<WhisperBoard />} />
                 
                 {/* Superadmin Routes */}
                 <Route path="superadmin" element={<AuthGuard requiredRoles={['superadmin']}><SuperAdminDashboard /></AuthGuard>} />

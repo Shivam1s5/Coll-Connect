@@ -25,7 +25,7 @@ module.exports = (io) => {
       activeUsers.set(actualUsername, socket.id);
     });
 
-    socket.on('private-message', async ({ id, to, text, type = 'text', fileUrl }) => {
+    socket.on('private-message', async ({ id, to, text, type = 'text', fileUrl, isTimeCapsule, deliverAt }) => {
       if (!socket.username) return;
 
       const senderUser = await User.findOne({ username: new RegExp('^' + String(socket.username).trim() + '$', 'i') });
@@ -55,7 +55,9 @@ module.exports = (io) => {
         text: text,
         type: type,
         fileUrl: fileUrl,
-        timestamp: new Date()
+        timestamp: new Date(),
+        isTimeCapsule: isTimeCapsule || false,
+        deliverAt: deliverAt || null
       });
       await msg.save();
 
@@ -66,7 +68,9 @@ module.exports = (io) => {
         text: text,
         type: type,
         fileUrl: fileUrl,
-        timestamp: msg.timestamp
+        timestamp: msg.timestamp,
+        isTimeCapsule: msg.isTimeCapsule,
+        deliverAt: msg.deliverAt
       };
 
       const targetSocketId = activeUsers.get(to);

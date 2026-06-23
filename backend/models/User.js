@@ -13,6 +13,8 @@ const userSchema = new mongoose.Schema({
   blockedUntil: { type: mongoose.Schema.Types.Mixed }, // String ('permanent') or Date
   isPrivate: { type: Boolean, default: false },
   deletionRequested: { type: Boolean, default: false },
+  isBanned: { type: Boolean, default: false },
+  spotifyUrl: { type: String, default: '' },
   socials: {
     linkedin: { type: String, default: '' },
     facebook: { type: String, default: '' },

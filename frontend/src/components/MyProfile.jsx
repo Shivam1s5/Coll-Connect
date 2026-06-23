@@ -23,6 +23,9 @@ const MyProfile = () => {
   const [isEditingUsername, setIsEditingUsername] = useState(false);
   const [newUsername, setNewUsername] = useState('');
   
+  const [isEditingSpotify, setIsEditingSpotify] = useState(false);
+  const [spotifyUrl, setSpotifyUrl] = useState('');
+  
   const [isEditingGender, setIsEditingGender] = useState(false);
   const [gender, setGender] = useState('');
 
@@ -72,6 +75,7 @@ const MyProfile = () => {
         const data = await res.json();
         setProfileData(data);
         setNewUsername(data.username);
+        setSpotifyUrl(data.spotifyUrl || '');
         setGender(data.gender || 'Not Specified');
         setSocials(data.socials || { instagram: '', facebook: '', linkedin: '', snapchat: '' });
       }
@@ -275,6 +279,30 @@ const MyProfile = () => {
     }
   };
 
+  const handleSaveSpotify = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${backendUrl}/api/profile/spotify`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ spotifyUrl })
+      });
+      if (res.ok) {
+        setProfileData(prev => ({ ...prev, spotifyUrl }));
+        setIsEditingSpotify(false);
+        showToast('Spotify Vibe updated!');
+      } else {
+        showToast('Failed to update Spotify Vibe');
+      }
+    } catch (err) {
+      console.error(err);
+      showToast('Error updating Spotify Vibe');
+    }
+  };
+
   const handleSaveSocials = async () => {
     try {
       const token = localStorage.getItem('token');
@@ -454,6 +482,36 @@ const MyProfile = () => {
                   <div className="edit-group">
                     <input type="text" className="profile-input" value={profileData.gender || 'Not Specified'} disabled />
                     <button className="btn-action btn-blue" onClick={() => setIsEditingGender(true)}>Edit</button>
+                  </div>
+                )}
+              </div>
+              
+              <div className="form-group" style={{marginTop: '15px'}}>
+                <label>Spotify Vibe (Track Link)</label>
+                {isEditingSpotify ? (
+                  <div className="edit-group">
+                    <input type="text" value={spotifyUrl} onChange={(e) => setSpotifyUrl(e.target.value)} className="profile-input" placeholder="https://open.spotify.com/track/..." />
+                    <button className="btn-save" style={{padding: '10px'}} onClick={handleSaveSpotify}>Save</button>
+                    <button className="btn-cancel" style={{padding: '10px'}} onClick={() => {setIsEditingSpotify(false); setSpotifyUrl(profileData.spotifyUrl || '');}}>Cancel</button>
+                  </div>
+                ) : (
+                  <div className="edit-group">
+                    <input type="text" className="profile-input" value={profileData.spotifyUrl || 'No vibe set'} disabled />
+                    <button className="btn-action btn-blue" onClick={() => setIsEditingSpotify(true)}>Edit</button>
+                  </div>
+                )}
+                {profileData.spotifyUrl && !isEditingSpotify && profileData.spotifyUrl.includes('open.spotify.com/track/') && (
+                  <div style={{ marginTop: '10px', borderRadius: '12px', overflow: 'hidden' }}>
+                    <iframe 
+                      style={{ borderRadius: '12px' }} 
+                      src={profileData.spotifyUrl.replace('/track/', '/embed/track/')} 
+                      width="100%" 
+                      height="80" 
+                      frameBorder="0" 
+                      allowFullScreen="" 
+                      allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
+                      loading="lazy"
+                    ></iframe>
                   </div>
                 )}
               </div>

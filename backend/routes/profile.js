@@ -149,6 +149,7 @@ router.get('/me', authMiddleware, async (req, res) => {
     bannerImage: user.bannerImage,
     gender: user.gender,
     socials: user.socials,
+    spotifyUrl: user.spotifyUrl,
     friends: friendsList,
     friendRequests,
     profileVisitors: populatedVisitors,
@@ -236,7 +237,8 @@ router.get('/users/:username', authMiddleware, async (req, res) => {
     hasSentRequest,
     hasReceivedRequest,
     friends: returnFriends,
-    isPrivate: isPrivate
+    isPrivate: isPrivate,
+    spotifyUrl: targetUser.spotifyUrl
   });
 });
 
@@ -262,7 +264,7 @@ router.post('/profile-pic', authMiddleware, async (req, res) => {
   }
 
   oldUser.profilePic = req.body.profilePic || '';
-  await oldUser.save();
+  oldUser.save();
 
   if (req.io) {
     req.io.emit('admin-update');
@@ -336,6 +338,14 @@ router.post('/profile/socials', authMiddleware, async (req, res) => {
     });
   }
   res.json({ success: true, socials: user.socials });
+});
+
+router.post('/profile/spotify', authMiddleware, async (req, res) => {
+  const user = await User.findOne({ username: req.user.username });
+  if (!user) return res.status(404).json({ error: 'User not found' });
+  user.spotifyUrl = req.body.spotifyUrl || '';
+  await user.save();
+  res.json({ success: true, spotifyUrl: user.spotifyUrl });
 });
 
 router.post('/profile/gender', authMiddleware, async (req, res) => {
