@@ -18,7 +18,7 @@ const authMiddleware = (req, res, next) => {
 // Get all whispers (with search filtering)
 router.get('/whispers', authMiddleware, async (req, res) => {
   try {
-    const dbUser = await User.findOne({ username: req.user.username });
+    const dbUser = await User.findOne({ username: new RegExp('^' + req.user.username + '$', 'i') });
     const { search } = req.query;
     let query = {};
     
@@ -45,15 +45,19 @@ router.get('/whispers', authMiddleware, async (req, res) => {
       
       // Handle Anonymity
       if (w.isAnonymous) {
+        whisperObj.isAnonymous = true;
         // Superadmin sees everything
         if (dbUser && dbUser.role === 'superadmin') {
-          whisperObj.authorDisplay = w.author;
+          whisperObj.authorDisplay = 'Secret Admirer';
+          whisperObj.realAuthor = w.author; // Send real author for superadmin to reveal
         } else {
           whisperObj.authorDisplay = 'Secret Admirer';
           // Do NOT send the real author to the frontend unless superadmin
           delete whisperObj.author;
+          delete whisperObj.realAuthor;
         }
       } else {
+        whisperObj.isAnonymous = false;
         whisperObj.authorDisplay = w.author;
       }
       
@@ -104,7 +108,7 @@ router.post('/whispers', authMiddleware, async (req, res) => {
 // Delete a whisper (Superadmin only)
 router.delete('/whispers/:id', authMiddleware, async (req, res) => {
   try {
-    const dbUser = await User.findOne({ username: req.user.username });
+    const dbUser = await User.findOne({ username: new RegExp('^' + req.user.username + '$', 'i') });
     if (!dbUser || dbUser.role !== 'superadmin') {
       return res.status(403).json({ error: 'Forbidden' });
     }

@@ -2,14 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
 import { useSocket } from '../contexts/SocketContext';
-import { Search, Send, Lock, Trash2, User as UserIcon } from 'lucide-react';
+import { Search, Send, Lock, Trash2, User as UserIcon, Eye, EyeOff } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
 
 const WhisperBoard = () => {
   const { user } = useAuth();
-  const { showToast } = useToast();
+  const { showToast, showConfirm } = useToast();
   const { socket } = useSocket();
   const navigate = useNavigate();
   
@@ -21,6 +21,15 @@ const WhisperBoard = () => {
   const [targetUser, setTargetUser] = useState('');
   const [content, setContent] = useState('');
   const [isAnonymous, setIsAnonymous] = useState(false);
+  const [revealedWhispers, setRevealedWhispers] = useState({});
+
+  const toggleReveal = (id) => {
+    if (user?.role !== 'superadmin') {
+      showToast('Purchase Premium to reveal secret admirer! (Coming Soon ✨)');
+      return;
+    }
+    setRevealedWhispers(prev => ({ ...prev, [id]: !prev[id] }));
+  };
 
   const fetchWhispers = async (query = '') => {
     setIsLoading(true);
@@ -85,23 +94,24 @@ const WhisperBoard = () => {
     }
   };
 
-  const handleDeleteWhisper = async (id) => {
-    if (!window.confirm("Are you sure you want to forcibly delete this whisper?")) return;
-    try {
-      const token = localStorage.getItem('token');
-      const res = await fetch(`${backendUrl}/api/whispers/${id}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (res.ok) {
-        showToast('Whisper deleted successfully');
-        fetchWhispers(searchQuery);
-      } else {
-        showToast('Failed to delete whisper');
+  const handleDeleteWhisper = (id) => {
+    showConfirm("Are you sure you want to forcibly delete this whisper?", async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const res = await fetch(`${backendUrl}/api/whispers/${id}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (res.ok) {
+          showToast('Whisper deleted successfully');
+          fetchWhispers(searchQuery);
+        } else {
+          showToast('Failed to delete whisper');
+        }
+      } catch (err) {
+        showToast('Error deleting whisper');
       }
-    } catch (err) {
-      showToast('Error deleting whisper');
-    }
+    });
   };
 
   return (
@@ -154,8 +164,30 @@ const WhisperBoard = () => {
                 <div key={w._id} className="whisper-reel-card" style={{ height: '100%', width: '100%', scrollSnapAlign: 'start', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box' }}>
                   <div className="whisper-card magical-glow-card" style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', transformStyle: 'preserve-3d', transition: 'all 0.4s ease', margin: '0', background: 'transparent', border: '1px solid rgba(139, 92, 246, 0.3)', borderRadius: '24px', padding: '20px', zIndex: 1 }}>
                 <div className="whisper-card-header" style={{ flexShrink: 0, marginBottom: '10px' }}>
-                  <div className="author-info">
-                    <span className="author-name">{w.authorDisplay}</span>
+                  <div className="author-info" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span className="author-name">
+                      {w.isAnonymous ? (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          {user?.role === 'superadmin' ? (
+                            <>
+                              {revealedWhispers[w._id] ? w.realAuthor : w.authorDisplay}
+                              <button onClick={() => toggleReveal(w._id)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center', color: '#c084fc' }} title="Reveal Secret Admirer">
+                                {revealedWhispers[w._id] ? <EyeOff size={14} /> : <Eye size={14} />}
+                              </button>
+                            </>
+                          ) : (
+                            <>
+                              {w.authorDisplay}
+                              <button onClick={() => toggleReveal(w._id)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center', color: '#9ca3af' }} title="Premium feature locked">
+                                <Lock size={14} />
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      ) : (
+                        w.authorDisplay
+                      )}
+                    </span>
                     <span className="whisper-time">{new Date(w.timestamp).toLocaleDateString()}</span>
                   </div>
                   {user?.role === 'superadmin' && (
