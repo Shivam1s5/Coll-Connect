@@ -2731,3 +2731,45 @@ body {
   background: rgba(245, 158, 11, 0.2);
   border-color: rgba(245, 158, 11, 0.5);
 }
+
+/* --- Live Aesthetics Additions --- */
+@keyframes panBackground {
+  0% { transform: scale(1) translate(0, 0); }
+  50% { transform: scale(1.05) translate(-10px, -10px); }
+  100% { transform: scale(1) translate(0, 0); }
+}
+
+@keyframes floatCat {
+  0%, 100% { transform: translateX(-50%) translateY(0px) scale(1); filter: drop-shadow(0 10px 10px rgba(0,0,0,0.5)); }
+  50% { transform: translateX(-50%) translateY(-10px) scale(1.02); filter: drop-shadow(0 20px 15px rgba(0,0,0,0.3)); }
+}
+
+@keyframes pulseText {
+  0%, 100% { opacity: 0.5; transform: scale(0.98); }
+  50% { opacity: 1; transform: scale(1.02); text-shadow: 0 0 10px #a78bfa; }
+}
+
+/* Reels scrollbar styling */
+.reels-container::-webkit-scrollbar {
+  display: none;
+}
+.reels-container {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* 3D Pop Out Effect on Hover/Focus */
+.whisper-reel-card {
+  perspective: 1000px;
+}
+
+.whisper-reel-card .whisper-card {
+  transform: scale(0.95) translateZ(0px);
+  opacity: 0.8;
+}
+
+.whisper-reel-card:hover .whisper-card {
+  transform: scale(1) translateZ(30px);
+  opacity: 1;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.8), 0 0 20px rgba(139, 92, 246, 0.4);
+}

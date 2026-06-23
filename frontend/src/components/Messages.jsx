@@ -770,15 +770,14 @@ const Messages = () => {
                         maxWidth: '70%', 
                         padding: '10px 16px', 
                         borderRadius: '16px',
-                        background: msg.isTimeCapsule && currentTime < new Date(msg.deliverAt) 
-                          ? 'repeating-linear-gradient(45deg, #f43f5e, #f43f5e 10px, #e11d48 10px, #e11d48 20px)' 
-                          : (isMe ? '#3b82f6' : '#374151'),
+                        background: isMe ? 'linear-gradient(135deg, #4f46e5, #7c3aed)' : 'rgba(30, 41, 59, 0.85)',
+                        backdropFilter: isMe ? 'none' : 'blur(8px)',
                         color: '#fff',
                         borderBottomRightRadius: isMe ? '4px' : '16px',
                         borderBottomLeftRadius: isMe ? '16px' : '4px',
                         wordWrap: 'break-word',
-                        boxShadow: msg.isTimeCapsule && currentTime < new Date(msg.deliverAt) ? '0 4px 15px rgba(192, 192, 192, 0.4)' : '0 1px 2px rgba(0,0,0,0.1)',
-                        border: msg.isTimeCapsule && currentTime < new Date(msg.deliverAt) ? '2px solid silver' : 'none',
+                        boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
+                        border: isMe ? 'none' : '1px solid rgba(255, 255, 255, 0.1)',
                         position: 'relative',
                         overflow: 'hidden'
                       }}>

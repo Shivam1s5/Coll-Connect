@@ -105,7 +105,9 @@ const WhisperBoard = () => {
   };
 
   return (
-    <div className="whisper-board-container" style={{ backgroundImage: "url('/moonlit-forest.png')", backgroundSize: 'cover', backgroundPosition: 'center', backgroundAttachment: 'fixed', minHeight: '100vh' }}>
+    <div className="whisper-board-container" style={{ backgroundImage: "url('/moonlit-forest.png')", backgroundSize: 'cover', backgroundPosition: 'center', backgroundAttachment: 'fixed', minHeight: '100vh', animation: 'panBackground 30s infinite alternate ease-in-out' }}>
+      {/* Live Moonlit Stars Background */}
+      <div className="stars-bg"></div>
       
       <div className="whisper-board-content custom-scrollbar" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', maxWidth: '800px', margin: '0 auto', padding: '20px' }}>
         <div className="whisper-header">
@@ -128,16 +130,22 @@ const WhisperBoard = () => {
           </div>
         </div>
 
-        <div className="whispers-list" style={{ display: 'flex', flexDirection: 'column', gap: '20px', width: '100%', alignItems: 'center' }}>
-          {isLoading ? (
-            <p style={{ textAlign: 'center', width: '100%', color: '#9ca3af' }}>Loading whispers...</p>
-          ) : whispers.length === 0 ? (
-            <div className="empty-whisper">
-              <p>No whispers found. Be the first to drop one!</p>
-            </div>
-          ) : (
-            whispers.map(w => (
-              <div key={w._id} className="whisper-card">
+        {/* Instagram Reels Style Container */}
+        <div style={{ position: 'relative', width: '100%', maxWidth: '500px', marginTop: '20px' }}>
+          {/* 3D Live Cat */}
+          <img src="/cute_cat.png" alt="Live Cat" className="live-cat" style={{ position: 'absolute', top: '-60px', left: '50%', transform: 'translateX(-50%)', width: '100px', zIndex: 10, animation: 'floatCat 4s ease-in-out infinite' }} />
+          
+          <div className="reels-container" style={{ height: '550px', width: '100%', overflowY: 'scroll', scrollSnapType: 'y mandatory', borderRadius: '20px', perspective: '1000px', boxShadow: '0 0 30px rgba(0,0,0,0.5)', background: 'rgba(0,0,0,0.2)', backdropFilter: 'blur(5px)', border: '1px solid rgba(255,255,255,0.1)' }}>
+            {isLoading ? (
+              <p style={{ textAlign: 'center', width: '100%', color: '#9ca3af', marginTop: '50px' }}>Loading whispers...</p>
+            ) : whispers.length === 0 ? (
+              <div className="empty-whisper" style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <p>No whispers found. Be the first to drop one!</p>
+              </div>
+            ) : (
+              whispers.map(w => (
+                <div key={w._id} className="whisper-reel-card" style={{ height: '100%', width: '100%', scrollSnapAlign: 'start', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', boxSizing: 'border-box' }}>
+                  <div className="whisper-card" style={{ width: '100%', maxHeight: '100%', overflowY: 'auto', transformStyle: 'preserve-3d', transition: 'transform 0.3s', margin: '0' }}>
                 <div className="whisper-card-header">
                   <div className="author-info">
                     <span className="author-name">{w.authorDisplay}</span>
@@ -150,9 +158,9 @@ const WhisperBoard = () => {
                   )}
                 </div>
                 
-                <div className="whisper-message" style={{ wordWrap: 'break-word', whiteSpace: 'pre-wrap', overflowY: 'auto', maxHeight: '150px' }}>
-                  "{w.content}"
-                </div>
+                <div className="whisper-message" style={{ wordWrap: 'break-word', wordBreak: 'break-all', overflowWrap: 'anywhere', whiteSpace: 'pre-wrap', overflowY: 'auto', maxHeight: '300px' }}>
+                    "{w.content}"
+                  </div>
 
                 {w.targetUserDetails && (
                   <div className="tagged-user-card" onClick={() => navigate('/messages', { state: { openChatWith: w.targetUserDetails.username } })}>
@@ -179,9 +187,15 @@ const WhisperBoard = () => {
                     <Lock size={14} /> Reveal Sender (Premium)
                   </button>
                 )}
-              </div>
-            ))
-          )}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+          
+          <div className="scroll-notice" style={{ textAlign: 'center', color: '#a78bfa', marginTop: '15px', fontSize: '0.9rem', fontStyle: 'italic', animation: 'pulseText 2s infinite' }}>
+            Scroll up to read more whispers ✨
+          </div>
         </div>
       </div>
 
