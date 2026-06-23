@@ -2824,3 +2824,45 @@ body {
   -ms-overflow-style: none !important;
   scrollbar-width: none !important;
 }
+
+/* Refined Magical Aesthetic Card */
+.magical-glow-card {
+  position: relative;
+}
+
+/* The magical glowing smoke border */
+.magical-glow-card::before {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  border-radius: 26px;
+  background: linear-gradient(
+    120deg,
+    #8b5cf6 0%,
+    #ec4899 50%,
+    #3b82f6 100%
+  );
+  background-size: 200% 200%;
+  filter: blur(12px);
+  z-index: -1;
+  animation: magicalGlow 6s ease-in-out infinite alternate;
+}
+
+/* The subtle inner gradient of the card */
+.magical-glow-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 24px;
+  background: linear-gradient(
+    135deg,
+    rgba(30, 27, 75, 0.95) 0%,
+    rgba(15, 23, 42, 0.98) 100%
+  );
+  z-index: -1;
+}
+
+@keyframes magicalGlow {
+  0% { background-position: 0% 50%; opacity: 0.4; }
+  100% { background-position: 100% 50%; opacity: 0.8; }
+}
