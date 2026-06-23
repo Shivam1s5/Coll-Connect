@@ -133,7 +133,7 @@ const WhisperBoard = () => {
         </div>
 
         {/* Instagram Reels Style Container */}
-        <div style={{ position: 'relative', width: '100%', maxWidth: '450px', marginTop: '40px', marginBottom: '40px', flex: 1, maxHeight: '75vh', display: 'flex', flexDirection: 'column' }}>
+        <div style={{ position: 'relative', width: '100%', maxWidth: '450px', marginTop: '40px', marginBottom: '20px', flex: 1, maxHeight: '65vh', display: 'flex', flexDirection: 'column' }}>
           {/* 3D Glowing SVG Cat */}
           <svg viewBox="0 0 24 24" width="70" height="70" stroke="#c084fc" strokeWidth="1.2" fill="rgba(30, 41, 59, 0.9)" strokeLinecap="round" strokeLinejoin="round" className="live-cat" style={{ position: 'absolute', top: '-55px', left: '50%', transform: 'translateX(-50%)', zIndex: 10, animation: 'floatCat 4s ease-in-out infinite', filter: 'drop-shadow(0 0 15px rgba(192, 132, 252, 0.8))' }}>
             <path d="M12 5c.67 0 1.35.09 2 .26 1.78-2 5.03-2.84 6.42-2.26 1.4.58-.42 7-.42 7 .57 1.07 1 2.24 1 3.44C21 17.9 16.97 21 12 21s-9-3.1-9-7.56c0-1.25.5-2.4 1-3.44 0 0-1.89-6.42-.5-7 1.39-.58 4.72.23 6.5 2.23A9.04 9.04 0 0 1 12 5Z" />
@@ -172,12 +172,17 @@ const WhisperBoard = () => {
                 {w.targetUserDetails && (
                   <>
                   <div style={{ flex: '0 0 10%' }}></div>
-                  <div className="tagged-user-card" onClick={() => navigate('/messages', { state: { openChatWith: w.targetUserDetails.username } })} style={{ flex: '0 0 50%', height: '50%', display: 'flex', flexDirection: 'column', marginTop: '0' }}>
-                    <div className="tagged-banner" style={{ ...(w.targetUserDetails.bannerImage ? { backgroundImage: `url(${w.targetUserDetails.bannerImage})` } : {}), flex: '0 0 40%' }}></div>
-                    <div className="tagged-info" style={{ flex: '1', marginTop: '-25px' }}>
-                      <div className="tagged-avatar">
+                  <div className="tagged-user-card" onClick={() => navigate('/messages', { state: { openChatWith: w.targetUserDetails.username } })} style={{ flex: '0 0 50%', height: '50%', display: 'flex', flexDirection: 'column', marginTop: '0', background: 'rgba(15, 23, 42, 0.5)', backdropFilter: 'blur(12px)', border: '1px solid rgba(139, 92, 246, 0.25)', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 8px 32px rgba(0,0,0,0.2)' }}>
+                    <div className="tagged-banner" style={{ 
+                      backgroundImage: w.targetUserDetails.bannerImage ? `linear-gradient(to bottom, rgba(15, 23, 42, 0) 30%, rgba(15, 23, 42, 0.95) 100%), url(${w.targetUserDetails.bannerImage})` : `linear-gradient(to bottom, rgba(15, 23, 42, 0) 30%, rgba(15, 23, 42, 0.95) 100%), linear-gradient(to right, #4338ca, #3b82f6)`,
+                      backgroundSize: 'cover',
+                      backgroundPosition: 'center',
+                      flex: '0 0 45%' 
+                    }}></div>
+                    <div className="tagged-info" style={{ flex: '1', marginTop: '-35px', padding: '0 15px', position: 'relative', zIndex: 2 }}>
+                      <div className="tagged-avatar" style={{ border: '3px solid rgba(15, 23, 42, 0.95)', boxShadow: '0 4px 10px rgba(0,0,0,0.3)', width: '50px', height: '50px', borderRadius: '50%' }}>
                         {w.targetUserDetails.profilePic ? (
-                          <img src={w.targetUserDetails.profilePic} alt="Profile" />
+                          <img src={w.targetUserDetails.profilePic} alt="Profile" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
                         ) : (
                           w.targetUserDetails.username.charAt(0).toUpperCase()
                         )}
