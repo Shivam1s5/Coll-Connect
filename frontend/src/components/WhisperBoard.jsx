@@ -152,7 +152,7 @@ const WhisperBoard = () => {
             ) : (
               whispers.map(w => (
                 <div key={w._id} className="whisper-reel-card" style={{ height: '100%', width: '100%', scrollSnapAlign: 'start', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box' }}>
-                  <div className="whisper-card magic-border-card" style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', transformStyle: 'preserve-3d', transition: 'all 0.4s ease', margin: '0', background: 'rgba(15, 23, 42, 0.95)', border: '1px solid rgba(255, 255, 255, 0.2)', borderRadius: '24px', padding: '20px' }}>
+                  <div className="whisper-card" style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', transformStyle: 'preserve-3d', transition: 'all 0.4s ease', margin: '0', background: 'linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.98) 100%)', border: '1px solid rgba(255, 255, 255, 0.08)', boxShadow: '0 20px 40px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1)', borderRadius: '24px', padding: '20px' }}>
                 <div className="whisper-card-header" style={{ flexShrink: 0, marginBottom: '10px' }}>
                   <div className="author-info">
                     <span className="author-name">{w.authorDisplay}</span>
@@ -165,19 +165,19 @@ const WhisperBoard = () => {
                   )}
                 </div>
                 
-                <div className="whisper-message hide-scrollbar" style={{ flex: '0 0 30%', height: '30%', wordWrap: 'break-word', wordBreak: 'break-all', overflowWrap: 'anywhere', whiteSpace: 'pre-wrap', overflowY: 'scroll', fontSize: '1.1rem', lineHeight: '1.6', padding: '10px 15px', background: 'rgba(0,0,0,0.2)', borderRadius: '12px' }}>
+                <div className="whisper-message hide-scrollbar" style={{ flex: '1 1 auto', minHeight: '80px', wordWrap: 'break-word', wordBreak: 'break-all', overflowWrap: 'anywhere', whiteSpace: 'pre-wrap', overflowY: 'scroll', fontSize: '1.1rem', lineHeight: '1.6', padding: '10px 15px', background: 'rgba(0,0,0,0.2)', borderRadius: '12px' }}>
                     "{w.content}"
                   </div>
 
                 {w.targetUserDetails && (
                   <>
-                  <div style={{ flex: '0 0 5%' }}></div>
-                  <div className="tagged-user-card" onClick={() => navigate('/messages', { state: { openChatWith: w.targetUserDetails.username } })} style={{ flex: '0 0 50%', height: '50%', display: 'flex', flexDirection: 'column', marginTop: '0', background: 'rgba(15, 23, 42, 0.5)', backdropFilter: 'blur(12px)', border: '1px solid rgba(139, 92, 246, 0.25)', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 8px 32px rgba(0,0,0,0.2)' }}>
+                  <div style={{ height: '15px', flexShrink: 0 }}></div>
+                  <div className="tagged-user-card" onClick={() => navigate('/messages', { state: { openChatWith: w.targetUserDetails.username } })} style={{ flex: '0 0 160px', display: 'flex', flexDirection: 'column', background: 'rgba(15, 23, 42, 0.5)', backdropFilter: 'blur(12px)', border: '1px solid rgba(139, 92, 246, 0.25)', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 8px 32px rgba(0,0,0,0.2)' }}>
                     <div className="tagged-banner" style={{ 
                       backgroundImage: w.targetUserDetails.bannerImage ? `linear-gradient(to bottom, rgba(15, 23, 42, 0) 30%, rgba(15, 23, 42, 0.95) 100%), url(${w.targetUserDetails.bannerImage})` : `linear-gradient(to bottom, rgba(15, 23, 42, 0) 30%, rgba(15, 23, 42, 0.95) 100%), linear-gradient(to right, #4338ca, #3b82f6)`,
                       backgroundSize: 'cover',
                       backgroundPosition: 'center',
-                      flex: '0 0 45%' 
+                      flex: '0 0 70px' 
                     }}></div>
                     <div className="tagged-info" style={{ flex: '1', marginTop: '-35px', padding: '0 15px', position: 'relative', zIndex: 2 }}>
                       <div className="tagged-avatar" style={{ border: '3px solid rgba(15, 23, 42, 0.95)', boxShadow: '0 4px 10px rgba(0,0,0,0.3)', width: '50px', height: '50px', borderRadius: '50%' }}>
@@ -193,8 +193,8 @@ const WhisperBoard = () => {
                       </div>
                     </div>
                   </div>
-                  <div style={{ flex: '0 0 15%', height: '15%', display: 'flex', justifyContent: 'center', alignItems: 'flex-end', paddingBottom: '5px' }}>
-                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#c084fc" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ filter: 'drop-shadow(0 0 8px #c084fc)', animation: 'floatCat 1.5s ease-in-out infinite' }}>
+                  <div style={{ flex: '0 0 40px', display: 'flex', justifyContent: 'center', alignItems: 'flex-end', paddingTop: '10px' }}>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ filter: 'drop-shadow(0 0 4px rgba(255,255,255,0.2))', animation: 'floatCat 1.5s ease-in-out infinite' }}>
                       <path d="M18 15l-6-6-6 6"/>
                     </svg>
                   </div>

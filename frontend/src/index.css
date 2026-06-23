@@ -2824,26 +2824,3 @@ body {
   -ms-overflow-style: none !important;
   scrollbar-width: none !important;
 }
-
-/* Magical Smoke Border for Whisper Card */
-.magic-border-card {
-  position: relative;
-  box-sizing: border-box !important;
-}
-
-.magic-border-card::before {
-  content: "";
-  position: absolute;
-  inset: -2px;
-  border-radius: 26px;
-  background: linear-gradient(60deg, rgba(255,255,255,0.1), rgba(226, 232, 240, 0.6), rgba(192, 132, 252, 0.4), rgba(255,255,255,0.1));
-  background-size: 300% 300%;
-  z-index: -1;
-  filter: blur(8px);
-  animation: magicSmoke 4s ease-in-out infinite alternate;
-}
-
-@keyframes magicSmoke {
-  0% { background-position: 0% 50%; }
-  100% { background-position: 100% 50%; }
-}
