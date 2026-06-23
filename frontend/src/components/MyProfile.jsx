@@ -62,7 +62,16 @@ const MyProfile = () => {
       }
     };
     socket.on('profile-updated', handleProfileUpdated);
-    return () => socket.off('profile-updated', handleProfileUpdated);
+    socket.on('user-role-changed', handleProfileUpdated);
+    socket.on('user-promoted', handleProfileUpdated);
+    socket.on('user-demoted', handleProfileUpdated);
+    
+    return () => {
+      socket.off('profile-updated', handleProfileUpdated);
+      socket.off('user-role-changed', handleProfileUpdated);
+      socket.off('user-promoted', handleProfileUpdated);
+      socket.off('user-demoted', handleProfileUpdated);
+    };
   }, [socket, authUser]);
 
   const fetchProfile = async () => {
