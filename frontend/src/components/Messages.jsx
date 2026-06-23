@@ -814,19 +814,17 @@ const Messages = () => {
                           {msg.text && <p style={{ margin: 0, fontSize: '0.95rem', lineHeight: '1.4', whiteSpace: 'pre-wrap' }}>{renderFormattedText(msg.text)}</p>}
                         </div>
 
-                        <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '8px', marginTop: '6px', flexWrap: 'wrap' }}>
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '6px', marginTop: '6px' }}>
                           {msg.isTimeCapsule && currentTime < new Date(msg.deliverAt) && (
                             <div 
-                              style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'rgba(251, 191, 36, 0.15)', padding: '3px 8px', borderRadius: '12px', border: '1px solid rgba(251, 191, 36, 0.3)' }} 
+                              style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }} 
+                              onClick={() => showToast(`This Time Capsule unlocks at: ${new Date(msg.deliverAt).toLocaleString()}`)}
                               title={`Unlocks at: ${new Date(msg.deliverAt).toLocaleString()}`}
                             >
-                              <Lock size={10} color="#fbbf24" style={{ filter: 'drop-shadow(0 0 2px rgba(251, 191, 36, 0.6))' }} />
-                              <span style={{ fontSize: '0.6rem', color: '#fbbf24', fontWeight: '600', letterSpacing: '0.5px' }}>
-                                {new Date(msg.deliverAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                              </span>
+                              <Lock size={12} color="#fbbf24" style={{ filter: 'drop-shadow(0 0 4px rgba(251, 191, 36, 0.6))' }} />
                             </div>
                           )}
-                          <span style={{ fontSize: '0.65rem', color: isMe ? '#bfdbfe' : '#9ca3af', opacity: 0.9 }}>
+                          <span style={{ fontSize: '0.65rem', color: isMe ? '#bfdbfe' : '#9ca3af' }}>
                             {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                           </span>
                         </div>
