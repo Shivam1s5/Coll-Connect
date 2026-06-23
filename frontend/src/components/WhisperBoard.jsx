@@ -152,7 +152,7 @@ const WhisperBoard = () => {
             ) : (
               whispers.map(w => (
                 <div key={w._id} className="whisper-reel-card" style={{ height: '100%', width: '100%', scrollSnapAlign: 'start', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box' }}>
-                  <div className="whisper-card" style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', transformStyle: 'preserve-3d', transition: 'all 0.4s ease', margin: '0', background: 'rgba(255, 255, 255, 0.03)', border: '1px solid rgba(255, 255, 255, 0.15)', boxShadow: '0 0 25px rgba(255, 255, 255, 0.08)', borderRadius: '24px', padding: '20px' }}>
+                  <div className="whisper-card magic-border-card" style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', transformStyle: 'preserve-3d', transition: 'all 0.4s ease', margin: '0', background: 'rgba(15, 23, 42, 0.95)', border: '1px solid rgba(255, 255, 255, 0.2)', borderRadius: '24px', padding: '20px' }}>
                 <div className="whisper-card-header" style={{ flexShrink: 0, marginBottom: '10px' }}>
                   <div className="author-info">
                     <span className="author-name">{w.authorDisplay}</span>
