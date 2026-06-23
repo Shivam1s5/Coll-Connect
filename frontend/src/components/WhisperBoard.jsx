@@ -105,11 +105,13 @@ const WhisperBoard = () => {
   };
 
   return (
-    <div className="whisper-board-container" style={{ backgroundImage: "url('/moonlit-forest.png')", backgroundSize: 'cover', backgroundPosition: 'center', backgroundAttachment: 'fixed', minHeight: '100vh', animation: 'panBackground 30s infinite alternate ease-in-out' }}>
-      {/* Live Moonlit Stars Background */}
+    <div className="whisper-board-container" style={{ background: 'linear-gradient(to bottom, #020617, #0f172a, #1e1b4b)', width: '100vw', height: '100vh', overflow: 'hidden', position: 'relative' }}>
+      {/* Live Moonlit Stars Background (Pure CSS) */}
       <div className="stars-bg"></div>
+      <div className="css-moon"></div>
+      <div className="css-forest"></div>
       
-      <div className="whisper-board-content custom-scrollbar" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', maxWidth: '800px', margin: '0 auto', padding: '20px' }}>
+      <div className="whisper-board-content" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', maxWidth: '800px', margin: '0 auto', padding: '10px 20px', height: '100%', overflowY: 'hidden', position: 'relative', zIndex: 2 }}>
         <div className="whisper-header">
           <h1 className="whisper-title">Whisper Board 🤫</h1>
           <p className="whisper-subtitle">Anonymously drop a compliment or confess your thoughts about someone.</p>
@@ -131,11 +133,16 @@ const WhisperBoard = () => {
         </div>
 
         {/* Instagram Reels Style Container */}
-        <div style={{ position: 'relative', width: '100%', maxWidth: '500px', marginTop: '20px' }}>
-          {/* 3D Live Cat */}
-          <img src="/cute_cat.png" alt="Live Cat" className="live-cat" style={{ position: 'absolute', top: '-60px', left: '50%', transform: 'translateX(-50%)', width: '100px', zIndex: 10, animation: 'floatCat 4s ease-in-out infinite' }} />
+        <div style={{ position: 'relative', width: '100%', maxWidth: '450px', marginTop: '10px', flex: 1, maxHeight: '75vh', display: 'flex', flexDirection: 'column' }}>
+          {/* 3D Glowing SVG Cat */}
+          <svg viewBox="0 0 24 24" width="70" height="70" stroke="#c084fc" strokeWidth="1.2" fill="rgba(30, 41, 59, 0.9)" strokeLinecap="round" strokeLinejoin="round" className="live-cat" style={{ position: 'absolute', top: '-55px', left: '50%', transform: 'translateX(-50%)', zIndex: 10, animation: 'floatCat 4s ease-in-out infinite', filter: 'drop-shadow(0 0 15px rgba(192, 132, 252, 0.8))' }}>
+            <path d="M12 5c.67 0 1.35.09 2 .26 1.78-2 5.03-2.84 6.42-2.26 1.4.58-.42 7-.42 7 .57 1.07 1 2.24 1 3.44C21 17.9 16.97 21 12 21s-9-3.1-9-7.56c0-1.25.5-2.4 1-3.44 0 0-1.89-6.42-.5-7 1.39-.58 4.72.23 6.5 2.23A9.04 9.04 0 0 1 12 5Z" />
+            <path d="M8 14v.5" />
+            <path d="M16 14v.5" />
+            <path d="M11.25 16.25h1.5L12 17l-.75-.75Z" />
+          </svg>
           
-          <div className="reels-container" style={{ height: '550px', width: '100%', overflowY: 'scroll', scrollSnapType: 'y mandatory', borderRadius: '20px', perspective: '1000px', boxShadow: '0 0 30px rgba(0,0,0,0.5)', background: 'rgba(0,0,0,0.2)', backdropFilter: 'blur(5px)', border: '1px solid rgba(255,255,255,0.1)' }}>
+          <div className="reels-container" style={{ flex: 1, width: '100%', overflowY: 'scroll', scrollSnapType: 'y mandatory', borderRadius: '24px', perspective: '1000px', boxShadow: '0 0 40px rgba(0,0,0,0.6)', background: 'rgba(15, 23, 42, 0.4)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.05)' }}>
             {isLoading ? (
               <p style={{ textAlign: 'center', width: '100%', color: '#9ca3af', marginTop: '50px' }}>Loading whispers...</p>
             ) : whispers.length === 0 ? (
@@ -144,8 +151,8 @@ const WhisperBoard = () => {
               </div>
             ) : (
               whispers.map(w => (
-                <div key={w._id} className="whisper-reel-card" style={{ height: '100%', width: '100%', scrollSnapAlign: 'start', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', boxSizing: 'border-box' }}>
-                  <div className="whisper-card" style={{ width: '100%', maxHeight: '100%', overflowY: 'auto', transformStyle: 'preserve-3d', transition: 'transform 0.3s', margin: '0' }}>
+                <div key={w._id} className="whisper-reel-card" style={{ height: '100%', width: '100%', scrollSnapAlign: 'start', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '15px', boxSizing: 'border-box' }}>
+                  <div className="whisper-card" style={{ width: '100%', maxHeight: '100%', overflowY: 'auto', transformStyle: 'preserve-3d', transition: 'all 0.4s ease', margin: '0', background: 'transparent', border: 'none', boxShadow: 'none' }}>
                 <div className="whisper-card-header">
                   <div className="author-info">
                     <span className="author-name">{w.authorDisplay}</span>
@@ -158,7 +165,7 @@ const WhisperBoard = () => {
                   )}
                 </div>
                 
-                <div className="whisper-message" style={{ wordWrap: 'break-word', wordBreak: 'break-all', overflowWrap: 'anywhere', whiteSpace: 'pre-wrap', overflowY: 'auto', maxHeight: '300px' }}>
+                <div className="whisper-message custom-scrollbar" style={{ wordWrap: 'break-word', wordBreak: 'break-all', overflowWrap: 'anywhere', whiteSpace: 'pre-wrap', overflowY: 'auto', maxHeight: '50vh', fontSize: '1.1rem', lineHeight: '1.6', padding: '10px 15px', background: 'rgba(0,0,0,0.2)', borderRadius: '12px' }}>
                     "{w.content}"
                   </div>
 
