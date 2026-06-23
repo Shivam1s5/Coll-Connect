@@ -906,15 +906,20 @@ const Messages = () => {
                     
                     {!isRecording && (
                       <div style={{ display: 'flex', alignItems: 'center', paddingRight: '8px' }}>
-                        <div ref={timeCapsuleRef} style={{ display: 'flex', alignItems: 'center' }}>
+                        <div ref={timeCapsuleRef} style={{ display: 'flex', alignItems: 'center', position: 'relative' }}>
                           {isTimeCapsule && (
-                            <input 
-                              type="datetime-local" 
-                              value={deliverAt} 
-                              onChange={(e) => setDeliverAt(e.target.value)} 
-                              style={{ background: '#1f2937', color: '#f3f4f6', border: '1px solid #4b5563', borderRadius: '8px', padding: '4px 8px', outline: 'none', fontSize: '0.8rem', marginRight: '8px', colorScheme: 'dark' }}
-                              required
-                            />
+                            <div style={{ position: 'absolute', bottom: '100%', right: '0', marginBottom: '15px', background: '#1f2937', border: '1px solid #374151', borderRadius: '12px', padding: '12px', display: 'flex', flexDirection: 'column', gap: '8px', boxShadow: '0 10px 25px rgba(0,0,0,0.5)', zIndex: 100, minWidth: '200px' }}>
+                              <span style={{fontSize: '0.85rem', color: '#10b981', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '6px'}}>
+                                <Clock size={14} /> Time Capsule
+                              </span>
+                              <input 
+                                type="datetime-local" 
+                                value={deliverAt} 
+                                onChange={(e) => setDeliverAt(e.target.value)} 
+                                style={{ background: '#111827', color: '#f3f4f6', border: '1px solid #4b5563', borderRadius: '8px', padding: '8px 10px', outline: 'none', fontSize: '0.85rem', colorScheme: 'dark', width: '100%', boxSizing: 'border-box' }}
+                                required
+                              />
+                            </div>
                           )}
                           <button type="button" onClick={() => setIsTimeCapsule(!isTimeCapsule)} style={{ background: 'transparent', border: 'none', color: isTimeCapsule ? '#10b981' : '#9ca3af', cursor: 'pointer', padding: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }} title="Send as Time Capsule">
                             <Clock size={20} />
