@@ -24,11 +24,11 @@ const WhisperBoard = () => {
   const [revealedWhispers, setRevealedWhispers] = useState({});
 
   const toggleReveal = (id) => {
-    if (user?.role !== 'superadmin') {
-      showToast('Purchase Premium to reveal secret admirer! (Coming Soon ✨)');
-      return;
+    if (user?.role === 'superadmin' || user?.isPremium) {
+      setRevealedWhispers(prev => ({ ...prev, [id]: !prev[id] }));
+    } else {
+      showToast('Unlock Premium to reveal your Secret Admirers! 🌟 (Coming Soon)');
     }
-    setRevealedWhispers(prev => ({ ...prev, [id]: !prev[id] }));
   };
 
   const fetchWhispers = async (query = '') => {
@@ -167,19 +167,39 @@ const WhisperBoard = () => {
                   <div className="author-info" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <span className="author-name">
                       {w.isAnonymous ? (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          {user?.role === 'superadmin' ? (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          {(user?.role === 'superadmin' || user?.isPremium) ? (
                             <>
-                              {revealedWhispers[w._id] ? w.realAuthor : w.authorDisplay}
-                              <button onClick={() => toggleReveal(w._id)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center', color: '#c084fc' }} title="Reveal Secret Admirer">
-                                {revealedWhispers[w._id] ? <EyeOff size={14} /> : <Eye size={14} />}
+                              <span style={(!revealedWhispers[w._id]) ? {
+                                background: 'linear-gradient(to right, #fbbf24, #f59e0b)',
+                                WebkitBackgroundClip: 'text',
+                                WebkitTextFillColor: 'transparent',
+                                fontWeight: '700',
+                                fontStyle: 'italic',
+                                filter: 'drop-shadow(0 0 8px rgba(245, 158, 11, 0.4))',
+                                letterSpacing: '0.5px'
+                              } : {}}>
+                                {revealedWhispers[w._id] ? w.realAuthor : w.authorDisplay}
+                              </span>
+                              <button onClick={() => toggleReveal(w._id)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center', color: '#fbbf24', filter: 'drop-shadow(0 0 6px rgba(251, 191, 36, 0.6))' }} title="Reveal Secret Admirer">
+                                {revealedWhispers[w._id] ? <EyeOff size={16} /> : <Eye size={16} />}
                               </button>
                             </>
                           ) : (
                             <>
-                              {w.authorDisplay}
-                              <button onClick={() => toggleReveal(w._id)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center', color: '#9ca3af' }} title="Premium feature locked">
-                                <Lock size={14} />
+                              <span style={{
+                                background: 'linear-gradient(to right, #fbbf24, #f59e0b)',
+                                WebkitBackgroundClip: 'text',
+                                WebkitTextFillColor: 'transparent',
+                                fontWeight: '700',
+                                fontStyle: 'italic',
+                                filter: 'drop-shadow(0 0 8px rgba(245, 158, 11, 0.4))',
+                                letterSpacing: '0.5px'
+                              }}>
+                                {w.authorDisplay}
+                              </span>
+                              <button onClick={() => toggleReveal(w._id)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center', color: '#fbbf24', filter: 'drop-shadow(0 0 8px rgba(251, 191, 36, 0.8))' }} title="Purchase Premium to reveal!">
+                                <Lock size={16} />
                               </button>
                             </>
                           )}
@@ -233,12 +253,7 @@ const WhisperBoard = () => {
                   </>
                 )}
 
-                {/* Premium Unlock Button logic */}
-                {w.isAnonymous && w.targetUser === user?.username && user?.role !== 'superadmin' && (
-                  <button className="premium-reveal-btn" onClick={() => showToast('Premium feature coming soon!')}>
-                    <Lock size={14} /> Reveal Sender (Premium)
-                  </button>
-                )}
+
                   </div>
                 </div>
               ))

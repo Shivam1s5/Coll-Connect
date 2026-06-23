@@ -46,10 +46,10 @@ router.get('/whispers', authMiddleware, async (req, res) => {
       // Handle Anonymity
       if (w.isAnonymous) {
         whisperObj.isAnonymous = true;
-        // Superadmin sees everything
-        if (dbUser && dbUser.role === 'superadmin') {
+        // Superadmin and Premium users can reveal
+        if (dbUser && (dbUser.role === 'superadmin' || dbUser.isPremium)) {
           whisperObj.authorDisplay = 'Secret Admirer';
-          whisperObj.realAuthor = w.author; // Send real author for superadmin to reveal
+          whisperObj.realAuthor = w.author; // Send real author for superadmin/premium to reveal
         } else {
           whisperObj.authorDisplay = 'Secret Admirer';
           // Do NOT send the real author to the frontend unless superadmin
